@@ -17,7 +17,7 @@ jobs:
           if: github.ref == 'refs/heads/main'
           uses: 'google-github-actions/auth@v1'
           with:
-            credentials: ${{ secrets.PRODUCTION_CREDENTIALS }}
+            credentials_json: ${{ secrets.PRODUCTION_CREDENTIALS_JSON }}
         
         - name: 'Set up Cloud SDK'
           uses: 'google-github-actions/setup-gcloud@v1'
@@ -25,7 +25,7 @@ jobs:
             version: '>= 363.0.0'
         
         - name: Set Google Application Credentials
-          run: echo 'GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.PRODUCTION_CREDENTIALS }}' >> $GITHUB_ENV
+          run: echo 'GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.PRODUCTION_CREDENTIALS_JSON }}' >> $GITHUB_ENV
         
         - name: Deploy To App Engine (Production)
           if: github.ref == 'refs/heads/main'
@@ -33,4 +33,3 @@ jobs:
           with:
             deliverables: app.yaml
             version: v1
-            credentials: '${{ secrets.PRODUCTION_CREDENTIALS }}'
