@@ -1,6 +1,6 @@
 # Kai - AI Backend
 
-This
+This is the backend for the Kai AI chatbot.
 
 ## Getting Started
 
