@@ -24,6 +24,9 @@ jobs:
           with:
             version: '>= 363.0.0'
         
+        - name: Set Google Application Credentials
+          run: echo 'GOOGLE_APPLICATION_CREDENTIALS=${{ secrets.PRODUCTION_CREDENTIALS }}' >> $GITHUB_ENV
+        
         - name: Deploy To App Engine (Production)
           if: github.ref == 'refs/heads/main'
           uses: 'google-github-actions/deploy-appengine@v0.2.0'
