@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from langchain_google_vertexai import VertexAI
+from fastapi import UploadFile, File
+from typing import List
 
 router = APIRouter()
 
@@ -7,9 +8,8 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-@router.post("/test-gcp")
-def test_llm(request: str):
-    model = VertexAI(model_name="gemini-1.0-pro")
-    message = request
-    response = model.invoke(message)
-    return {"message": response}
+@router.post("/test-quizzify")
+async def test_quizzify(upload_files: List[UploadFile] = File(...)):
+    import features.quizzify.core as quizzify
+    
+    return quizzify.executor(upload_files)

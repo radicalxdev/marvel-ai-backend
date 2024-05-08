@@ -3,3 +3,5 @@ uvicorn[standard]
 langchain
 langchain-core
 langchain-google-vertexai
+chroma
+pypdf2
