@@ -8,6 +8,10 @@ on:
 jobs:
     deploy:
         runs-on: ubuntu-latest
+
+        env: 
+          PROJECT_ID: kai-ai-f63c8
+          ENV_TYPE: sandbox
     
         steps:
         - name: Checkout
