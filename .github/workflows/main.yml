@@ -28,9 +28,11 @@ jobs:
         # Dynamically Update app.yaml
         - name: Update app.yaml
           run: |
+            echo "" >> app/app.yaml
             echo "env_variables:" >> app/app.yaml
             echo "  ENV_TYPE: '${{ env.ENV_TYPE }}'" >> app/app.yaml
             echo "  PROJECT_ID: '${{ env.PROJECT_ID }}'" >> app/app.yaml
+
 
         - name: 'Set up Cloud SDK'
           uses: 'google-github-actions/setup-gcloud@v1'
