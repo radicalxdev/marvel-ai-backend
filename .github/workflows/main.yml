@@ -3,26 +3,35 @@ name: Deploy to Google App Engine
 on:
     push:
         branches:
-            - main # Trigger workflow for prod
+            - main # Trigger workflow 
 
 jobs:
     deploy:
         runs-on: ubuntu-latest
-
-        env: 
-          PROJECT_ID: kai-ai-f63c8
-          ENV_TYPE: sandbox
     
         steps:
         - name: Checkout
           uses: actions/checkout@v2
         
-        - name: GCP Auth for Production
+        # Set env variables based on branch
+        - name: Set Environment Variables for Production
           if: github.ref == 'refs/heads/main'
+          run: |
+            echo "ENV_TYPE=production" >> $GITHUB_ENV
+            echo "PROJECT_ID=kai-ai-f63c8" >> $GITHUB_ENV
+        
+        - name: GCP Auth
           uses: 'google-github-actions/auth@v1'
           with:
             credentials_json: ${{ secrets.PRODUCTION_CREDENTIALS_JSON }}
         
+        # Dynamically Update app.yaml
+        - name: Update app.yaml
+          run: |
+            echo "env_variables:" >> app/app.yaml
+            echo "  ENV_TYPE: '${{ env.ENV_TYPE }}'" >> app/app.yaml
+            echo "  PROJECT_ID: '${{ env.PROJECT_ID }}'" >> app/app.yaml
+
         - name: 'Set up Cloud SDK'
           uses: 'google-github-actions/setup-gcloud@v1'
           with:
