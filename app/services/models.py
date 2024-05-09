@@ -4,13 +4,14 @@ from pydantic import Field
 from enum import Enum
 
 class User(BaseModel):
-    name: str
+    id: str
+    fullName: str
     email: str
-    password: str
     
 class Role(str, Enum):
-    user = "user"
-    assistant = "assistant"
+    human = "human"
+    ai = "ai"
+    system = "system"
 
 class MessageType(str, Enum):
     text = "text"
@@ -19,22 +20,30 @@ class MessageType(str, Enum):
     file = "file"
 
 class MessagePayload(BaseModel):
-    content: str
+    text: str
+
+class Input(BaseModel):
+    name: str 
+    value: Any 
 
 class Tool(BaseModel):
     id: int
-    name: str
-    description: str
+    inputs: List[Input]
 
 class Message(BaseModel):
   role: Role
   type: MessageType
   timestamp: Optional[Any] = None
-  payload: Optional[Any] = None
+  payload: MessagePayload
     
-class ChatRequest(BaseModel):
-    user: User
-    tool: Tool
+class Type(str, Enum):
+    chat = "chat"
+    tool = "tool"
+
+class ChatRequest(BaseModel): # make utility func
+    user: User # if Tool, ensure a Tool prop is sent
+    type: Type # If type is chat, validate the payload to ensure messages are present
+    tool: Optional[Tool] = Field(default = None)
     messages: Optional[List[Message]] = Field(default = None)
     
 class ChatResponse(BaseModel):
