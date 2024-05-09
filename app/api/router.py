@@ -1,5 +1,10 @@
-from fastapi import APIRouter
-from langchain_google_vertexai import VertexAI
+from fastapi import APIRouter, UploadFile, File, Request, Depends
+from typing import List
+from services.gcp import setup_logger
+from services.models import ChatRequest
+from utils.auth import key_check
+
+logger = setup_logger()
 
 router = APIRouter()
 
@@ -7,9 +12,12 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-@router.post("/test-gcp")
-def test_llm(request: str):
-    model = VertexAI(model_name="gemini-1.0-pro")
-    message = request
-    response = model.invoke(message)
-    return {"message": response}
+@router.post("/test")
+async def test(data: ChatRequest, _ = Depends(key_check) ):
+    return {"message": "success", "data": data.model_dump()}
+
+@router.post("/test-quizzify")
+async def test_quizzify(topic: str, upload_files: List[UploadFile] = File(...)):
+    import features.quizzify.core as quizzify
+    
+    return quizzify.executor(upload_files, topic)

@@ -3,3 +3,11 @@ uvicorn[standard]
 langchain
 langchain-core
 langchain-google-vertexai
+langchain_chroma
+google-cloud-secret-manager
+google-cloud-logging
+google-auth
+google-cloud-storage
+firebase-admin
+chroma
+pypdf2
