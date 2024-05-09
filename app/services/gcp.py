@@ -39,12 +39,12 @@ def delete_from_gcs(bucket_name: str, blob_name: str):
     
     blob.delete()
 
-def setup_logger(name = __name__):
+def setup_logger(name=__name__):
     """
     Sets up a logger based on the environment.
 
-    If the environment variable ENV_TYPE is set to 'sandbox', it configures
-    Google Cloud Logging. Otherwise, it sets up a standard logger.
+    If the environment variable ENV_TYPE is set to 'sandbox' or 'production', it configures
+    Google Cloud Logging. Otherwise, it returns an error.
 
     Parameters:
     name (str): The name of the logger.
@@ -52,27 +52,35 @@ def setup_logger(name = __name__):
     Returns:
     logging.Logger: Configured logger.
     """
-    env_type = os.environ.get('ENV_TYPE')
-    project = os.environ.get('PROJECT_ID')
+    env_type = os.environ.get('ENV_TYPE', 'undefined')
+    project = os.environ.get('PROJECT_ID', 'undefined')
 
-    # Configure Google Cloud Logging for sandbox environment
-    if env_type == 'sandbox' or env_type == 'production':
-        # Instantiates a client for Google Cloud Logging
-        logging_client = cloud_logging.Client(project = project)
-        # Retrieves a Cloud Logging handler based on the environment you're running in
-        cloud_logging_handler = logging_client.get_default_handler()
-        cloud_logger = logging.getLogger(name)
-        cloud_logger.setLevel(logging.INFO)
-        cloud_logger.addHandler(cloud_logging_handler)
-        
-        formatter = logging.Formatter(f'%(asctime)s - {env_type} - %(name)s - %(levelname)s - %(message)s')
-        for handler in cloud_logger.handlers:
-            handler.setFormatter(formatter)
+    # Log the attempt to establish the logger
+    print(f"Attempting to establish logger for {env_type} environment in project: {project}")
 
-        return cloud_logger
+    if env_type in ['sandbox', 'production']:
+        try:
+            # Instantiates a client for Google Cloud Logging
+            logging_client = cloud_logging.Client(project=project)
+            # Retrieves a Cloud Logging handler based on the environment you're running in
+            cloud_logging_handler = logging_client.get_default_handler()
+            cloud_logger = logging.getLogger(name)
+            cloud_logger.setLevel(logging.INFO)
+            cloud_logger.addHandler(cloud_logging_handler)
+            
+            formatter = logging.Formatter(f'%(asctime)s - {env_type} - %(name)s - %(levelname)s - %(message)s')
+            for handler in cloud_logger.handlers:
+                handler.setFormatter(formatter)
+
+            print(f"ESTABLISHED CLOUD LOGGER: {env_type} for project: {project}")
+            return cloud_logger
+        except Exception as e:
+            print(f"Failed to configure Google Cloud Logging: {str(e)}")
+            return logging.getLogger(name)  # Return a default logger if GCL fails
     else:
-        print(env_type)
-        return Exception("Invalid environment type")
+        error_message = f"Invalid environment type: {env_type}. Logger not configured."
+        print(error_message)
+        return Exception(error_message)
 
 def access_secret_file(secret_id, version_id="latest"):
     """
