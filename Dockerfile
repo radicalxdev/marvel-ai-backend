@@ -11,5 +11,7 @@ COPY ./app /app
 
 # Local development key set
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json 
+ENV ENV_TYPE="sandbox"
+ENV PROJECT_ID="kai-ai-f63c8"
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

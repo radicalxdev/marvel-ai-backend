@@ -1,24 +1,28 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from pydantic import Field
+from enum import Enum
 
 class User(BaseModel):
     name: str
     email: str
     password: str
     
-class Role(BaseModel):
-    name: str
-    description: str
+class Role(str, Enum):
+    user = "user"
+    assistant = "assistant"
 
-class MessageType(BaseModel):
-    name: str
-    description: str
+class MessageType(str, Enum):
+    text = "text"
+    image = "image"
+    video = "video"
+    file = "file"
 
 class MessagePayload(BaseModel):
     content: str
 
-class Feature(BaseModel):
+class Tool(BaseModel):
+    id: int
     name: str
     description: str
 
@@ -30,10 +34,10 @@ class Message(BaseModel):
     
 class ChatRequest(BaseModel):
     user: User
-    feature: Feature
+    tool: Tool
     messages: Optional[List[Message]] = Field(default = None)
     
 class ChatResponse(BaseModel):
     user: User
-    feature: Feature
+    feature: Tool
     messages: List[Message]
