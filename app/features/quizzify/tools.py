@@ -18,3 +18,4 @@ class UploadPDFLoader(BaseLoader):
             )
             documents.append(doc)
         return documents
+
