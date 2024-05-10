@@ -47,6 +47,7 @@ class ChatRequest(BaseModel): # make utility func
     messages: Optional[List[Message]] = Field(default = None)
     
 class ChatResponse(BaseModel):
-    user: User
-    feature: Tool
-    messages: List[Message]
+    data: List[Message]
+
+class ToolResponse(BaseModel):
+    data: Any
