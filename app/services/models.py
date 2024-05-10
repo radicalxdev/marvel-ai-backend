@@ -1,5 +1,6 @@
-from pydantic import BaseModel
-from typing import Optional, List, Any
+from pydantic import BaseModel, field_validator
+from fastapi import UploadFile
+from typing import Optional, List, Any, Union
 from pydantic import Field
 from enum import Enum
 
@@ -22,13 +23,17 @@ class MessageType(str, Enum):
 class MessagePayload(BaseModel):
     text: str
 
-class Input(BaseModel):
+class HTMLInput(BaseModel):
     name: str 
-    value: Any 
+    value: Any = None # for non-file data
+    file: Optional[UploadFile] = None # for file uploads
+    
+    class ConfigDict:
+        arbitrary_types_allowed = True # Allow UploadFile from fastapi
 
 class Tool(BaseModel):
     id: int
-    inputs: List[Input]
+    inputs: List[HTMLInput]
 
 class Message(BaseModel):
   role: Role
@@ -50,4 +55,4 @@ class ChatResponse(BaseModel):
     data: List[Message]
 
 class ToolResponse(BaseModel):
-    data: Any
+    data: List[Tool]
