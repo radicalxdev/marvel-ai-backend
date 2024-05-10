@@ -17,7 +17,7 @@ async def test(data: ChatRequest, _ = Depends(key_check) ):
     return {"message": "success", "data": data.model_dump()}
 
 @router.post("/test-quizzify")
-async def test_quizzify(topic: str, upload_files: List[UploadFile] = File(...)):
+async def test_quizzify(topic: str, num_questions: int, upload_files: List[UploadFile] = File(...)):
     import features.quizzify.core as quizzify
     
-    return quizzify.executor(upload_files, topic)
+    return quizzify.executor(upload_files, topic, num_questions)

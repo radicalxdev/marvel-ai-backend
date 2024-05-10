@@ -1,6 +1,7 @@
 from google.cloud import storage, secretmanager
 from google.cloud import logging as cloud_logging
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
+import json
 import os
 import logging
 
@@ -87,8 +88,60 @@ def access_secret_file(secret_id, version_id="latest"):
     Access a secret file in Google Cloud Secret Manager and parse it.
     """
     project_id = os.environ.get('PROJECT_ID')
-    print(f"Project ID: {project_id}")
     client = secretmanager.SecretManagerServiceClient()
     name = f"projects/{project_id}/secrets/{secret_id}/versions/{version_id}"
     response = client.access_secret_version(name=name)
     return response.payload.data.decode("UTF-8")
+
+def read_blob_to_string(bucket_name, file_path):
+    storage_client = storage.Client()
+
+    try: 
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(file_path)
+        content = blob.download_as_bytes()
+        
+        return content.decode("utf-8")  # Decode the byte string
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Request not found: {e}")
+  
+def read_json_blob(bucket_name=None, blob_name=None, credentials_path=None):
+    """
+    Reads the content of a JSON blob from Google Cloud Storage and returns it as a Python dictionary.
+
+    Parameters:
+    bucket_name (str, optional): The name of the GCS bucket. Defaults to the BUCKET_NAME environment variable if not provided.
+    blob_name (str, optional): The name of the blob (file) to read. Defaults to the BLOB_NAME environment variable if not provided.
+    credentials_path (str, optional): The path to the service account JSON file for GCS authentication. If not provided, defaults to the credentials configured in the environment.
+
+    Returns:
+    dict: The content of the JSON file.
+
+    Raises:
+    HTTPException: If the blob is not found or if there's an error in reading the blob.
+    """
+    # Use environment variables if parameters are not provided
+    bucket_name = bucket_name or os.environ.get('BUCKET_NAME')
+    blob_name = blob_name or os.environ.get('BLOB_NAME')
+
+    if not bucket_name or not blob_name:
+        raise ValueError("Bucket name and Blob name must be provided")
+
+    try:
+        # If you are not using the environment variable for credentials
+        if credentials_path:
+            storage_client = storage.Client.from_service_account_json(credentials_path)
+        else:
+            storage_client = storage.Client()
+
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(blob_name)
+        content = blob.download_as_bytes()
+
+        # Parse the JSON content
+        return json.loads(content.decode("utf-8"))
+    
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="JSON file not found in the bucket.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An error occurred while reading the blob: {str(e)}")
