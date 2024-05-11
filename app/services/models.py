@@ -1,52 +1,54 @@
 from pydantic import BaseModel
-from typing import Optional, List, Any
+from typing import Optional, List, Text, Any
 from pydantic import Field
-from enum import Enum
 
 class User(BaseModel):
-    id: str
-    fullName: str
+    name: str
     email: str
+    password: str
     
-class Role(str, Enum):
-    human = "human"
-    ai = "ai"
-    system = "system"
+class Role(BaseModel):
+    name: str
+    description: str
 
-class MessageType(str, Enum):
-    text = "text"
-    image = "image"
-    video = "video"
-    file = "file"
+class MessageType(BaseModel):
+    name: str
+    description: str
 
 class MessagePayload(BaseModel):
-    text: str
+    content: str
 
-class Input(BaseModel):
-    name: str 
-    value: Any 
-
-class Tool(BaseModel):
-    id: int
-    inputs: List[Input]
+class Feature(BaseModel):
+    name: str
+    description: str
 
 class Message(BaseModel):
   role: Role
   type: MessageType
   timestamp: Optional[Any] = None
-  payload: MessagePayload
+  payload: Optional[Any] = None
     
-class Type(str, Enum):
-    chat = "chat"
-    tool = "tool"
-
-class ChatRequest(BaseModel): # make utility func
-    user: User # if Tool, ensure a Tool prop is sent
-    type: Type # If type is chat, validate the payload to ensure messages are present
-    tool: Optional[Tool] = Field(default = None)
+class ChatRequest(BaseModel):
+    user: User
+    feature: Feature
     messages: Optional[List[Message]] = Field(default = None)
     
 class ChatResponse(BaseModel):
     user: User
-    feature: Tool
+    feature: Feature
     messages: List[Message]
+
+class ChatRequest(BaseModel):
+    message_id: Optional[str] = None
+    query: str
+    image: Optional[bool] = False
+    image_url: Optional[str] = None
+
+
+class ChatResponse(BaseModel):
+    response: Text
+
+class ChatRequest(BaseModel):
+    user_id: str
+    user_name: str
+    user_query: str
