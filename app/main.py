@@ -10,9 +10,11 @@ logger = setup_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Application startup")
+    #logger.info("Application startup")
+    print("Application startup")
     yield
-    logger.info("Application shutdown")
+    #logger.info("Application shutdown")
+    print(f"Application shutdown")
 
 app = FastAPI(lifespan = lifespan)
 app.add_middleware(
@@ -34,7 +36,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         logger.error(error_detail)  # Log the error details
 
     # Log the incoming request details
-    logger.info(f"Incoming request: {request.method} {request.url}")
+    # logger.info(f"Incoming request: {request.method} {request.url}")
 
     return JSONResponse(
         status_code=422,
