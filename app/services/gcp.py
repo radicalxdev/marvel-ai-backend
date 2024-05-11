@@ -78,6 +78,9 @@ def setup_logger(name=__name__):
         except Exception as e:
             print(f"Failed to configure Google Cloud Logging: {str(e)}")
             return logging.getLogger(name)  # Return a default logger if GCL fails
+    elif env_type == 'dev':
+        print("ESTABLISHED STANDARD LOGGER for dev environment")
+        return logging.getLogger(name)  # Return a standard logger for 'dev' environment
     else:
         error_message = f"Invalid environment type: {env_type}. Logger not configured."
         print(error_message)

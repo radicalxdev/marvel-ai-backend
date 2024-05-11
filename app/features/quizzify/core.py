@@ -9,6 +9,7 @@ def executor(upload_files: List[UploadFile], topic: str, num_questions: int):
     ## Instantiate RAG pipeline
     pipeline = RAGpipeline() # default pipeline
     
+    ## Create pipeline
     pipeline.compile()
 
     db = pipeline(upload_files)

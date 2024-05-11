@@ -11,3 +11,4 @@ google-cloud-storage
 firebase-admin
 chroma
 pypdf2
+fpdf
