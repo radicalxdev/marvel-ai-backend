@@ -47,6 +47,3 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 app.include_router(router)
-
-def get_db(request: Request):
-    return request.app.state.db

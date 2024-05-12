@@ -9,12 +9,14 @@ logger = setup_logger(__name__)
 
 def initialize_firestore():
     try:
-        secret_content = access_secret_file("firebase-key")
-        service_account_info = json.loads(secret_content)
-        cred = credentials.Certificate(service_account_info)
-        firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        logger.info("Firestore initialized")
+        if not firebase_admin._apps:
+            # Initialize Firestore if not already initialized
+            secret_content = access_secret_file("firebase-key")
+            service_account_info = json.loads(secret_content)
+            cred = credentials.Certificate(service_account_info)
+            firebase_admin.initialize_app(cred)
+            db = firestore.client()
+            logger.info("Firestore initialized")
         return db
     except Exception as e:
         logger.error(f"Firestore initialization failed: {str(e)}")

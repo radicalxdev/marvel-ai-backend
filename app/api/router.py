@@ -41,13 +41,36 @@ async def get_files(request: Request):
 
 @router.post("/submit-tool")
 async def submit_tool(
-    data: str = Form(...),
-    files: list[UploadFile] = Depends(get_files)
+    data: str = Form(...), # Must be a string for incoming stringified request
+    files: list[UploadFile] = Depends(get_files),
+    db = Depends(get_db)
 ):
     try:
-        tool_data = json.loads(data)
-        print(tool_data)
-        return {"message": "success", "data": tool_data, "files": len(files)}
+        # Convert stringified JSON to dictionary
+        request_dict = json.loads(data)
+        
+        # Create Pydantic Model Instance
+        request = GenericRequest(**request_dict)
+        
+        # Unpack GenericRequest for tool data
+        request_data = request.tool_data
+    
+        requested_tool = get_data(db, "tools", str(request_data.tool_id)) # Tools registry has IDs as strings
+        if requested_tool is None:
+            raise HTTPException(status_code=404, detail="Tool not found")
+        
+        inputs = requested_tool['inputs']    
+        request_inputs_dict = {input.name: input.value for input in request_data.inputs}
+        
+        if not validate_inputs(request_inputs_dict, inputs):
+            raise HTTPException(status_code=400, detail="Input validation failed")
+    
+        # Files received
+        print(f"Files received: {len(files)}")
+    
+        return {"message": "success"}
+    
+    
     except json.JSONDecodeError as e:
         print(f"JSON Decoding error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"JSON Decoding error: {str(e)}")

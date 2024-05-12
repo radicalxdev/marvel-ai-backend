@@ -13,16 +13,18 @@ class BaseTool(BaseModel):
 def validate_inputs(request_data: dict, firestore_data: list):
     firestore_inputs = {input_item['name']: input_item['type'] for input_item in firestore_data}
     
-    # Check for missing inputs
-    for firestore_input_name in firestore_inputs.keys():
+    # Check for missing inputs, but skip 'file' types
+    for firestore_input_name, input_type in firestore_inputs.items():
+        if input_type == "file":
+            continue  # Skip file inputs during missing input check
         if firestore_input_name not in request_data:
             print(f"Missing input: `{firestore_input_name}`")
             return False
     
-    # Validate each input in request data against Firestore definitions
+    # Validate each input in request data against Firestore definitions, but skip 'file' types
     for input_name, input_value in request_data.items():
-        # Skip validation for extra inputs not defined in Firestore
-        if input_name not in firestore_inputs:
+        # Skip validation for extra inputs not defined in Firestore and for 'file' types
+        if input_name not in firestore_inputs or firestore_inputs[input_name] == "file":
             continue
         
         expected_type = firestore_inputs[input_name]
@@ -34,3 +36,4 @@ def validate_inputs(request_data: dict, firestore_data: list):
             return False
     
     return True
+
