@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from main import app  
 from services.gcp import access_secret_file
+from services.tool_registry import validate_inputs
 from io import BytesIO
 import pytest
 import os
@@ -153,3 +154,68 @@ def test_quizzify_tool_submission_no_file(client: TestClient):
     
     assert response.status_code == 200
     assert response.json()['files'] == 0
+
+def test_validate_inputs_all_valid():
+    # This mimics the structure that would be created in the endpoint
+    # from request_data.inputs where each input is an instance with a name and value attribute
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}, 
+        {"name": "num_questions", "value": 5}
+    ]
+    
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    
+    # Convert request_inputs to the dictionary format expected by validate_inputs
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    
+    assert validate_inputs(request_inputs_dict, firestore_data) == True
+
+def test_validate_inputs_missing_input():
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == False
+
+def test_validate_inputs_invalid_type():
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}, 
+        {"name": "num_questions", "value": "five"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == False
+
+def test_validate_inputs_extra_undefined_input():
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}, 
+        {"name": "num_questions", "value": 5},
+        {"name": "extra_input", "value": "Extra Value"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == True
+
+def test_validate_inputs_input_not_found():
+    request_inputs = [
+        {"name": "unknown_input", "value": "Some Value"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == False

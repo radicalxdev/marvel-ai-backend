@@ -4,8 +4,8 @@ from typing import List
 from dependencies import get_db
 from utils.auth import key_check
 from utils.request_handler import validate_multipart_form_data
-from services.tool_registry import validate_tool
 from services.firestore import get_data
+from services.tool_registry import validate_inputs
 import json
 
 
@@ -15,16 +15,23 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-@router.post("/test/messages", response_model=ChatResponse)
-async def test(data: GenericRequest, _ = Depends(key_check) ):
-    total_messages = data.messages
-    logger.info(f"Total messages: {len(total_messages)}")
-    return ChatResponse(data=total_messages)
-
 @router.post("/test/firestore")
-async def test_firestore(db = Depends(get_db)):
-    quizzify_docs = get_data(db, "tools", "0")
-    return {"message": "success", "inputs": quizzify_docs["inputs"]}
+async def test_firestore(request: GenericRequest, db = Depends(get_db)):
+    
+    # Unpack GenericRequest for tool data
+    request_data = request.tool_data
+    
+    requested_tool = get_data(db, "tools", str(request_data.tool_id)) # Tools registry has IDs as strings
+    if requested_tool is None:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    
+    inputs = requested_tool['inputs']    
+    request_inputs_dict = {input.name: input.value for input in request_data.inputs}
+    
+    if not validate_inputs(request_inputs_dict, inputs):
+        raise HTTPException(status_code=400, detail="Input validation failed")
+    
+    return {"message": "success"}
 
 async def get_files(request: Request):
     form = await request.form()
@@ -47,7 +54,6 @@ async def submit_tool(
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-
 
 @router.post("/test-quizzify")
 async def test_quizzify(
