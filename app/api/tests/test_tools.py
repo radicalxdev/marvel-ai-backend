@@ -7,7 +7,7 @@ import os
 import json
 
 #export PYTHONPATH=/path/to/your/project:$PYTHONPATH
-#pytest
+#pytest -v
 
 @pytest.fixture(scope='session', autouse=True)
 def set_env_vars():
@@ -67,16 +67,19 @@ def test_quizzify_tool_submission(client: TestClient):
     with open(pdf_path, 'rb') as pdf_file:
         response = client.post(
             "/submit-tool",
+            data={
+                'data': data_json
+            },
             files={
-                'data': (None, data_json, 'application/json'),
                 'files': ('test.pdf', pdf_file, 'application/pdf')
             }
         )
     assert response.status_code == 200
     assert response.json()['files'] == 1
 
-def test_quizzify_tool_submission_simulated_file(client: TestClient):
+def test_quizzify_tool_submission_upload_file(client: TestClient):
     pdf_file = create_mock_pdf()
+    pdf_file2 = create_mock_pdf()
     
     data_dict = {
         "tool_id": 0,
@@ -88,18 +91,46 @@ def test_quizzify_tool_submission_simulated_file(client: TestClient):
     
     data_json = json.dumps(data_dict)
     
-    print(data_json)
-    
     response = client.post(
             "/submit-tool",
             data={
-                'data': (None, data_json, 'application/json'),
+                'data': data_json
+            },
+            files={
                 'files': ('test.pdf', pdf_file, 'application/pdf')
             }
         )
     
     assert response.status_code == 200
     assert response.json()['files'] == 1
+
+def test_quizzify_tool_submission_many_file(client: TestClient):
+    pdf_file = create_mock_pdf()
+    pdf_file2 = create_mock_pdf()
+    
+    data_dict = {
+        "tool_id": 0,
+        "inputs": [
+            {"name": "topic", "value": "Quantum Mechanics"},
+            {"name": "num_questions", "value": 5}
+        ]
+    }
+    
+    data_json = json.dumps(data_dict)
+    
+    response = client.post(
+            "/submit-tool",
+            data={
+                'data': data_json
+            },
+            files=[
+                ('files', ('test.pdf', pdf_file, 'application/pdf')),
+                ('files', ('test2.pdf', pdf_file2, 'application/pdf'))
+            ]
+        )
+    
+    assert response.status_code == 200
+    assert response.json()['files'] == 2
 
 def test_quizzify_tool_submission_no_file(client: TestClient):
     
@@ -115,8 +146,8 @@ def test_quizzify_tool_submission_no_file(client: TestClient):
     
     response = client.post(
             "/submit-tool",
-            files={
-                'data': (None, data_json, 'application/json')
+            data={
+                'data': data_json
             }
         )
     
