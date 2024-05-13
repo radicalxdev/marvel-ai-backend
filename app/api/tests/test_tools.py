@@ -6,6 +6,7 @@ from io import BytesIO
 import pytest
 import os
 import json
+import tempfile
 
 #export PYTHONPATH=/path/to/your/project:$PYTHONPATH
 #pytest -v
@@ -110,19 +111,26 @@ def test_quizzify_tool_submission_with_files(client: TestClient):
     json_data = json.dumps(data_dict)
     print(type(json_data))
     
-    # Open the file in binary mode
-    with open("api/tests/test.pdf", "rb") as pdf_file:
-        files = {
-            "data": (None, json_data, "application/json"),  # Correctly format the JSON data as a form field
-            "file": ("test.pdf", pdf_file, "application/pdf")  # Correctly format the file as a form field
-        }
-        
-        response = client.post(
-            "/submit-tool",
-            files=files  # Using files parameter to send both file and form data
-        )
+    pdf_file2 = create_mock_pdf()
 
-    assert response.status_code == 200
+    # Create a temporary file to write the mock PDF
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(pdf_file2.getvalue())
+        temp_pdf_path = tmp.name
+
+    files = [
+        ("files", ("file1.pdf", open("api/tests/test.pdf", "rb"), "application/pdf")),
+        ("files", ("file2.pdf", open(temp_pdf_path, "rb"), "application/pdf"))
+    ]
+    
+    data = {"data": json_data}
+    
+    response = client.post("/submit-tool", data=data, files=files)
+    
+    print(response.text)
+
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+    assert response.json()["files"] == 2
 
 
 def test_validate_inputs_all_valid():

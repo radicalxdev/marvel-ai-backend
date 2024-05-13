@@ -44,7 +44,7 @@ async def submit_tool(
     data: str = Form(...), # Must be a string for incoming stringified request
     files: list[UploadFile] = Depends(get_files),
     db = Depends(get_db)
-):
+):  
     try:
         # Convert stringified JSON to dictionary
         request_dict = json.loads(data)
@@ -67,8 +67,11 @@ async def submit_tool(
     
         # Files received
         print(f"Files received: {len(files)}")
+        
+        
+        #TODO: Route according to requested tool
     
-        return {"message": "success"}
+        return {"message": "success", "files": len(files)}
     
     
     except json.JSONDecodeError as e:
