@@ -14,35 +14,6 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-@router.post("/test-dynamo")
-async def test_dynamo(
-    chat_request: GenericRequest,
-    #_ = Depends(key_check)
-):
-    from features.dynamo.tools import retrieve_youtube_documents, find_key_concepts
-    
-    if chat_request.tool_data is None:
-        raise HTTPException(status_code=400, detail="Tool not provided")
-    
-    form_inputs = chat_request.tool_data.inputs
-    
-    # Extract youtube url from form inputs
-    url = next((input for input in form_inputs if input.name == "youtube_url"), None).value
-    
-    if url is None:
-        raise HTTPException(status_code=400, detail="Youtube URL not provided")
-    
-    yt_documents = retrieve_youtube_documents(url)
-    #try:
-    #    concepts = find_key_concepts(yt_documents)
-    #except Exception as e:
-    #    print(f"Model error: {str(e)}")
-    #    raise HTTPException(status_code=500, detail=str(e))
-    
-    return {"data": yt_documents}
-    
-    #return ToolResponse(data=yt_documents)
-
 async def get_files(request: Request):
     form = await request.form()
     files = form.getlist("files")
@@ -91,39 +62,6 @@ async def submit_tool(
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-
-@router.post("/test-quizzify")
-async def test_quizzify(
-    chat_request: GenericRequest = Depends(validate_multipart_form_data),
-    request_files: list[UploadFile] = File(...),
-    _ = Depends(key_check)
-):
-    from features.quizzify.core import executor
-    
-    if chat_request.tool is None:
-        raise HTTPException(status_code=400, detail="Tool not provided")
-    
-    form_inputs = chat_request.tool.inputs
-    
-    # Extract topic from form inputs
-    topic = next((input for input in form_inputs if input.name == "topic"), None).value
-    # Extract number of questions from form inputs
-    num_questions = next((input for input in form_inputs if input.name == "num_questions"), None).value
-    
-    if topic is None:
-        raise HTTPException(status_code=400, detail="Topic not provided")
-    if num_questions is None:
-        raise HTTPException(status_code=400, detail="Number of questions not provided")
-    if request_files is None:
-        raise HTTPException(status_code=400, detail="File extraction found no files")
-    
-    return {
-        "topic": topic,
-        "num_questions": num_questions,
-        "request_files": request_files
-    }
-    
-    #return executor(request_files, topic, num_questions)
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: GenericRequest, _ = Depends(key_check)):
