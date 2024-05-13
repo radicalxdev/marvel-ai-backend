@@ -94,22 +94,18 @@ def test_quizzify_tool_submission_with_files(client: TestClient):
         },
         "type": "tool",
         "tool_data": {
-            "tool_id": 0,
+            "tool_id": 1,
             "inputs": [
                 {
-                    "name": "topic",
-                    "value": "Math"
-                },
-                {
-                    "name": "num_questions",
-                    "value": 5
+                    "name": "youtube_url",
+                    "value": "https://www.youtube.com/watch?v=J4ZzZ8JZ9cA"
                 }
             ]
         }
     }
     
     json_data = json.dumps(data_dict)
-    print(type(json_data))
+    print(json_data)
     
     pdf_file2 = create_mock_pdf()
 
@@ -125,7 +121,9 @@ def test_quizzify_tool_submission_with_files(client: TestClient):
     
     data = {"data": json_data}
     
-    response = client.post("/submit-tool", data=data, files=files)
+    headers = {"api-key": access_secret_file('backend-access')}
+    
+    response = client.post("/submit-tool", headers=headers, data=data, files=files)
     
     print(response.text)
 
