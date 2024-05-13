@@ -45,7 +45,7 @@ def setup_logger(name=__name__):
     Sets up a logger based on the environment.
 
     If the environment variable ENV_TYPE is set to 'sandbox' or 'production', it configures
-    Google Cloud Logging. Otherwise, it returns an error.
+    Google Cloud Logging. Otherwise, it uses the standard logging.
 
     Parameters:
     name (str): The name of the logger.
@@ -56,35 +56,38 @@ def setup_logger(name=__name__):
     env_type = os.environ.get('ENV_TYPE', 'undefined')
     project = os.environ.get('PROJECT_ID', 'undefined')
 
-    # Log the attempt to establish the logger
     print(f"Attempting to establish logger for {env_type} environment in project: {project}")
 
-    if env_type in ['sandbox', 'production']:
-        try:
-            # Instantiates a client for Google Cloud Logging
-            logging_client = cloud_logging.Client(project=project)
-            # Retrieves a Cloud Logging handler based on the environment you're running in
-            cloud_logging_handler = logging_client.get_default_handler()
-            cloud_logger = logging.getLogger(name)
-            cloud_logger.setLevel(logging.INFO)
-            cloud_logger.addHandler(cloud_logging_handler)
-            
-            formatter = logging.Formatter(f'%(asctime)s - {env_type} - %(name)s - %(levelname)s - %(message)s')
-            for handler in cloud_logger.handlers:
-                handler.setFormatter(formatter)
-
-            print(f"ESTABLISHED CLOUD LOGGER: {env_type} for project: {project}")
-            return cloud_logger
-        except Exception as e:
-            print(f"Failed to configure Google Cloud Logging: {str(e)}")
-            return logging.getLogger(name)  # Return a default logger if GCL fails
-    elif env_type == 'dev':
-        print("ESTABLISHED STANDARD LOGGER for dev environment")
-        return logging.getLogger(name)  # Return a standard logger for 'dev' environment
+    logger = logging.getLogger(name)
+    
+    # Check if the logger already has handlers configured.
+    # This prevents adding multiple handlers to the same logger if setup_logger is called multiple times.
+    if not logger.handlers:
+        if env_type in ['sandbox', 'production']:
+            try:
+                logging_client = cloud_logging.Client(project=project)
+                cloud_logging_handler = logging_client.get_default_handler()
+                formatter = logging.Formatter(f'%(asctime)s - {env_type} - %(name)s - %(levelname)s - %(message)s')
+                cloud_logging_handler.setFormatter(formatter)
+                logger.addHandler(cloud_logging_handler)
+                logger.setLevel(logging.INFO)
+                print(f"ESTABLISHED CLOUD LOGGER: {env_type} for project: {project}")
+            except Exception as e:
+                print(f"Failed to configure Google Cloud Logging: {str(e)}")
+                # Fall back to standard logging if GCL configuration fails
+                logger.addHandler(logging.StreamHandler())
+        else:
+            # For 'dev' or undefined environments, configure standard logging
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+            logger.setLevel(logging.INFO)
+            print("ESTABLISHED STANDARD LOGGER for non-production/local environments")
     else:
-        error_message = f"Invalid environment type: {env_type}. Logger not configured."
-        print(error_message)
-        return Exception(error_message)
+        print(f"Logger for {name} already configured.")
+
+    return logger
 
 def access_secret_file(secret_id, version_id="latest"):
     """

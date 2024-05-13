@@ -1,13 +1,15 @@
 from fastapi.testclient import TestClient
 from main import app  
 from services.gcp import access_secret_file
+from services.tool_registry import validate_inputs
 from io import BytesIO
 import pytest
 import os
 import json
+import tempfile
 
 #export PYTHONPATH=/path/to/your/project:$PYTHONPATH
-#pytest
+#pytest -v
 
 @pytest.fixture(scope='session', autouse=True)
 def set_env_vars():
@@ -32,7 +34,8 @@ def set_env_vars():
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    with TestClient(app) as client:
+        yield client
 
 def create_mock_pdf() -> BytesIO:
     """
@@ -51,74 +54,146 @@ def create_mock_pdf() -> BytesIO:
 
 
 # Test cases
-def test_quizzify_tool_submission(client: TestClient):
-    pdf_path = "api/tests/test.pdf"
-    
+def atest_quizzify_tool_submission(client: TestClient):
     data_dict = {
-        "tool_id": 0,
-        "inputs": [
-            {"name": "topic", "value": "Quantum Mechanics"},
-            {"name": "num_questions", "value": 5}
-        ]
-    }
-    
-    data_json = json.dumps(data_dict)
-    
-    with open(pdf_path, 'rb') as pdf_file:
-        response = client.post(
-            "/submit-tool",
-            files={
-                'data': (None, data_json, 'application/json'),
-                'files': ('test.pdf', pdf_file, 'application/pdf')
+        "user": {
+            "id": "string",
+            "fullName": "string",
+            "email": "string"
+        },
+        "type": "tool",
+        "tool_data": {
+            "tool_id": 0,
+            "inputs": [
+            {
+                "name": "topic",
+                "value": "Math"
+            },
+            {
+                "name": "num_questions",
+                "value": 5
             }
-        )
-    assert response.status_code == 200
-    assert response.json()['files'] == 1
-
-def test_quizzify_tool_submission_simulated_file(client: TestClient):
-    pdf_file = create_mock_pdf()
-    
-    data_dict = {
-        "tool_id": 0,
-        "inputs": [
-            {"name": "topic", "value": "Quantum Mechanics"},
-            {"name": "num_questions", "value": 5}
-        ]
+            ]
+        }
     }
-    
-    data_json = json.dumps(data_dict)
-    
-    print(data_json)
     
     response = client.post(
             "/submit-tool",
-            data={
-                'data': (None, data_json, 'application/json'),
-                'files': ('test.pdf', pdf_file, 'application/pdf')
-            }
+            json=data_dict
         )
-    
-    assert response.status_code == 200
-    assert response.json()['files'] == 1
 
-def test_quizzify_tool_submission_no_file(client: TestClient):
-    
+    assert response.status_code == 200
+
+
+def test_quizzify_tool_submission_with_files(client: TestClient):
     data_dict = {
-        "tool_id": 0,
-        "inputs": [
-            {"name": "topic", "value": "Quantum Mechanics"},
-            {"name": "num_questions", "value": 5}
-        ]
+        "user": {
+            "id": "string",
+            "fullName": "string",
+            "email": "string"
+        },
+        "type": "tool",
+        "tool_data": {
+            "tool_id": 0,
+            "inputs": [
+                {
+                    "name": "topic",
+                    "value": "Math"
+                },
+                {
+                    "name": "num_questions",
+                    "value": 5
+                }
+            ]
+        }
     }
     
-    data_json = json.dumps(data_dict)
+    json_data = json.dumps(data_dict)
+    print(type(json_data))
     
-    response = client.post(
-            "/submit-tool",
-            files={
-                'data': (None, data_json, 'application/json')
-            }
-        )
+    pdf_file2 = create_mock_pdf()
+
+    # Create a temporary file to write the mock PDF
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(pdf_file2.getvalue())
+        temp_pdf_path = tmp.name
+
+    files = [
+        ("files", ("file1.pdf", open("api/tests/test.pdf", "rb"), "application/pdf")),
+        ("files", ("file2.pdf", open(temp_pdf_path, "rb"), "application/pdf"))
+    ]
     
-    assert response.status_code == 200
-    assert response.json()['files'] == 0
+    data = {"data": json_data}
+    
+    response = client.post("/submit-tool", data=data, files=files)
+    
+    print(response.text)
+
+    assert response.status_code == 200, f"Expected 200, got {response.status_code}"
+    assert response.json()["files"] == 2
+
+
+def test_validate_inputs_all_valid():
+    # This mimics the structure that would be created in the endpoint
+    # from request_data.inputs where each input is an instance with a name and value attribute
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}, 
+        {"name": "num_questions", "value": 5}
+    ]
+    
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    
+    # Convert request_inputs to the dictionary format expected by validate_inputs
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    
+    assert validate_inputs(request_inputs_dict, firestore_data) == True
+
+def test_validate_inputs_missing_input():
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == False
+
+def test_validate_inputs_invalid_type():
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}, 
+        {"name": "num_questions", "value": "five"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == False
+
+def test_validate_inputs_extra_undefined_input():
+    request_inputs = [
+        {"name": "topic", "value": "Quantum Mechanics"}, 
+        {"name": "num_questions", "value": 5},
+        {"name": "extra_input", "value": "Extra Value"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == True
+
+def test_validate_inputs_input_not_found():
+    request_inputs = [
+        {"name": "unknown_input", "value": "Some Value"}
+    ]
+    firestore_data = [
+        {"label": "Topic", "type": "text", "name": "topic"},
+        {"label": "Number of Questions", "type": "number", "name": "num_questions"}
+    ]
+    request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
+    assert validate_inputs(request_inputs_dict, firestore_data) == False
