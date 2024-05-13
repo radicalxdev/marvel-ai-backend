@@ -15,23 +15,34 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-@router.post("/test/firestore")
-async def test_firestore(request: GenericRequest, db = Depends(get_db)):
+@router.post("/test-dynamo")
+async def test_dynamo(
+    chat_request: GenericRequest,
+    #_ = Depends(key_check)
+):
+    from features.dynamo.tools import retrieve_youtube_documents, find_key_concepts
     
-    # Unpack GenericRequest for tool data
-    request_data = request.tool_data
+    if chat_request.tool_data is None:
+        raise HTTPException(status_code=400, detail="Tool not provided")
     
-    requested_tool = get_data(db, "tools", str(request_data.tool_id)) # Tools registry has IDs as strings
-    if requested_tool is None:
-        raise HTTPException(status_code=404, detail="Tool not found")
+    form_inputs = chat_request.tool_data.inputs
     
-    inputs = requested_tool['inputs']    
-    request_inputs_dict = {input.name: input.value for input in request_data.inputs}
+    # Extract youtube url from form inputs
+    url = next((input for input in form_inputs if input.name == "youtube_url"), None).value
     
-    if not validate_inputs(request_inputs_dict, inputs):
-        raise HTTPException(status_code=400, detail="Input validation failed")
+    if url is None:
+        raise HTTPException(status_code=400, detail="Youtube URL not provided")
     
-    return {"message": "success"}
+    yt_documents = retrieve_youtube_documents(url)
+    #try:
+    #    concepts = find_key_concepts(yt_documents)
+    #except Exception as e:
+    #    print(f"Model error: {str(e)}")
+    #    raise HTTPException(status_code=500, detail=str(e))
+    
+    return {"data": yt_documents}
+    
+    #return ToolResponse(data=yt_documents)
 
 async def get_files(request: Request):
     form = await request.form()
@@ -43,7 +54,8 @@ async def get_files(request: Request):
 async def submit_tool(
     data: str = Form(...), # Must be a string for incoming stringified request
     files: list[UploadFile] = Depends(get_files),
-    db = Depends(get_db)
+    db = Depends(get_db),
+    _ = Depends(key_check)
 ):  
     try:
         # Convert stringified JSON to dictionary

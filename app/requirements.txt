@@ -12,3 +12,5 @@ firebase-admin
 chroma
 pypdf2
 fpdf
+youtube-transcript-api
+pytube
