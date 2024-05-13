@@ -84,36 +84,3 @@ async def submit_tool(
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-
-@router.post("/test-quizzify")
-async def test_quizzify(
-    chat_request: GenericRequest = Depends(validate_multipart_form_data),
-    request_files: list[UploadFile] = File(...),
-    _ = Depends(key_check)
-):
-    
-    
-    if chat_request.tool is None:
-        raise HTTPException(status_code=400, detail="Tool not provided")
-    
-    form_inputs = chat_request.tool.inputs
-    
-    # Extract topic from form inputs
-    topic = next((input for input in form_inputs if input.name == "topic"), None).value
-    # Extract number of questions from form inputs
-    num_questions = next((input for input in form_inputs if input.name == "num_questions"), None).value
-    
-    if topic is None:
-        raise HTTPException(status_code=400, detail="Topic not provided")
-    if num_questions is None:
-        raise HTTPException(status_code=400, detail="Number of questions not provided")
-    if request_files is None:
-        raise HTTPException(status_code=400, detail="File extraction found no files")
-    
-    return {
-        "topic": topic,
-        "num_questions": num_questions,
-        "request_files": request_files
-    }
-    
-    #return executor(request_files, topic, num_questions)
