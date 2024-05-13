@@ -9,14 +9,13 @@ def executor(upload_files: List[UploadFile], topic: str, num_questions: int):
     ## Instantiate RAG pipeline
     pipeline = RAGpipeline() # default pipeline
     
+    ## Create pipeline
     pipeline.compile()
 
     db = pipeline(upload_files)
     
-    builder = QuizBuilder(db, topic)
+    response = QuizBuilder(db, topic).create_questions(num_questions)
     
-    response = builder.create_questions(num_questions)
-    
-    return {"message": "success", "data": response}
+    return {"data": response}
     
 

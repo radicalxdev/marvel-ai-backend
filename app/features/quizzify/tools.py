@@ -27,19 +27,24 @@ class RAGRunnable:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-class UploadPDFLoader(BaseLoader):
-    def __init__(self, file: UploadFile):
-        self.upload_file = file
-        self.pdf_reader = PdfReader(file.file)
-    
+class UploadPDFLoader:
+    def __init__(self, files: List[UploadFile]):
+        self.files = files
+
     def load(self) -> List[Document]:
         documents = []
-        for page in self.pdf_reader.pages:
-            doc = Document(
-                page_content=page.extract_text(),
-                metadata={"source": self.upload_file.filename}
-            )
-            documents.append(doc)
+
+        for upload_file in self.files:
+            with upload_file.file as pdf_file:  
+                pdf_reader = PdfReader(pdf_file)
+
+                for i, page in enumerate(pdf_reader.pages):
+                    page_content = page.extract_text()
+                    metadata = {"source": upload_file.filename, "page_number": i + 1}
+
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+
         return documents
 
 class RAGpipeline:
@@ -70,15 +75,10 @@ class RAGpipeline:
         
         if datatype in ["raw", "path"]: # Allow file path later
             if datatype == "raw":
-                for file in files:
-                    loader = UploadPDFLoader(file)
-                    documents = loader.load()
-                    total_loaded_files.extend(documents)
-                if len(total_loaded_files) == 0:
-                    raise ValueError("No documents loaded")
+                # The UploadPDFLoader returns a list of UploadFile documents
+                total_loaded_files = self.loader(files).load()
             
             if verbose:
-                print(f"Loaded {len(total_loaded_files)} files")
                 logger.info(f"Loaded {len(total_loaded_files)} files")
             return total_loaded_files
         
@@ -90,13 +90,13 @@ class RAGpipeline:
         chunks = self.splitter.split_documents(loaded_documents)
         total_chunks.extend(chunks)
         if verbose:
-            print(f"Split {len(total_chunks)} chunks")
+            logger.info(f"Split {len(total_chunks)} chunks")
         return total_chunks
     
     def create_vectorstore(self, documents: List[Document], verbose = False):
         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
         if verbose:
-            print(f"Successfully created vectorstore")
+            logger.info(f"Successfully created vectorstore")
         return self.vectorstore
     
     def compile(self):
@@ -104,7 +104,7 @@ class RAGpipeline:
         self.load_PDFs = RAGRunnable(self.load_PDFs)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
-        print(f"Successfully compiled pipeline")
+        logger.info(f"Successfully compiled pipeline")
     
     def clear(self):
         return self.vectorstore.delete_collection()
@@ -121,7 +121,6 @@ class QuizQuestion(BaseModel):
     choices: List[QuestionChoice] = Field(description="A list of choices")
     answer: str = Field(description="The correct answer")
     explanation: str = Field(description="An explanation of why the answer is correct")
-
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None):
         self.prompt = prompt
