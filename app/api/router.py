@@ -8,6 +8,9 @@ from services.firestore import get_data
 from services.tool_registry import validate_inputs
 import json
 
+from features.dynamo.core import executor as dynamo_executor
+from features.quizzify.core import executor as quizzify_executor
+
 
 router = APIRouter()
 
@@ -15,34 +18,6 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-@router.post("/test-dynamo")
-async def test_dynamo(
-    chat_request: GenericRequest,
-    #_ = Depends(key_check)
-):
-    from features.dynamo.tools import retrieve_youtube_documents, find_key_concepts
-    
-    if chat_request.tool_data is None:
-        raise HTTPException(status_code=400, detail="Tool not provided")
-    
-    form_inputs = chat_request.tool_data.inputs
-    
-    # Extract youtube url from form inputs
-    url = next((input for input in form_inputs if input.name == "youtube_url"), None).value
-    
-    if url is None:
-        raise HTTPException(status_code=400, detail="Youtube URL not provided")
-    
-    yt_documents = retrieve_youtube_documents(url)
-    #try:
-    #    concepts = find_key_concepts(yt_documents)
-    #except Exception as e:
-    #    print(f"Model error: {str(e)}")
-    #    raise HTTPException(status_code=500, detail=str(e))
-    
-    return {"data": yt_documents}
-    
-    #return ToolResponse(data=yt_documents)
 
 async def get_files(request: Request):
     form = await request.form()
@@ -77,13 +52,30 @@ async def submit_tool(
         if not validate_inputs(request_inputs_dict, inputs):
             raise HTTPException(status_code=400, detail="Input validation failed")
     
-        # Files received
-        print(f"Files received: {len(files)}")
         
+        tool_functions = {
+            "0": quizzify_executor,
+            "1": dynamo_executor,
+        }
         
-        #TODO: Route according to requested tool
+        execute_function = tool_functions.get(str(request_data.tool_id))
+        if not execute_function:
+            raise HTTPException(status_code=404, detail="Tool executable not found")
+        
+        # If files, append to request_inputs_dict
+        if files:
+            request_inputs_dict["upload_files"] = files
+            print(f"Files appended to request inputs: {len(files)}")
+        
+        # Call execute with request_inputs_dict
+        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
+        try: 
+            result = execute_function(**request_inputs_dict)
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
     
-        return {"message": "success", "files": len(files)}
+        return {"message": "success", "files": len(files), "data": result}
     
     
     except json.JSONDecodeError as e:
@@ -99,7 +91,7 @@ async def test_quizzify(
     request_files: list[UploadFile] = File(...),
     _ = Depends(key_check)
 ):
-    from features.quizzify.core import executor
+    
     
     if chat_request.tool is None:
         raise HTTPException(status_code=400, detail="Tool not provided")
