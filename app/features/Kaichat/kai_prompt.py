@@ -22,11 +22,11 @@ def generate_kai_prompt(firstname, user_query, history):
     additional_help = "What other topics in education would you like to explore today?"
 
     prompt = f"""
-{greeting}
-{request_info}
-{history_feedback}
-{error_handling}
-{additional_help}
+        {greeting}
+        {request_info}
+        {history_feedback}
+        {error_handling}
+        {additional_help}
     """
     return prompt
 

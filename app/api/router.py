@@ -1,15 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
-from services.schemas import GenericRequest, ChatResponse, ToolResponse
-from typing import List
+from services.schemas import GenericRequest, ChatResponse
 from dependencies import get_db
 from utils.auth import key_check
 from utils.request_handler import validate_multipart_form_data
 from services.firestore import get_data
 from services.tool_registry import validate_inputs
 import json
-from fastapi.responses import JSONResponse
-from features.Kaichat.core import generate_response, get_conversation_history, update_conversation_history
-from features.Kaichat.kai_prompt import generate_prompt
+
 
 router = APIRouter()
 
@@ -112,3 +109,28 @@ async def test_quizzify(
     }
     
     #return executor(request_files, topic, num_questions)
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat(request: GenericRequest, _ = Depends(key_check)):
+    from features.Kaichat.core import generate_response, get_conversation_history, update_conversation_history
+    from features.Kaichat.kai_prompt import generate_kai_prompt
+    
+    user_id = request.user.id
+    user_name = request.user.fullName
+    user_query = request.messages[-1].payload.text 
+
+    # Retrieve the user's conversation history
+    history = get_conversation_history(user_id)
+
+    # Generate a prompt based on the current query and conversation history
+    prompt = generate_kai_prompt(user_query, history)
+
+    # Generate the response from KAI
+    response_text = generate_response(prompt)  # Ensure your generate_response accepts a prompt and handles it correctly
+
+    # Update conversation history with the new interaction
+    update_conversation_history(user_id, user_query, response_text)
+
+    # Prepare the response to return
+    return {"response": response_text}
+

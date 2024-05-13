@@ -1,6 +1,6 @@
 from langchain_google_vertexai import VertexAI
-from langchain.memory.types.conversation_buffer import ConversationBufferMemory
-from kai_prompt import join_prompt  # Make sure to correctly import your kai_prompt module
+from langchain.memory import ConversationBufferMemory
+from .kai_prompt import join_prompt 
 
 user_buffers = {}
 
