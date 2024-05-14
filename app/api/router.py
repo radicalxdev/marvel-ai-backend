@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
-from services.schemas import GenericRequest, ChatResponse, ToolResponse
-from typing import List
+from services.schemas import GenericRequest, ChatResponse, Message
 from dependencies import get_db
 from utils.auth import key_check
 from utils.request_handler import validate_multipart_form_data
@@ -84,3 +83,22 @@ async def submit_tool(
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/chat")
+async def chat(request: GenericRequest, _ = Depends(key_check)):
+    from features.Kaichat.core import executor as kaichat_executor
+    
+    user_name = request.user.fullName
+    chat_messages = request.messages
+    user_query = chat_messages[-1].payload.text
+    
+    response = kaichat_executor(user_name=user_name, user_query=user_query, messages=chat_messages)
+    
+    formatted_response = Message(
+        role="ai",
+        type="text",
+        payload={"text": response}
+    )
+    
+    return {"data": [formatted_response]}
+
