@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
-from services.schemas import GenericRequest, ChatResponse, ToolResponse
-from typing import List
+from services.schemas import GenericRequest, ChatResponse, Message
 from dependencies import get_db
 from utils.auth import key_check
 from utils.request_handler import validate_multipart_form_data
 from services.firestore import get_data
 from services.tool_registry import validate_inputs
 import json
+
+from features.dynamo.core import executor as dynamo_executor
+from features.quizzify.core import executor as quizzify_executor
 
 
 router = APIRouter()
@@ -15,34 +17,6 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-@router.post("/test-dynamo")
-async def test_dynamo(
-    chat_request: GenericRequest,
-    #_ = Depends(key_check)
-):
-    from features.dynamo.tools import retrieve_youtube_documents, find_key_concepts
-    
-    if chat_request.tool_data is None:
-        raise HTTPException(status_code=400, detail="Tool not provided")
-    
-    form_inputs = chat_request.tool_data.inputs
-    
-    # Extract youtube url from form inputs
-    url = next((input for input in form_inputs if input.name == "youtube_url"), None).value
-    
-    if url is None:
-        raise HTTPException(status_code=400, detail="Youtube URL not provided")
-    
-    yt_documents = retrieve_youtube_documents(url)
-    #try:
-    #    concepts = find_key_concepts(yt_documents)
-    #except Exception as e:
-    #    print(f"Model error: {str(e)}")
-    #    raise HTTPException(status_code=500, detail=str(e))
-    
-    return {"data": yt_documents}
-    
-    #return ToolResponse(data=yt_documents)
 
 async def get_files(request: Request):
     form = await request.form()
@@ -77,13 +51,30 @@ async def submit_tool(
         if not validate_inputs(request_inputs_dict, inputs):
             raise HTTPException(status_code=400, detail="Input validation failed")
     
-        # Files received
-        print(f"Files received: {len(files)}")
         
+        tool_functions = {
+            "0": quizzify_executor,
+            "1": dynamo_executor,
+        }
         
-        #TODO: Route according to requested tool
+        execute_function = tool_functions.get(str(request_data.tool_id))
+        if not execute_function:
+            raise HTTPException(status_code=404, detail="Tool executable not found")
+        
+        # If files, append to request_inputs_dict
+        if files:
+            request_inputs_dict["upload_files"] = files
+            print(f"Files appended to request inputs: {len(files)}")
+        
+        # Call execute with request_inputs_dict
+        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
+        try: 
+            result = execute_function(**request_inputs_dict)
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
     
-        return {"message": "success", "files": len(files)}
+        return {"message": "success", "files": len(files), "data": result}
     
     
     except json.JSONDecodeError as e:
@@ -93,35 +84,21 @@ async def submit_tool(
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/test-quizzify")
-async def test_quizzify(
-    chat_request: GenericRequest = Depends(validate_multipart_form_data),
-    request_files: list[UploadFile] = File(...),
-    _ = Depends(key_check)
-):
-    from features.quizzify.core import executor
+@router.post("/chat")
+async def chat(request: GenericRequest, _ = Depends(key_check)):
+    from features.Kaichat.core import executor as kaichat_executor
     
-    if chat_request.tool is None:
-        raise HTTPException(status_code=400, detail="Tool not provided")
+    user_name = request.user.fullName
+    chat_messages = request.messages
+    user_query = chat_messages[-1].payload.text
     
-    form_inputs = chat_request.tool.inputs
+    response = kaichat_executor(user_name=user_name, user_query=user_query, messages=chat_messages)
     
-    # Extract topic from form inputs
-    topic = next((input for input in form_inputs if input.name == "topic"), None).value
-    # Extract number of questions from form inputs
-    num_questions = next((input for input in form_inputs if input.name == "num_questions"), None).value
+    formatted_response = Message(
+        role="ai",
+        type="text",
+        payload={"text": response}
+    )
     
-    if topic is None:
-        raise HTTPException(status_code=400, detail="Topic not provided")
-    if num_questions is None:
-        raise HTTPException(status_code=400, detail="Number of questions not provided")
-    if request_files is None:
-        raise HTTPException(status_code=400, detail="File extraction found no files")
-    
-    return {
-        "topic": topic,
-        "num_questions": num_questions,
-        "request_files": request_files
-    }
-    
-    #return executor(request_files, topic, num_questions)
+    return {"data": [formatted_response]}
+

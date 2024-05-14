@@ -22,7 +22,7 @@ def retrieve_youtube_documents(youtube_url: str):
     return splitter.split_documents(docs)
 
 # Num sampler
-def find_key_concepts(documents: list, sample_size: int = 3):
+def find_key_concepts(documents: list, sample_size: int = 5):
     """Iterate through all documents of group size N and find key concepts"""
     if sample_size > len(documents):
         sample_size = len(documents) // 5
@@ -48,14 +48,17 @@ def find_key_concepts(documents: list, sample_size: int = 3):
         
             prompt = PromptTemplate(
                 template = """
-                You are a student a text for your exam. Consider the following text and find the core idea or concept along with a definition. This will be used to create a flashcard to help you study. You must provide a definition for the concept. Follow the format instructions below.
+                You are a student a text for your exam. Consider the following transcript from a video and find the core idea or concept along with a definition. This will be used to create a flashcard to help you study. You must provide a definition for the concept. Follow the format instructions provided.
                 
-                Text:
+                Transcript:
                 -------------------------------
                 {text}
                 
+                Instructions:
                 -------------------------------
                 {format_instructions}
+                
+                Respond only with JSON with the concept and definition.
                 """,
                 input_variables=["text"],
                 partial_variables={"format_instructions": parser.get_format_instructions()}
@@ -67,17 +70,11 @@ def find_key_concepts(documents: list, sample_size: int = 3):
             # Run Chain
             output_concept = chain.invoke({"text": group_content})
             
-            print(f"Output concept: {output_concept}")
+            print(f"Output concept: {output_concept}\n")
             
             batch_concept.append(output_concept)
             
     return batch_concept
-
-# Loop
-
-# Chain and Prompt
-
-# Output
 
 class Flashcard(BaseModel):
     concept: str = Field(description="The concept or term")
