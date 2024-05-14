@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
-from services.schemas import GenericRequest, ChatResponse
+from services.schemas import GenericRequest, ChatResponse, Message
 from dependencies import get_db
 from utils.auth import key_check
 from utils.request_handler import validate_multipart_form_data
@@ -63,27 +63,21 @@ async def submit_tool(
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("/chat")
 async def chat(request: GenericRequest, _ = Depends(key_check)):
-    from features.Kaichat.core import generate_response, get_conversation_history, update_conversation_history
-    from features.Kaichat.kai_prompt import generate_kai_prompt
+    from features.Kaichat.core import executor as kaichat_executor
     
-    user_id = request.user.id
     user_name = request.user.fullName
-    user_query = request.messages[-1].payload.text 
-
-    # Retrieve the user's conversation history
-    history = get_conversation_history(user_id)
-
-    # Generate a prompt based on the current query and conversation history
-    prompt = generate_kai_prompt(user_query, history)
-
-    # Generate the response from KAI
-    response_text = generate_response(prompt)  # Ensure your generate_response accepts a prompt and handles it correctly
-
-    # Update conversation history with the new interaction
-    update_conversation_history(user_id, user_query, response_text)
-
-    # Prepare the response to return
-    return {"response": response_text}
+    chat_messages = request.messages
+    user_query = chat_messages[-1].payload.text
+    
+    response = kaichat_executor(user_name=user_name, user_query=user_query, messages=chat_messages)
+    
+    formatted_response = Message(
+        role="ai",
+        type="text",
+        payload={"text": response}
+    )
+    
+    return {"data": [formatted_response]}
 

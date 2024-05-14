@@ -1,73 +1,51 @@
 from langchain_google_vertexai import VertexAI
-from langchain.memory import ConversationBufferMemory
-from .kai_prompt import join_prompt 
+from langchain.prompts import PromptTemplate
 
-user_buffers = {}
-
-
-class UserConversationBuffer:
+def build_prompt():
     """
-    Class to manage conversation history for a specific user ID within the memory buffer.
+    Build the prompt for the model.
     """
-
-    def __init__(self, max_length=100):
-        self.buffer = ConversationBufferMemory(max_length=max_length)
-        self.user_id = None
-
-    def set_user_id(self, user_id):
-        self.user_id = user_id
-
-    def add_message(self, message):
-        if self.user_id:
-            self.buffer.add(message, input=message)
-
-    def get_history(self):
-        if self.user_id:
-            return self.buffer.get_history()
-        else:
-            return []
-
-
-def get_conversation_history(user_id, user_buffers):
-
-    # Check if the user already has a conversation buffer initialized
-    if user_id not in user_buffers:
-        user_buffers[user_id] = UserConversationBuffer()
-
-    conversation_buffer = user_buffers[user_id]
-    conversation_buffer.set_user_id(user_id)  # Ensure this is set once during initialization
-
-    return conversation_buffer.get_history()
+    
+    template = """
+    You are Kai, you are a helpful AI assistant for teachers. You are here to provide guidance and support for educational strategies. The user's name is {user_name}. The user has asked the following question. Please answer succinctly and informatively. For context, you can use the chat history provided below. Do not answer questions outside of educational topics.
+    
+    User Query:
+    ---------------------------------------
+    {user_query}
+    
+    Chat History:
+    ---------------------------------------
+    {chat_history}
+    """
+    # Create system message for intro context to model    
+    prompt = PromptTemplate(
+        template = template,
+        input_variables=['user_name', 'user_query', 'chat_history']
+    )
+    
+    return prompt
+    
+    # Create human query message for model
 
 
-def update_conversation_history(user_id, user_message, bot_response):
-    if user_id not in user_buffers:
-        user_buffers[user_id] = UserConversationBuffer()
+def executor(user_name, user_query, messages):
+    
+    # create a memory list of last k = 3 messages
+    chat_context = [message.payload.text for message in messages[-3:]]
+    print(chat_context)
 
-    conversation_buffer = user_buffers[user_id]
-    conversation_buffer.set_user_id(user_id)
-    conversation_buffer.add_message({"input": user_message, "output": bot_response})
-
-
-def generate_response(vertex_ai: VertexAI, user_id, user_name, user_query):
-    conversation_history = get_conversation_history(user_id, user_buffers)
-    chat_template = join_prompt(user_name, user_query, conversation_history)
-
-    # Assuming you have a method to convert chat_template into a string prompt
-    formatted_prompt = str(chat_template)  # Simplified for demonstration; adjust as needed
-
-    response = vertex_ai.generate_text(formatted_prompt)
-    update_conversation_history(user_id, user_query, response.text)
-
-    return response.text
-
-
-# Assuming we have a function to handle incoming requests
-def handle_user_interaction(user_id, user_name, user_query):
-    vertex_ai = VertexAI()  # Initialize VertexAI client
-    response = generate_response(vertex_ai, user_id, user_name, user_query)
-    print("Response to User:", response)
-
-
-# Example call to handle interaction
-handle_user_interaction("user123", "Alice", "How do I improve student engagement?")
+    prompt = build_prompt()
+    
+    llm = VertexAI(model_name="gemini-1.0-pro")
+    
+    from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+    
+    runner = RunnableParallel(
+        {"chat_history": RunnablePassthrough(), "user_name": RunnablePassthrough(), "user_query": RunnablePassthrough()},
+    )
+    
+    chain = runner | prompt | llm
+    
+    response = chain.invoke({"chat_history": chat_context, "user_name": user_name, "user_query": user_query})
+    
+    return response
