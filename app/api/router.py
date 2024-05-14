@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
-from services.schemas import GenericRequest, ChatResponse, Message
+from services.schemas import GenericRequest, ChatResponse, Message, GCS_File
 from dependencies import get_db
 from utils.auth import key_check
 from utils.request_handler import validate_multipart_form_data
@@ -26,55 +26,67 @@ async def get_files(request: Request):
 
 @router.post("/submit-tool")
 async def submit_tool(
-    data: str = Form(...), # Must be a string for incoming stringified request
-    files: list[UploadFile] = Depends(get_files),
+    data: GenericRequest,
     db = Depends(get_db),
-    _ = Depends(key_check)
+    #_ = Depends(key_check)
 ):  
-    try:
-        # Convert stringified JSON to dictionary
-        request_dict = json.loads(data)
-        
-        # Create Pydantic Model Instance
-        request = GenericRequest(**request_dict)
-        
+    try:        
         # Unpack GenericRequest for tool data
-        request_data = request.tool_data
+        request_data = data.tool_data
     
         requested_tool = get_data(db, "tools", str(request_data.tool_id)) # Tools registry has IDs as strings
         if requested_tool is None:
             raise HTTPException(status_code=404, detail="Tool not found")
         
+        # Validate inputs from firestore and request
         inputs = requested_tool['inputs']    
         request_inputs_dict = {input.name: input.value for input in request_data.inputs}
         
+        print(inputs)
+        
+        # Extract 'files' input by attribute access
+        file_objects = next((input_item.value for input_item in request_data.inputs if input_item.name == "files"), None)
+        # Mutate to GCS_File objects
+        if file_objects and isinstance(file_objects, list):
+            file_objects = [
+                GCS_File(
+                    filePath=file_object['filePath'], 
+                    url=file_object['url'],
+                    filename=file_object['filename']
+                ) 
+                for file_object in file_objects
+            ]
+        
+        print(f"Request inputs: {request_inputs_dict}")
         if not validate_inputs(request_inputs_dict, inputs):
             raise HTTPException(status_code=400, detail="Input validation failed")
+        print(f"Inputs validated")
     
-        
+        # Available Tools
         tool_functions = {
             "0": quizzify_executor,
             "1": dynamo_executor,
         }
         
+        # Set Executor based on tool requested
         execute_function = tool_functions.get(str(request_data.tool_id))
         if not execute_function:
             raise HTTPException(status_code=404, detail="Tool executable not found")
         
         # If files, append to request_inputs_dict
-        if files:
-            request_inputs_dict["upload_files"] = files
-            print(f"Files appended to request inputs: {len(files)}")
+        if file_objects:
+            request_inputs_dict["files"] = file_objects
+            print(f"Files appended to request inputs: {len(file_objects)}")
         
         # Call execute with request_inputs_dict
-        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
+        #print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
         try: 
             result = execute_function(**request_inputs_dict)
         except Exception as e:
             print(f"Error: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
     
-        return {"message": "success", "files": len(files), "data": result}
+        return {"message": "success", "files": len(file_objects), "data": result}
     
     
     except json.JSONDecodeError as e:
@@ -83,6 +95,7 @@ async def submit_tool(
     except Exception as e:
         print(f"Error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.post("/chat")
 async def chat(request: GenericRequest, _ = Depends(key_check)):

@@ -54,37 +54,6 @@ def create_mock_pdf() -> BytesIO:
 
 
 # Test cases
-def atest_quizzify_tool_submission(client: TestClient):
-    data_dict = {
-        "user": {
-            "id": "string",
-            "fullName": "string",
-            "email": "string"
-        },
-        "type": "tool",
-        "tool_data": {
-            "tool_id": 0,
-            "inputs": [
-            {
-                "name": "topic",
-                "value": "Math"
-            },
-            {
-                "name": "num_questions",
-                "value": 5
-            }
-            ]
-        }
-    }
-    
-    response = client.post(
-            "/submit-tool",
-            json=data_dict
-        )
-
-    assert response.status_code == 200
-
-
 def test_quizzify_tool_submission_with_files(client: TestClient):
     data_dict = {
         "user": {
