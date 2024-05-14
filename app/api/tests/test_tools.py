@@ -94,29 +94,31 @@ def test_quizzify_tool_submission_with_files(client: TestClient):
         },
         "type": "tool",
         "tool_data": {
-            "tool_id": 1,
+            "tool_id": 0,
             "inputs": [
                 {
-                    "name": "youtube_url",
-                    "value": "https://www.youtube.com/watch?v=J4ZzZ8JZ9cA"
+                    "name": "topic",
+                    "value": "Linear Regression"
+                },
+                {
+                    "name": "num_questions",
+                    "value": 5
                 }
             ]
         }
     }
     
     json_data = json.dumps(data_dict)
-    print(json_data)
     
-    pdf_file2 = create_mock_pdf()
+    #pdf_file2 = create_mock_pdf()
 
     # Create a temporary file to write the mock PDF
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        tmp.write(pdf_file2.getvalue())
-        temp_pdf_path = tmp.name
+    #with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+    #    tmp.write(pdf_file2.getvalue())
+    #    temp_pdf_path = tmp.name
 
     files = [
-        ("files", ("file1.pdf", open("api/tests/test.pdf", "rb"), "application/pdf")),
-        ("files", ("file2.pdf", open(temp_pdf_path, "rb"), "application/pdf"))
+        ("files", ("file1.pdf", open("api/tests/linear_regression.pdf", "rb"), "application/pdf"))
     ]
     
     data = {"data": json_data}
@@ -125,10 +127,11 @@ def test_quizzify_tool_submission_with_files(client: TestClient):
     
     response = client.post("/submit-tool", headers=headers, data=data, files=files)
     
-    print(response.text)
+    #print(json_data)
+    #print(response.text)
 
     assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-    assert response.json()["files"] == 2
+    assert response.json()["files"] == 1
 
 
 def test_validate_inputs_all_valid():

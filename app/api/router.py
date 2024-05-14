@@ -7,12 +7,16 @@ from services.firestore import get_data
 from services.tool_registry import validate_inputs
 import json
 
+from features.dynamo.core import executor as dynamo_executor
+from features.quizzify.core import executor as quizzify_executor
+
 
 router = APIRouter()
 
 @router.get("/")
 def read_root():
     return {"Hello": "World"}
+
 
 async def get_files(request: Request):
     form = await request.form()
@@ -47,13 +51,30 @@ async def submit_tool(
         if not validate_inputs(request_inputs_dict, inputs):
             raise HTTPException(status_code=400, detail="Input validation failed")
     
-        # Files received
-        print(f"Files received: {len(files)}")
         
+        tool_functions = {
+            "0": quizzify_executor,
+            "1": dynamo_executor,
+        }
         
-        #TODO: Route according to requested tool
+        execute_function = tool_functions.get(str(request_data.tool_id))
+        if not execute_function:
+            raise HTTPException(status_code=404, detail="Tool executable not found")
+        
+        # If files, append to request_inputs_dict
+        if files:
+            request_inputs_dict["upload_files"] = files
+            print(f"Files appended to request inputs: {len(files)}")
+        
+        # Call execute with request_inputs_dict
+        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
+        try: 
+            result = execute_function(**request_inputs_dict)
+        except Exception as e:
+            print(f"Error: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
     
-        return {"message": "success", "files": len(files)}
+        return {"message": "success", "files": len(files), "data": result}
     
     
     except json.JSONDecodeError as e:
