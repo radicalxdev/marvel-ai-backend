@@ -4,6 +4,7 @@ from fastapi import UploadFile, HTTPException
 import json
 import os
 import logging
+from io import BytesIO
 
 def upload_to_gcs(file: UploadFile, bucket_name: str, blob_name: str):
     """
@@ -25,6 +26,34 @@ def upload_to_gcs(file: UploadFile, bucket_name: str, blob_name: str):
     file.file.close()
     
     return blob.public_url
+
+def download_from_gcs(bucket_name: str, blob_name: str) -> BytesIO:
+    """
+    Downloads a file from GCS and returns it as a BytesIO object.
+    
+    This allows the file to be read into memory, suitable for files like PDFs.
+    
+    Args:
+        bucket_name (str): The name of the bucket to download from.
+        blob_name (str): The full path of the blob within the bucket to download.
+    
+    Returns:
+        BytesIO: An in-memory file object that can be read or written to.
+    """
+    client = storage.Client()
+    bucket = client.get_bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    
+    # Create an in-memory bytes buffer
+    bytes_buffer = BytesIO()
+    
+    # Download the blob to the in-memory bytes buffer
+    blob.download_to_file(bytes_buffer)
+    
+    # Reset buffer position to the beginning after writing
+    bytes_buffer.seek(0)
+    
+    return bytes_buffer
 
 def delete_from_gcs(bucket_name: str, blob_name: str):
     """

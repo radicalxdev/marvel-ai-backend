@@ -1,4 +1,5 @@
-from typing import List
+from typing import List, Tuple, Optional
+from io import BytesIO
 from fastapi import UploadFile
 from PyPDF2 import PdfReader
 from langchain_core.document_loaders import BaseLoader
@@ -6,7 +7,12 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
-from services.gcp import setup_logger, read_blob_to_string
+from services.schemas import GCS_File
+from services.gcp import (
+    setup_logger, 
+    read_blob_to_string,
+    download_from_gcs
+    )
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
@@ -47,6 +53,64 @@ class UploadPDFLoader:
 
         return documents
 
+class BytesFileLoader:
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            if file_type.lower() == "pdf":
+                pdf_reader = PdfReader(file)
+
+                for i, page in enumerate(pdf_reader.pages):
+                    page_content = page.extract_text()
+                    metadata = {"source": file_type, "page_number": i + 1}
+
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+                    
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+
+
+class GCSLoader:
+    def __init__(
+        self,
+        bucket_name = "kai-ai-f63c8.appspot.com",
+        file_loader = BytesFileLoader,
+        expected_file_type = "pdf"
+    ):
+        self.loader = file_loader
+        self.bucket_name = bucket_name
+        
+        if expected_file_type in ['pdf']:
+            self.expected_file_type = expected_file_type
+        else:
+            raise ValueError(f"Unsupported file type: {expected_file_type}")
+    
+    def load(self, file_objects: list[GCS_File]):
+        loaded_files = []
+        
+        for file_object in file_objects:
+            file_path = file_object.filePath
+            file_type = file_object.filename.split(".")[-1]
+            
+            if file_type != self.expected_file_type:
+                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+            
+            bytes_io_obj = download_from_gcs(self.bucket_name, file_path)
+            loaded_files.append((bytes_io_obj, file_type))
+            print(f"Successfully loaded file: {file_object.filename}")
+
+        file_loader = self.loader(loaded_files)
+        file_documents = file_loader.load()
+
+        return file_documents
+
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None):
         self.loader = loader
@@ -70,20 +134,12 @@ class RAGpipeline:
         if embedding_model is None:
             self.embedding_model = default_config["embedding_model"]
 
-    def load_PDFs(self, files: List[UploadFile], datatype="raw", verbose=False) -> List[Document]:
+    def load_PDFs(self, files) -> List[Document]:
         total_loaded_files = []
         
-        if datatype in ["raw", "path"]: # Allow file path later
-            if datatype == "raw":
-                # The UploadPDFLoader returns a list of UploadFile documents
-                total_loaded_files = self.loader(files).load()
+        total_loaded_files = self.loader().load(files)
             
-            if verbose:
-                logger.info(f"Loaded {len(total_loaded_files)} files")
-            return total_loaded_files
-        
-        else: 
-            raise ValueError(f"Unknown datatype for loading: {datatype}")
+        return total_loaded_files
     
     def split_loaded_documents(self, loaded_documents: List[Document], verbose = False) -> List[Document]:
         total_chunks = []
@@ -113,6 +169,7 @@ class RAGpipeline:
         # Returns a vectorstore ready for usage 
         pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
+    
 class QuestionChoice(BaseModel):
     key: str = Field(description="A unique identifier for the choice")
     value: str = Field(description="The text content of the choice")

@@ -47,4 +47,8 @@ class ChatResponse(BaseModel):
 class ToolResponse(BaseModel):
     data: List[Any]
     
+class GCS_File(BaseModel):
+    filePath: str
+    url: Optional[str]
+    filename: Optional[str]
     
