@@ -1,25 +1,14 @@
 from langchain_google_vertexai import VertexAI
 from langchain.prompts import PromptTemplate, ChatPromptTemplate
 from services.schemas import ChatMessage, Message
+from services.gcp import read_blob_to_string
 
 def build_prompt():
     """
     Build the prompt for the model.
     """
     
-    template = """
-    You are Kai, you are a friendly, helpful AI assistant for educators. You provide guidance and support for educational strategies. The user's name is {user_name}. The user has asked the following question. Please answer succinctly and informatively. For context, you can use the chat history provided below. Do not answer questions outside of educational topics.
-    
-    User Query:
-    ---------------------------------------
-    {user_query}
-    
-    Chat History:
-    ---------------------------------------
-    {chat_history}
-    
-    Keep response brief. Do not provide personal information or engage in inappropriate behavior.
-    """
+    template = read_blob_to_string(bucket_name="backend-prompt-lib", file_path="kaichat/05142024-kaichat-prompt.txt")
     # Create system message for intro context to model    
     prompt = PromptTemplate(
         template = template,

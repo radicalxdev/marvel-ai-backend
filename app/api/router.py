@@ -100,7 +100,7 @@ async def submit_tool(
 @router.post("/chat")
 async def chat(
     request: GenericRequest,
-    #_ = Depends(key_check)
+    _ = Depends(key_check)
 ):
     from features.Kaichat.core import executor as kaichat_executor
     
