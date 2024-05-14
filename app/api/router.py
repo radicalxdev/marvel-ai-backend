@@ -97,33 +97,6 @@ async def submit_tool(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/gcs-upload")
-async def gcs_upload(request: GenericRequest):
-    # destructure the request
-    # grab the file URL from request
-    # use GCS to download file
-    from services.gcp import download_from_gcs
-    from features.quizzify.tools import GCSLoader, GCS_File
-    
-    inputs = request.tool_data.inputs
-    file_objects = next((input.value for input in inputs if input.name == "files"), None)
-    
-    file_objects = [
-        GCS_File(
-            filePath=file_object['filePath'], 
-            url=file_object['url'],
-            filename=file_object['filename']
-        ) 
-        for file_object in file_objects
-    ]
-    
-    if file_objects:
-        loader = GCSLoader()
-        file_documents = loader.load(file_objects)
-    
-    return {"data": (file_documents[0])}
-
-
 @router.post("/chat")
 async def chat(request: GenericRequest, _ = Depends(key_check)):
     from features.Kaichat.core import executor as kaichat_executor
