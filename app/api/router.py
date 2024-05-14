@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, Request
-from services.schemas import GenericRequest, ChatResponse, Message, GCS_File
+from fastapi import APIRouter, Depends, HTTPException, Request
+from services.schemas import GenericRequest, Message, GCS_File
 from dependencies import get_db
 from utils.auth import key_check
-from utils.request_handler import validate_multipart_form_data
+from services.gcp import setup_logger
 from services.firestore import get_data
 from services.tool_registry import validate_inputs
 import json
@@ -10,7 +10,7 @@ import json
 from features.dynamo.core import executor as dynamo_executor
 from features.quizzify.core import executor as quizzify_executor
 
-
+logger = setup_logger(__name__)
 router = APIRouter()
 
 @router.get("/")
@@ -28,7 +28,7 @@ async def get_files(request: Request):
 async def submit_tool(
     data: GenericRequest,
     db = Depends(get_db),
-    #_ = Depends(key_check)
+    _ = Depends(key_check)
 ):  
     try:        
         # Unpack GenericRequest for tool data
@@ -41,8 +41,6 @@ async def submit_tool(
         # Validate inputs from firestore and request
         inputs = requested_tool['inputs']    
         request_inputs_dict = {input.name: input.value for input in request_data.inputs}
-        
-        print(inputs)
         
         # Extract 'files' input by attribute access
         file_objects = next((input_item.value for input_item in request_data.inputs if input_item.name == "files"), None)
@@ -59,6 +57,9 @@ async def submit_tool(
         
         print(f"Request inputs: {request_inputs_dict}")
         if not validate_inputs(request_inputs_dict, inputs):
+            logger.error(f"Input validation failed")
+            logger.error(f"Inputs: {request_inputs_dict}")
+            logger.error(f"Firestore inputs: {inputs}")
             raise HTTPException(status_code=400, detail="Input validation failed")
         print(f"Inputs validated")
     
@@ -76,29 +77,31 @@ async def submit_tool(
         # If files, append to request_inputs_dict
         if file_objects:
             request_inputs_dict["files"] = file_objects
-            print(f"Files appended to request inputs: {len(file_objects)}")
         
         # Call execute with request_inputs_dict
         #print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
         try: 
             result = execute_function(**request_inputs_dict)
         except Exception as e:
-            print(f"Error: {str(e)}")
+            logger.error(f"Encountered error in executing tool {request_data.tool_id}")
+            logger.error(f"Error: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
     
-        return {"message": "success", "files": len(file_objects), "data": result}
-    
+        return {"data": result}
     
     except json.JSONDecodeError as e:
-        print(f"JSON Decoding error: {str(e)}")
+        logger.error(f"JSON Decoding error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"JSON Decoding error: {str(e)}")
     except Exception as e:
-        print(f"Error: {str(e)}")
+        logger.error(f"Error from top-level: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.post("/chat")
-async def chat(request: GenericRequest, _ = Depends(key_check)):
+async def chat(
+    request: GenericRequest,
+    #_ = Depends(key_check)
+):
     from features.Kaichat.core import executor as kaichat_executor
     
     user_name = request.user.fullName
