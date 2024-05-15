@@ -15,8 +15,6 @@ def executor(files: list, topic: str, num_questions: int):
 
     db = pipeline(files)
     
-    response = QuizBuilder(db, topic).create_questions(num_questions)
-    
-    return {"data": response}
+    return QuizBuilder(db, topic).create_questions(num_questions)
     
 

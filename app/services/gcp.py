@@ -6,6 +6,8 @@ import os
 import logging
 from io import BytesIO
 
+logger_configured = False
+
 def upload_to_gcs(file: UploadFile, bucket_name: str, blob_name: str):
     """
     Uploads a file to GCS and returns the public URL
@@ -84,6 +86,7 @@ def setup_logger(name=__name__):
     """
     env_type = os.environ.get('ENV_TYPE', 'undefined')
     project = os.environ.get('PROJECT_ID', 'undefined')
+    global logger_configured
 
     print(f"Attempting to establish logger for {env_type} environment in project: {project}")
 
@@ -91,7 +94,7 @@ def setup_logger(name=__name__):
     
     # Check if the logger already has handlers configured.
     # This prevents adding multiple handlers to the same logger if setup_logger is called multiple times.
-    if not logger.handlers:
+    if not logger_configured:
         if env_type in ['sandbox', 'production']:
             try:
                 logging_client = cloud_logging.Client(project=project)
@@ -101,6 +104,7 @@ def setup_logger(name=__name__):
                 logger.addHandler(cloud_logging_handler)
                 logger.setLevel(logging.INFO)
                 print(f"ESTABLISHED CLOUD LOGGER: {env_type} for project: {project}")
+                logger_configured = True
             except Exception as e:
                 print(f"Failed to configure Google Cloud Logging: {str(e)}")
                 # Fall back to standard logging if GCL configuration fails
@@ -115,6 +119,7 @@ def setup_logger(name=__name__):
             print("ESTABLISHED STANDARD LOGGER for non-production/local environments")
     else:
         print(f"Logger for {name} already configured.")
+        return logging.getLogger(name)
 
     return logger
 

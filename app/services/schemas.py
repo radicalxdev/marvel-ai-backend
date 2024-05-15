@@ -51,4 +51,8 @@ class GCS_File(BaseModel):
     filePath: str
     url: Optional[str]
     filename: Optional[str]
-    
+
+class ChatMessage(BaseModel):
+    role: str
+    type: str
+    text: str
