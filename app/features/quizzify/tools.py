@@ -76,7 +76,6 @@ class BytesFileLoader:
             
         return documents
 
-
 class GCSLoader:
     def __init__(
         self,
@@ -104,7 +103,7 @@ class GCSLoader:
             
             bytes_io_obj = download_from_gcs(self.bucket_name, file_path)
             loaded_files.append((bytes_io_obj, file_type))
-            print(f"Successfully loaded file: {file_object.filename}")
+            logger.info(f"Successfully loaded file: {file_object.filename}")
 
         file_loader = self.loader(loaded_files)
         file_documents = file_loader.load()
@@ -231,6 +230,9 @@ class QuizBuilder:
         while len(generated_questions) < num_questions:
             response = chain.invoke(self.topic)
             generated_questions.append(response)
+        
+        # Clean up vectorstore process
+        self.vectorstore.delete_collection()
         
         return generated_questions
     

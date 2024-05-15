@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from services.schemas import GenericRequest, Message, GCS_File
+from services.schemas import GenericRequest, Message, GCS_File, ChatResponse, ToolResponse
 from dependencies import get_db
 from utils.auth import key_check
 from services.gcp import setup_logger
@@ -24,7 +24,7 @@ async def get_files(request: Request):
     valid_files = [file for file in files if file != '']
     return valid_files
 
-@router.post("/submit-tool")
+@router.post("/submit-tool", response_model=ToolResponse)
 async def submit_tool(
     data: GenericRequest,
     db = Depends(get_db),
@@ -54,14 +54,13 @@ async def submit_tool(
                 ) 
                 for file_object in file_objects
             ]
-        
-        print(f"Request inputs: {request_inputs_dict}")
+
         if not validate_inputs(request_inputs_dict, inputs):
             logger.error(f"Input validation failed")
             logger.error(f"Inputs: {request_inputs_dict}")
             logger.error(f"Firestore inputs: {inputs}")
             raise HTTPException(status_code=400, detail="Input validation failed")
-        print(f"Inputs validated")
+
     
         # Available Tools
         tool_functions = {
@@ -87,7 +86,7 @@ async def submit_tool(
             logger.error(f"Error: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
     
-        return {"data": result}
+        return ToolResponse(data=[result])
     
     except json.JSONDecodeError as e:
         logger.error(f"JSON Decoding error: {str(e)}")
@@ -97,7 +96,7 @@ async def submit_tool(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.post("/chat")
+@router.post("/chat", response_model=ChatResponse)
 async def chat(
     request: GenericRequest,
     _ = Depends(key_check)
@@ -116,5 +115,5 @@ async def chat(
         payload={"text": response}
     )
     
-    return {"data": [formatted_response]}
+    return ChatResponse(data=[formatted_response])
 
