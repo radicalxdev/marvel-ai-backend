@@ -6,6 +6,7 @@ from services.gcp import setup_logger
 from services.firestore import get_data
 from services.tool_registry import validate_inputs
 import json
+import os
 
 from features.dynamo.core import executor as dynamo_executor
 from features.quizzify.core import executor as quizzify_executor
@@ -26,15 +27,29 @@ async def get_files(request: Request):
 
 @router.post("/submit-tool", response_model=ToolResponse)
 async def submit_tool(
-    data: GenericRequest,
-    db = Depends(get_db),
-    _ = Depends(key_check)
+    data: GenericRequest
 ):  
     try:        
         # Unpack GenericRequest for tool data
         request_data = data.tool_data
+        
+        # Set relative path based on tool ID
+        tool_paths = {
+            "0": "features/quizzify",
+            "1": "features/dynamo",
+        }
+        relative_path = tool_paths.get(str(request_data.tool_id))
     
-        requested_tool = get_data(db, "tools", str(request_data.tool_id)) # Tools registry has IDs as strings
+        # Check if file exists and is not empty
+        file_path = f"{relative_path}/metadata.json"
+        
+        if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
+            # read metadata.json local
+            with open(file_path, 'r') as f:
+                requested_tool = json.load(f)
+        
+        print(requested_tool)
+        
         if requested_tool is None:
             raise HTTPException(status_code=404, detail="Tool not found")
         
@@ -45,15 +60,7 @@ async def submit_tool(
         # Extract 'files' input by attribute access
         file_objects = next((input_item.value for input_item in request_data.inputs if input_item.name == "files"), None)
         # Mutate to GCS_File objects
-        if file_objects and isinstance(file_objects, list):
-            file_objects = [
-                GCS_File(
-                    filePath=file_object['filePath'], 
-                    url=file_object['url'],
-                    filename=file_object['filename']
-                ) 
-                for file_object in file_objects
-            ]
+        print(f"File objects: {file_objects}")
 
         if not validate_inputs(request_inputs_dict, inputs):
             logger.error(f"Input validation failed")
@@ -68,6 +75,8 @@ async def submit_tool(
             "1": dynamo_executor,
         }
         
+        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
+        
         # Set Executor based on tool requested
         execute_function = tool_functions.get(str(request_data.tool_id))
         if not execute_function:
@@ -78,7 +87,7 @@ async def submit_tool(
             request_inputs_dict["files"] = file_objects
         
         # Call execute with request_inputs_dict
-        #print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
+        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
         try: 
             result = execute_function(**request_inputs_dict)
         except Exception as e:
