@@ -1,17 +1,24 @@
 from langchain_google_vertexai import VertexAI
-from langchain.prompts import PromptTemplate, ChatPromptTemplate
+from langchain.prompts import PromptTemplate
 from services.schemas import ChatMessage, Message
-from services.logger import read_blob_to_string
+import os
+
+def read_text_file(file_path):
+    # Get the directory containing the script file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Combine the script directory with the relative file path
+    absolute_file_path = os.path.join(script_dir, file_path)
+    
+    with open(absolute_file_path, 'r') as file:
+        return file.read()
 
 def build_prompt():
     """
     Build the prompt for the model.
     """
     
-    prompt_file_path = "prompt/kai-prompt.txt"  
-    with open(prompt_file_path, "r") as f:
-        template = f.read()
-
+    template = read_text_file("prompt/kaichat-prompt.txt")
     prompt = PromptTemplate(
         template=template,
         input_variables=["text"],
