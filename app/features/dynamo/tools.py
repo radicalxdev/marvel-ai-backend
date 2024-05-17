@@ -3,11 +3,22 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain_google_vertexai import VertexAI
 from langchain_core.output_parsers import JsonOutputParser
-from services.gcp import read_blob_to_string
 from pydantic import BaseModel, Field
+import os
 
 # AI Model
 model = VertexAI(model="gemini-1.0-pro")
+
+def read_text_file(file_path):
+    # Get the directory containing the script file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Combine the script directory with the relative file path
+    absolute_file_path = os.path.join(script_dir, file_path)
+    
+    with open(absolute_file_path, 'r') as file:
+        return file.read()
+
 
 # Youtube Loader # Chunk and Splitter
 def retrieve_youtube_documents(youtube_url: str):
@@ -56,7 +67,7 @@ def find_key_concepts(documents: list, sample_size: int = 6):
     
     print(f"Beginning to process {len(groups)} groups")
     
-    template = read_blob_to_string(bucket_name="backend-prompt-lib", file_path="dynamo/05142024-dynamo-prompt.txt")
+    template = read_text_file("prompt/dynamo-prompt.txt")
     prompt = PromptTemplate(
                 template = template,
                 input_variables=["text"],

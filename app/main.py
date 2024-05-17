@@ -4,16 +4,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from api.router import router
-from services.gcp import setup_logger
-from services.firestore import get_firestore_client
+from services.logger import setup_logger
 
 logger = setup_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info(f"Initializing Application Startup")
-    app.state.db = get_firestore_client()
-    logger.info("Firestore client added to app state")
     logger.info(f"Successfully Completed Application Startup")
     
     yield

@@ -1,24 +1,26 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from io import BytesIO
 from fastapi import UploadFile
-from PyPDF2 import PdfReader
-from langchain_core.document_loaders import BaseLoader
+from pypdf import PdfReader
+from urllib.parse import urlparse
+import requests
+import os
+
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
-from services.schemas import GCS_File
-from services.gcp import setup_logger
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
-import json
-import os
+
+from services.logger import setup_logger
+from services.tool_registry import ToolFile
 
 relative_path = "features/quzzify"
 
-logger = setup_logger()
+logger = setup_logger(__name__)
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -26,8 +28,7 @@ def read_text_file(file_path):
 
     # Combine the script directory with the relative file path
     absolute_file_path = os.path.join(script_dir, file_path)
-
-    print(f"Attempting to read file: {absolute_file_path}")
+    
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
@@ -64,7 +65,7 @@ class UploadPDFLoader:
 
         return documents
 
-class BytesFileLoader:
+class BytesFilePDFLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -72,8 +73,9 @@ class BytesFileLoader:
         documents = []
         
         for file, file_type in self.files:
+            print(file_type)
             if file_type.lower() == "pdf":
-                pdf_reader = PdfReader(file)
+                pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
 
                 for i, page in enumerate(pdf_reader.pages):
                     page_content = page.extract_text()
@@ -117,11 +119,49 @@ class LocalFileLoader:
 
         return documents
 
+class URLLoader:
+    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
+        self.loader = file_loader or BytesFilePDFLoader
+        self.expected_file_type = expected_file_type
+        self.verbose = verbose
+    
+    def load(self, tool_files: list[ToolFile]) -> list[Document]:
+        queued_files = []
+        
+        for tool_file in tool_files:
+            url = tool_file.url
+            response = requests.get(url)
+            
+            parsed_url = urlparse(url)
+            path = parsed_url.path
+            
+            if response.status_code == 200:
+                # Read file
+                file_content = BytesIO(response.content)
+                
+                # Check file type
+                file_type = path.split(".")[-1]
+                if file_type != self.expected_file_type: 
+                    raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+                
+                # Append to Queue
+                queued_files.append((file_content, file_type))
+                if self.verbose: logger.info(f"Successfully loaded file from {url}")
+                
+            else: logger.error(f"Request Failed to load file from {url}")
+            
+            # Pass Queue to the file loader
+            file_loader = self.loader(queued_files)
+            file_documents = file_loader.load()
+            
+            if self.verbose: logger.info(f"Loaded {len(file_documents)} documents")
+        
+        return file_documents
 
 class RAGpipeline:
-    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None):
+    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            "loader": UploadPDFLoader,
+            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
@@ -130,24 +170,37 @@ class RAGpipeline:
         self.splitter = splitter or default_config["splitter"]
         self.vectorstore_class = vectorstore_class or default_config["vectorstore_class"]
         self.embedding_model = embedding_model or default_config["embedding_model"]
+        self.verbose = verbose
 
     def load_PDFs(self, files) -> List[Document]:
-        loader_instance = self.loader(files)
-        total_loaded_files = loader_instance.load()
+        if self.verbose:
+            logger.info(f"Loading {len(files)} files")
+            logger.info(f"Loader type used: {type(self.loader)}")
+        
+        print(f"Loader is a: {type(self.loader)}")
+        total_loaded_files = self.loader.load(files)
         return total_loaded_files
     
-    def split_loaded_documents(self, loaded_documents: List[Document], verbose=False) -> List[Document]:
+    def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:
+        if self.verbose:
+            logger.info(f"Splitting {len(loaded_documents)} documents")
+            logger.info(f"Splitter type used: {type(self.splitter)}")
+            
         total_chunks = []
         chunks = self.splitter.split_documents(loaded_documents)
         total_chunks.extend(chunks)
-        if verbose:
-            logger.info(f"Split {len(total_chunks)} chunks")
+        
+        if self.verbose: logger.info(f"Split {len(loaded_documents)} documents into {len(total_chunks)} chunks")
+        
         return total_chunks
     
-    def create_vectorstore(self, documents: List[Document], verbose=False):
+    def create_vectorstore(self, documents: List[Document]):
+        if self.verbose:
+            logger.info(f"Creating vectorstore from {len(documents)} documents")
+        
         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
-        if verbose:
-            logger.info(f"Successfully created vectorstore")
+
+        if self.verbose: logger.info(f"Vectorstore created")
         return self.vectorstore
     
     def compile(self):
@@ -155,49 +208,36 @@ class RAGpipeline:
         self.load_PDFs = RAGRunnable(self.load_PDFs)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
-        logger.info(f"Successfully compiled pipeline")
-    
-    def clear(self):
-        return self.vectorstore.delete_collection()
+        if self.verbose: logger.info(f"Completed pipeline compilation")
     
     def __call__(self, documents):
         # Returns a vectorstore ready for usage 
+        
+        if self.verbose: 
+            logger.info(f"Executing pipeline")
+            logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
+        
         pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
 
-    
-class QuestionChoice(BaseModel):
-    key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
-    value: str = Field(description="The text content of the choice")
-class QuizQuestion(BaseModel):
-    question: str = Field(description="The question text")
-    choices: List[QuestionChoice] = Field(description="A list of choices")
-    answer: str = Field(description="The correct answer")
-    explanation: str = Field(description="An explanation of why the answer is correct")
 class QuizBuilder:
-    def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None):
-        self.prompt = prompt
-        self.vectorstore = vectorstore
-        self.model = model
-        self.topic = topic
-        self.parser = parser
-        
+    def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": VertexAI(model="gemini-1.0-pro"),
-            "parser": JsonOutputParser(pydantic_object=QuizQuestion)
+            "parser": JsonOutputParser(pydantic_object=QuizQuestion),
+            "prompt": read_text_file("prompt/quizzify-prompt.txt")
         }
-
-        if prompt is None:
-            config = read_text_file("prompt/quizzify-prompt.txt")
-            self.prompt = config
-        if vectorstore is None:
-            raise ValueError("Vectorstore must be provided")
-        if model is None:
-            self.model = default_config["model"]
-        if topic is None:
-            raise ValueError("Topic must be provided")
-        if parser is None:
-            self.parser = default_config["parser"]
+        
+        self.prompt = prompt or default_config["prompt"]
+        self.model = model or default_config["model"]
+        self.parser = parser or default_config["parser"]
+        
+        self.vectorstore = vectorstore
+        self.topic = topic
+        self.verbose = verbose
+        
+        if vectorstore is None: raise ValueError("Vectorstore must be provided")
+        if topic is None: raise ValueError("Topic must be provided")
     
     def compile(self):
         # Return the chain
@@ -215,9 +255,14 @@ class QuizBuilder:
         
         chain = runner | prompt | self.model | self.parser
         
+        if self.verbose: logger.info(f"Chain compilation complete")
+        
         return chain
     
     def create_questions(self, num_questions: int = 5) -> List:
+        
+        if self.verbose: logger.info(f"Creating {num_questions} questions")
+        
         if num_questions > 10:
             return {"message": "error", "data": "Number of questions cannot exceed 10"}
         
@@ -228,11 +273,23 @@ class QuizBuilder:
         while len(generated_questions) < num_questions:
             response = chain.invoke(self.topic)
             generated_questions.append(response)
+            
+            if self.verbose:
+                logger.info(f"Generated Response: {response}")
+                logger.info(f"Generated Response Type: {type(response)}")
+                logger.info(f"Generated Questions: {len(generated_questions)}")
         
         # Clean up vectorstore process
+        if self.verbose: logger.info(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
         
         return generated_questions
 
-    
-        
+class QuestionChoice(BaseModel):
+    key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
+    value: str = Field(description="The text content of the choice")
+class QuizQuestion(BaseModel):
+    question: str = Field(description="The question text")
+    choices: List[QuestionChoice] = Field(description="A list of choices")
+    answer: str = Field(description="The correct answer")
+    explanation: str = Field(description="An explanation of why the answer is correct")

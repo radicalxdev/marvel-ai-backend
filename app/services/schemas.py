@@ -1,7 +1,5 @@
-from pydantic import BaseModel, field_validator
-from fastapi import UploadFile
+from pydantic import BaseModel
 from typing import Optional, List, Any
-from pydantic import Field
 from enum import Enum
 from services.tool_registry import BaseTool
 
@@ -26,10 +24,10 @@ class MessagePayload(BaseModel):
     text: str
 
 class Message(BaseModel):
-  role: Role
-  type: MessageType
-  timestamp: Optional[Any] = None
-  payload: MessagePayload
+    role: Role
+    type: MessageType
+    timestamp: Optional[Any] = None
+    payload: MessagePayload
     
 class RequestType(str, Enum):
     chat = "chat"
@@ -38,8 +36,12 @@ class RequestType(str, Enum):
 class GenericRequest(BaseModel):
     user: User
     type: RequestType
-    tool_data: Optional[BaseTool] = None
-    messages: Optional[List[Message]] = None
+    
+class ChatRequest(GenericRequest):
+    messages: List[Message]
+    
+class ToolRequest(GenericRequest):
+    tool_data: BaseTool
     
 class ChatResponse(BaseModel):
     data: List[Message]
@@ -47,11 +49,6 @@ class ChatResponse(BaseModel):
 class ToolResponse(BaseModel):
     data: List[Any]
     
-class GCS_File(BaseModel):
-    filePath: str
-    url: Optional[str]
-    filename: Optional[str]
-
 class ChatMessage(BaseModel):
     role: str
     type: str

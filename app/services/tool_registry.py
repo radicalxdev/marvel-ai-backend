@@ -1,14 +1,21 @@
-from pydantic import BaseModel, ValidationError, field_validator
-from typing import List, Union, Any
+from pydantic import BaseModel
+from typing import List, Any, Optional
 
 class ToolInput(BaseModel):
+    # Input from incoming request typically represent HTML Form elements
     name: str
     value: Any
+    # When passing "files", the value field is an object with file details as properties
     
 # Base model for all tools
 class BaseTool(BaseModel):
     tool_id: int  # Unique identifier for each tool,
     inputs: List[ToolInput]
+
+class ToolFile(BaseModel):
+    filePath: Optional[str]
+    url: str
+    filename: Optional[str]
 
 def validate_inputs(request_data: dict, validate_data: list) -> bool:
     validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}

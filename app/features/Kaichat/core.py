@@ -1,7 +1,7 @@
 from langchain_google_vertexai import VertexAI
 from langchain.prompts import PromptTemplate, ChatPromptTemplate
 from services.schemas import ChatMessage, Message
-from services.gcp import read_blob_to_string
+from services.logger import read_blob_to_string
 
 def build_prompt():
     """

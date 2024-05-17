@@ -1,15 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from services.schemas import GenericRequest, Message, GCS_File, ChatResponse, ToolResponse
-from dependencies import get_db
+from fastapi import APIRouter, Depends, HTTPException
+from services.schemas import ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
 from utils.auth import key_check
-from services.gcp import setup_logger
-from services.firestore import get_data
+from services.logger import setup_logger
 from services.tool_registry import validate_inputs
-import json
-import os
 
-from features.dynamo.core import executor as dynamo_executor
-from features.quizzify.core import executor as quizzify_executor
+from api.tool_utilities import load_tool_metadata, prepare_input_data, execute_tool
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -18,96 +13,30 @@ router = APIRouter()
 def read_root():
     return {"Hello": "World"}
 
-
-async def get_files(request: Request):
-    form = await request.form()
-    files = form.getlist("files")
-    valid_files = [file for file in files if file != '']
-    return valid_files
-
 @router.post("/submit-tool", response_model=ToolResponse)
-async def submit_tool(
-    data: GenericRequest
-):  
-    try:        
-        # Unpack GenericRequest for tool data
-        request_data = data.tool_data
-        
-        # Set relative path based on tool ID
-        tool_paths = {
-            "0": "features/quizzify",
-            "1": "features/dynamo",
-        }
-        relative_path = tool_paths.get(str(request_data.tool_id))
+async def submit_tool( data: ToolRequest ):      
+    # Unpack GenericRequest for tool data
+    request_data = data.tool_data
     
-        # Check if file exists and is not empty
-        file_path = f"{relative_path}/metadata.json"
-        
-        if os.path.exists(file_path) and os.path.getsize(file_path) > 0:
-            # read metadata.json local
-            with open(file_path, 'r') as f:
-                requested_tool = json.load(f)
-        
-        print(requested_tool)
-        
-        if requested_tool is None:
-            raise HTTPException(status_code=404, detail="Tool not found")
-        
-        # Validate inputs from firestore and request
-        inputs = requested_tool['inputs']    
-        request_inputs_dict = {input.name: input.value for input in request_data.inputs}
-        
-        # Extract 'files' input by attribute access
-        file_objects = next((input_item.value for input_item in request_data.inputs if input_item.name == "files"), None)
-        # Mutate to GCS_File objects
-        print(f"File objects: {file_objects}")
+    print(type(request_data))
+    print(request_data)
+    
+    requested_tool = load_tool_metadata(request_data.tool_id)
+    request_inputs_dict = prepare_input_data(request_data)
+    
+    if not validate_inputs(request_inputs_dict, requested_tool['inputs']):
+        logger.error(f"Input validation failed")
+        logger.error(f"Inputs: {request_inputs_dict}")
+        logger.error(f"Firestore inputs: {requested_tool['inputs']}")
+        raise HTTPException(status_code=400, detail="Input validation failed")
 
-        if not validate_inputs(request_inputs_dict, inputs):
-            logger.error(f"Input validation failed")
-            logger.error(f"Inputs: {request_inputs_dict}")
-            logger.error(f"Firestore inputs: {inputs}")
-            raise HTTPException(status_code=400, detail="Input validation failed")
-
+    result = execute_tool(request_data.tool_id, request_inputs_dict)
     
-        # Available Tools
-        tool_functions = {
-            "0": quizzify_executor,
-            "1": dynamo_executor,
-        }
-        
-        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
-        
-        # Set Executor based on tool requested
-        execute_function = tool_functions.get(str(request_data.tool_id))
-        if not execute_function:
-            raise HTTPException(status_code=404, detail="Tool executable not found")
-        
-        # If files, append to request_inputs_dict
-        if file_objects:
-            request_inputs_dict["files"] = file_objects
-        
-        # Call execute with request_inputs_dict
-        print(f"Executing tool {request_data.tool_id} with inputs: {request_inputs_dict}")
-        try: 
-            result = execute_function(**request_inputs_dict)
-        except Exception as e:
-            logger.error(f"Encountered error in executing tool {request_data.tool_id}")
-            logger.error(f"Error: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
-    
-        return ToolResponse(data=[result])
-    
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON Decoding error: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"JSON Decoding error: {str(e)}")
-    except Exception as e:
-        logger.error(f"Error from top-level: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
-
+    return ToolResponse(data=[result])
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(
-    request: GenericRequest,
+    request: ChatRequest,
     _ = Depends(key_check)
 ):
     from features.Kaichat.core import executor as kaichat_executor
@@ -125,4 +54,3 @@ async def chat(
     )
     
     return ChatResponse(data=[formatted_response])
-
