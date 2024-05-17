@@ -43,10 +43,19 @@ backend/
 ```
 ## Install all the necessary libraries:
 
+### Navigate to the app directory
+```bash
+cd backend/app
+```
+
+### Create and activate Virtual Environment
+```bash
+python -m venv env
+source env/bin/activate
+```
 
 ```bash
-  pip install -r requirements.txt
-
+pip install -r requirements.txt
 ```
 ## To Run Locally and Test 
 
@@ -92,7 +101,6 @@ backend/
 ```bash
   set ENV_TYPE="dev"
   set PROJECT_ID="Enter your project ID here"
-
 ```
 
 ```bash
@@ -106,6 +114,8 @@ backend/
 ## Overview
 
 This guide is designed to help contributors set up and run the backend service using Docker. Follow these steps to ensure that your development environment is configured correctly.
+
+NOTE: if you choose to authenticate Google Cloud through the SDK and not with a local serice account key, you must comment out `GOOGLE_APPLICATION_CREDENTIALS` in the Dockerfile.
 
 ## Prerequisites
 
@@ -121,14 +131,13 @@ Obtain a local-auth.json file which contains the Google service account credenti
 ### 2. Build the Docker Image
 Navigate to the project's root directory and build the Docker image:
 ``` Bash
-docker build -f backend/Dockerfile -t kai-backend:latest .
-
+docker build -t kai-backend:latest .
 ```
 ### 3 Run the Docker Container
 
 Run the Docker container using the following command:
 ``` bash
-docker run -d -p 8000:8000 --name kai-backend kai-backend:latest
+docker run -p 8000:8000 kai-backend:latest
 ```
 This command starts a detached container that maps port 8000 of the container to port 8000 on the host.
 

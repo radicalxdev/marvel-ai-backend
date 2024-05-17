@@ -40,7 +40,7 @@ def executor(user_name: str, user_query: str, messages: list[Message], k=10):
 
     prompt = build_prompt()
     
-    llm = VertexAI(model_name="gemini-1.0-pro")
+    llm = VertexAI(model_name="gemini-1.0-pro") 
     
     chain =  prompt | llm
     
