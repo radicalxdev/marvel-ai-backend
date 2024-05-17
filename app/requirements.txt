@@ -10,7 +10,7 @@ google-auth
 google-cloud-storage
 firebase-admin
 chroma
-pypdf2
+pypdf
 fpdf
 youtube-transcript-api
 pytube

@@ -1,0 +1,9 @@
+{
+    "inputs": [
+        {
+            "label": "Youtube URL",
+            "name": "youtube_url",
+            "type": "string"
+        }
+    ]
+}
