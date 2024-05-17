@@ -8,11 +8,13 @@ def build_prompt():
     Build the prompt for the model.
     """
     
-    template = read_blob_to_string(bucket_name="backend-prompt-lib", file_path="kaichat/05142024-kaichat-prompt.txt")
-    # Create system message for intro context to model    
+    prompt_file_path = "prompt/kai-prompt.txt"  
+    with open(prompt_file_path, "r") as f:
+        template = f.read()
+
     prompt = PromptTemplate(
-        template = template,
-        input_variables=['user_name', 'user_query', 'chat_history']
+        template=template,
+        input_variables=["text"],
     )
     
     return prompt
