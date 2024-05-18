@@ -1,0 +1,10 @@
+{
+    "0": {
+        "path": "features.quizzify.core",
+        "metadata_file": "metadata.json"
+    },
+    "1": {
+        "path": "features.dynamo.core",
+        "metadata_file": "metadata.json"
+    }
+}

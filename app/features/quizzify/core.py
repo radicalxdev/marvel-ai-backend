@@ -1,20 +1,26 @@
-from fastapi import UploadFile
-from typing import List
+from services.tool_registry import ToolFile
+from services.logger import setup_logger
+from features.quizzify.tools import RAGpipeline
+from features.quizzify.tools import QuizBuilder
 
+logger = setup_logger()
 
-def executor(files: list, topic: str, num_questions: int):
-    from features.quizzify.tools import RAGpipeline
-    from features.quizzify.tools import QuizBuilder
-    from features.quizzify.tools import GCSLoader
+def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=False):
     
-    ## Instantiate RAG pipeline
-    pipeline = RAGpipeline(loader = GCSLoader)
+    if verbose:
+        logger.info(f"Files: {files}")
+
+    # Instantiate RAG pipeline with default values
+    pipeline = RAGpipeline(verbose=verbose)
     
-    ## Create pipeline
     pipeline.compile()
-
+    
+    # Process the uploaded files
     db = pipeline(files)
     
-    return QuizBuilder(db, topic).create_questions(num_questions)
+    # Create and return the quiz questions
+    output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
     
+    
+    return output
 
