@@ -14,7 +14,7 @@ def read_root():
     return {"Hello": "World"}
 
 @router.post("/submit-tool", response_model=ToolResponse)
-async def submit_tool( data: ToolRequest ):      
+async def submit_tool( data: ToolRequest, _ = Depends(key_check)):      
     # Unpack GenericRequest for tool data
     request_data = data.tool_data
     
@@ -35,10 +35,7 @@ async def submit_tool( data: ToolRequest ):
     return ToolResponse(data=[result])
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(
-    request: ChatRequest,
-    _ = Depends(key_check)
-):
+async def chat( request: ChatRequest, _ = Depends(key_check) ):
     from features.Kaichat.core import executor as kaichat_executor
     
     user_name = request.user.fullName
