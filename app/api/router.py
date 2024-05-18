@@ -18,9 +18,6 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
     # Unpack GenericRequest for tool data
     request_data = data.tool_data
     
-    print(type(request_data))
-    print(request_data)
-    
     requested_tool = load_tool_metadata(request_data.tool_id)
     request_inputs_dict = prepare_input_data(request_data)
     
