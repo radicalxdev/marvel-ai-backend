@@ -3,7 +3,8 @@ uvicorn[standard]
 langchain
 langchain-core
 langchain-google-vertexai
-langchain_chroma
+langchain-chroma
+langchain-community
 google-cloud-secret-manager
 google-cloud-logging
 google-auth

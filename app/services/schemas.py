@@ -47,7 +47,7 @@ class ChatResponse(BaseModel):
     data: List[Message]
 
 class ToolResponse(BaseModel):
-    data: List[Any]
+    data: Any
     
 class ChatMessage(BaseModel):
     role: str

@@ -26,10 +26,12 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
         logger.error(f"Inputs: {request_inputs_dict}")
         logger.error(f"Firestore inputs: {requested_tool['inputs']}")
         raise HTTPException(status_code=400, detail="Input validation failed")
+    else:
+        logger.info(f"Input validation passed")
 
     result = execute_tool(request_data.tool_id, request_inputs_dict)
     
-    return ToolResponse(data=[result])
+    return ToolResponse(data=result)
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat( request: ChatRequest, _ = Depends(key_check) ):
