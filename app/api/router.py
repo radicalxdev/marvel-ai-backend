@@ -18,9 +18,6 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
     # Unpack GenericRequest for tool data
     request_data = data.tool_data
     
-    print(type(request_data))
-    print(request_data)
-    
     requested_tool = load_tool_metadata(request_data.tool_id)
     request_inputs_dict = prepare_input_data(request_data)
     
@@ -29,10 +26,12 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
         logger.error(f"Inputs: {request_inputs_dict}")
         logger.error(f"Firestore inputs: {requested_tool['inputs']}")
         raise HTTPException(status_code=400, detail="Input validation failed")
+    else:
+        logger.info(f"Input validation passed")
 
     result = execute_tool(request_data.tool_id, request_inputs_dict)
     
-    return ToolResponse(data=[result])
+    return ToolResponse(data=result)
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat( request: ChatRequest, _ = Depends(key_check) ):
