@@ -17,6 +17,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
+from api.error_utilities import LoaderError
 
 relative_path = "features/quzzify"
 
@@ -73,7 +74,7 @@ class BytesFilePDFLoader:
         documents = []
         
         for file, file_type in self.files:
-            print(file_type)
+            logger.debug(file_type)
             if file_type.lower() == "pdf":
                 pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
 
@@ -124,39 +125,54 @@ class URLLoader:
         self.loader = file_loader or BytesFilePDFLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
-    
-    def load(self, tool_files: list[ToolFile]) -> list[Document]:
+
+    def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
-        
+        documents = []
+        any_success = False
+
         for tool_file in tool_files:
-            url = tool_file.url
-            response = requests.get(url)
-            
-            parsed_url = urlparse(url)
-            path = parsed_url.path
-            
-            if response.status_code == 200:
-                # Read file
-                file_content = BytesIO(response.content)
-                
-                # Check file type
-                file_type = path.split(".")[-1]
-                if file_type != self.expected_file_type: 
-                    raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-                
-                # Append to Queue
-                queued_files.append((file_content, file_type))
-                if self.verbose: logger.info(f"Successfully loaded file from {url}")
-                
-            else: logger.error(f"Request Failed to load file from {url}")
-            
-            # Pass Queue to the file loader
+            try:
+                url = tool_file.url
+                response = requests.get(url)
+                parsed_url = urlparse(url)
+                path = parsed_url.path
+
+                if response.status_code == 200:
+                    # Read file
+                    file_content = BytesIO(response.content)
+
+                    # Check file type
+                    file_type = path.split(".")[-1]
+                    if file_type != self.expected_file_type:
+                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+
+                    # Append to Queue
+                    queued_files.append((file_content, file_type))
+                    if self.verbose:
+                        logger.info(f"Successfully loaded file from {url}")
+
+                    any_success = True  # Mark that at least one file was successfully loaded
+                else:
+                    logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
+
+            except Exception as e:
+                logger.error(f"Failed to load file from {url}")
+                logger.error(e)
+                continue
+
+        # Pass Queue to the file loader if there are any successful loads
+        if any_success:
             file_loader = self.loader(queued_files)
-            file_documents = file_loader.load()
-            
-            if self.verbose: logger.info(f"Loaded {len(file_documents)} documents")
-        
-        return file_documents
+            documents = file_loader.load()
+
+            if self.verbose:
+                logger.info(f"Loaded {len(documents)} documents")
+
+        if not any_success:
+            raise LoaderError("Unable to load any files from URLs")
+
+        return documents
 
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
@@ -177,8 +193,14 @@ class RAGpipeline:
             logger.info(f"Loading {len(files)} files")
             logger.info(f"Loader type used: {type(self.loader)}")
         
-        print(f"Loader is a: {type(self.loader)}")
-        total_loaded_files = self.loader.load(files)
+        logger.debug(f"Loader is a: {type(self.loader)}")
+        
+        try:
+            total_loaded_files = self.loader.load(files)
+        except LoaderError as e:
+            logger.error(f"Loader experienced error: {e}")
+            raise LoaderError(e)
+            
         return total_loaded_files
     
     def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:

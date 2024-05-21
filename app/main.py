@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from api.router import router
 from services.logger import setup_logger
+from api.error_utilities import ErrorResponse
 
 logger = setup_logger(__name__)
 
@@ -29,18 +30,16 @@ app.add_middleware(
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
     for error in exc.errors():
-        field = " -> ".join(str(loc) for loc in error['loc'])  # Convert all items to strings
+        field = " -> ".join(str(loc) for loc in error['loc'])
         message = error['msg']
         error_detail = f"Error in field '{field}': {message}"
         errors.append(error_detail)
         logger.error(error_detail)  # Log the error details
 
-    # Log the incoming request details
-    # logger.info(f"Incoming request: {request.method} {request.url}")
-
+    error_response = ErrorResponse(status=422, message=errors)
     return JSONResponse(
         status_code=422,
-        content={"detail": errors}
+        content=error_response.dict()
     )
 
 app.include_router(router)
