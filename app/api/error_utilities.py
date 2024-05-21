@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import Any
 
 class VideoTranscriptError(Exception):
     """Raised when a video transcript cannot be loaded. Used for tools which require video transcripts."""
@@ -32,7 +32,7 @@ class ToolExecutorError(Exception):
 class ErrorResponse(BaseModel):
     """Base model for error responses."""
     status: int
-    message: any
+    message: Any
     
     model_config = {
         "arbitrary_types_allowed": True
