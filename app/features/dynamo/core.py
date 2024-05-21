@@ -1,6 +1,6 @@
 from features.dynamo.tools import summarize_transcript, generate_flashcards
 from services.logger import setup_logger
-# TODO: Implement the executor function's verbose param to downstream logic
+from api.error_utilities import VideoTranscriptError
 
 logger = setup_logger(__name__)
 

@@ -5,6 +5,8 @@ from langchain_google_vertexai import VertexAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.chains.summarize import load_summarize_chain
 from langchain_core.pydantic_v1 import BaseModel, Field
+from api.error_utilities import VideoTranscriptError
+from fastapi import HTTPException
 from services.logger import setup_logger
 import os
 
@@ -13,6 +15,7 @@ logger = setup_logger(__name__)
 
 # AI Model
 model = VertexAI(model="gemini-1.0-pro")
+
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -26,22 +29,29 @@ def read_text_file(file_path):
 
 # Summarize chain
 def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) -> str:
-    loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
+    try:
+        loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
+    except Exception as e:
+        logger.error(f"No such video found at {youtube_url}")
+        raise VideoTranscriptError(f"No video found", youtube_url) from e
+    
+    try:
+        docs = loader.load()
+        length = docs[0].metadata["length"]
+        title = docs[0].metadata["title"]
+    except Exception as e:
+        logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
+        raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
+    
     splitter = RecursiveCharacterTextSplitter(
         chunk_size = 1000,
         chunk_overlap = 0
     )
-    docs = loader.load()
-    split_docs = splitter.split_documents(docs)
     
-    if not docs:
-        raise ValueError("No documents found")
-
-    length = docs[0].metadata["length"]
-    title = docs[0].metadata["title"]
+    split_docs = splitter.split_documents(docs)
 
     if length > max_video_length:
-        raise ValueError(f"Video is too long, please provide a video less than {max_video_length} seconds long")
+        raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
 
     if verbose:
         logger.info(f"Found video with title: {title} and length: {length}")
@@ -75,10 +85,11 @@ def generate_flashcards(summary: str, verbose=False) -> list:
         response = chain.invoke({"summary": summary, "examples": examples})
     except Exception as e:
         logger.error(f"Failed to generate flashcards: {e}")
-        return []
+        raise HTTPException(status_code=500, detail=f"Failed to generate flashcards from LLM")
     
     return response
 
 class Flashcard(BaseModel):
     concept: str = Field(description="The concept of the flashcard")
     definition: str = Field(description="The definition of the flashcard")
+    

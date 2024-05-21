@@ -2,7 +2,10 @@ import json
 import os
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
+from api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
+from typing import Dict, Any, List
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 logger = setup_logger(__name__)
 
@@ -24,6 +27,7 @@ def get_executor_by_name(module_path):
 def load_tool_metadata(tool_id):
     logger.debug(f"Loading tool metadata for tool_id: {tool_id}")
     tool_config = tools_config.get(str(tool_id))
+    
     if not tool_config:
         logger.error(f"No tool configuration found for tool_id: {tool_id}")
         raise HTTPException(status_code=404, detail="Tool configuration not found")
@@ -39,27 +43,93 @@ def load_tool_metadata(tool_id):
     
     with open(file_path, 'r') as f:
         metadata = json.load(f)
+        
     logger.debug(f"Loaded metadata: {metadata}")
     return metadata
 
-def prepare_input_data(request_data):
-    inputs = {input.name: input.value for input in request_data.inputs}
-    files = next((input.value for input in request_data.inputs if input.name == "files"), None)
-    if files:
-        inputs['files'] = [ToolFile(**file_object) for file_object in files]
+def prepare_input_data(input_data) -> Dict[str, Any]:
+    inputs = {input.name: input.value for input in input_data}
+    return inputs
+
+def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, str]]) -> bool:
+    validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}
+    
+    # Check for missing inputs
+    for validate_input_name, input_type in validate_inputs.items():
+        if validate_input_name not in request_data:
+            error_message = f"Missing input: `{validate_input_name}`"
+            logger.error(error_message)
+            raise InputValidationError(error_message)
+
+    # Validate each input in request data against validate definitions
+    for input_name, input_value in request_data.items():
+        if input_name not in validate_inputs:
+            continue  # Skip validation for extra inputs not defined in validate
+
+        expected_type = validate_inputs[input_name]
+        if expected_type == 'text' and not isinstance(input_value, str):
+            error_message = f"Input `{input_name}` must be a string but got {type(input_value)}"
+            logger.error(error_message)
+            raise InputValidationError(error_message)
+        elif expected_type == 'number' and not isinstance(input_value, (int, float)):
+            error_message = f"Input `{input_name}` must be a number but got {type(input_value)}"
+            logger.error(error_message)
+            raise InputValidationError(error_message)
+        elif expected_type == 'file':
+            # Validate file inputs
+            if not isinstance(input_value, list):
+                error_message = f"Input `{input_name}` must be a list of file dictionaries but got {type(input_value)}"
+                logger.error(error_message)
+                raise InputValidationError(error_message)
+            for file_obj in input_value:
+                if not isinstance(file_obj, dict):
+                    error_message = f"Each item in the input `{input_name}` must be a dictionary representing a file but got {type(file_obj)}"
+                    logger.error(error_message)
+                    raise InputValidationError(error_message)
+                try:
+                    ToolFile.model_validate(file_obj, from_attributes=True)  # This will raise a validation error if the structure is incorrect
+                except ValidationError:
+                    error_message = f"Each item in the input `{input_name}` must be a valid ToolFile where a url is provided"
+                    logger.error(error_message)
+                    raise InputValidationError(error_message)
+
+    return True
+
+def convert_files_to_tool_files(inputs: Dict[str, Any]) -> Dict[str, Any]:
+    if 'files' in inputs:
+        inputs['files'] = [ToolFile(**file_object) for file_object in inputs['files']]
+    return inputs
+
+def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str, Any]:
+    inputs = prepare_input_data(input_data)
+    validate_inputs(inputs, validate_data)
+    inputs = convert_files_to_tool_files(inputs)
     return inputs
 
 def execute_tool(tool_id, request_inputs_dict):
     try:
         tool_config = tools_config.get(str(tool_id))
+        
         if not tool_config:
             raise HTTPException(status_code=404, detail="Tool executable not found")
+        
         execute_function = get_executor_by_name(tool_config['path'])
         request_inputs_dict['verbose'] = True
+        
         return execute_function(**request_inputs_dict)
+    
+    except VideoTranscriptError as e:
+        logger.error(f"Failed to execute tool due to video transcript error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    except ToolExecutorError as e:
+        logger.error(f"Failed to execute tool due to executor error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
     except ImportError as e:
         logger.error(f"Failed to execute tool due to import error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to execute tool: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
     except Exception as e:
         logger.error(f"Encountered error in executing tool: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
