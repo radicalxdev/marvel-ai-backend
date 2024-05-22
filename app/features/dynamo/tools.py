@@ -58,11 +58,11 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
         logger.info(f"Splitting documents into {len(split_docs)} chunks")
     
     chain = load_summarize_chain(model, chain_type='map_reduce')
-    response = chain(split_docs)
+    response = chain.invoke(split_docs)
     
     if response and verbose: logger.info("Successfully completed generating summary")
     
-    return response
+    return response['output_text']
 
 def generate_flashcards(summary: str, verbose=False) -> list:
     # Receive the summary from the map reduce chain and generate flashcards
@@ -73,16 +73,16 @@ def generate_flashcards(summary: str, verbose=False) -> list:
     template = read_text_file("prompt/dynamo-prompt.txt")
     examples = read_text_file("prompt/examples.txt")
     
-    prompt = PromptTemplate(
+    cards_prompt = PromptTemplate(
         template=template,
         input_variables=["summary", "examples"],
         partial_variables={"format_instructions": parser.get_format_instructions()}
     )
     
-    chain = prompt | model | parser
+    cards_chain = cards_prompt | model | parser
     
     try:
-        response = chain.invoke({"summary": summary, "examples": examples})
+        response = cards_chain.invoke({"summary": summary, "examples": examples})
     except Exception as e:
         logger.error(f"Failed to generate flashcards: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate flashcards from LLM")
