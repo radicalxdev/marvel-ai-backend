@@ -12,3 +12,78 @@ You must respond as a JSON object:
 
 Context: 
 {context}
+
+Example 1:
+{
+  "topic": "Astronomy",
+  "context": "Planets of our solar system",
+  "question": "Which planet is known as the 'Red Planet'?",
+  "choices": [
+    {"key": "A", "value": "Venus"},
+    {"key": "B", "value": "Mars"},
+    {"key": "C", "value": "Jupiter"},
+    {"key": "D", "value": "Saturn"}
+  ],
+  "answer": "B",
+  "explanation": "Mars is known as the 'Red Planet' due to the presence of iron oxide (rust) on its surface, which gives it a reddish appearance."
+}
+
+Example 2:
+{
+  "topic": "Literature",
+  "context": "Shakespeare's plays",
+  "question": "In which Shakespearean play does the character Hamlet appear?",
+  "choices": [
+    {"key": "A", "value": "Romeo and Juliet"},
+    {"key": "B", "value": "Macbeth"},
+    {"key": "C", "value": "Hamlet"},
+    {"key": "D", "value": "Othello"}
+  ],
+  "answer": "C",
+  "explanation": "Hamlet is the title character of the Shakespearean tragedy 'Hamlet'."
+}
+
+Example 3:
+{
+  "topic": "History",
+  "context": "American Revolution",
+  "question": "Who was the first president of the United States?",
+  "choices": [
+    {"key": "A", "value": "Thomas Jefferson"},
+    {"key": "B", "value": "Benjamin Franklin"},
+    {"key": "C", "value": "George Washington"},
+    {"key": "D", "value": "John Adams"}
+  ],
+  "answer": "C",
+  "explanation": "George Washington was the commander-in-chief of the Continental Army during the American Revolution and became the first president of the United States in 1789."
+}
+
+
+Example 4:
+{
+  "topic": "Biology",
+  "context": "Genetics",
+  "question": "What is the basic unit of heredity?",
+  "choices": [
+    {"key": "A", "value": "Cell"},
+    {"key": "B", "value": "Chromosome"},
+    {"key": "C", "value": "Gene"},",
+  "explanation": "Genes are the basic unit of heredity, responsible for passing down traits from parents to offspring."
+  ]
+}
+
+Example 5:
+{
+  "topic": "Geography",
+  "context": "World capitals",
+  "question": "What is the capital of France?",
+  "choices": [
+    {"key": "A", "value": "Berlin"},
+    {"key": "B", "value": "London"},
+    {"key": "C", "value": "Rome"},
+    {"key": "D", "value": "Paris"}
+  ],
+  "answer": "D",
+  "explanation": "Paris is the capital city of France, known for its iconic landmarks like the Eiffel Tower."
+}
+
