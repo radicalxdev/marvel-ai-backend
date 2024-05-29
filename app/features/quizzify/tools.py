@@ -1,10 +1,12 @@
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
 from urllib.parse import urlparse
 import requests
 import os
+import json
+import time
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -280,9 +282,28 @@ class QuizBuilder:
         if self.verbose: logger.info(f"Chain compilation complete")
         
         return chain
+
+    def validate_response(self, response: Dict) -> bool:
+        try:
+            # Assuming the response is already a dictionary
+            if isinstance(response, dict):
+                if 'question' in response and 'choices' in response and 'answer' in response and 'explanation' in response:
+                    choices = response['choices']
+                    if isinstance(choices, dict):
+                        for key, value in choices.items():
+                            if not isinstance(key, str) or not isinstance(value, str):
+                                return False
+                        return True
+            return False
+        except TypeError as e:
+            if self.verbose:
+                logger.error(f"TypeError during response validation: {e}")
+            return False
+
+    def format_choices(self, choices: Dict[str, str]) -> List[Dict[str, str]]:
+        return [{"key": k, "value": v} for k, v in choices.items()]
     
-    def create_questions(self, num_questions: int = 5) -> List:
-        
+    def create_questions(self, num_questions: int = 5) -> List[Dict]:
         if self.verbose: logger.info(f"Creating {num_questions} questions")
         
         if num_questions > 10:
@@ -291,21 +312,37 @@ class QuizBuilder:
         chain = self.compile()
         
         generated_questions = []
-        
-        while len(generated_questions) < num_questions:
+        attempts = 0
+        max_attempts = num_questions * 5  # Allow for more attempts to generate questions
+
+        while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
-            generated_questions.append(response)
-            
             if self.verbose:
-                logger.info(f"Generated Response: {response}")
-                logger.info(f"Generated Response Type: {type(response)}")
-                logger.info(f"Generated Questions: {len(generated_questions)}")
+                logger.info(f"Generated response attempt {attempts + 1}: {response}")
+            
+            # Directly check if the response format is valid
+            if self.validate_response(response):
+                response["choices"] = self.format_choices(response["choices"])
+                generated_questions.append(response)
+                if self.verbose:
+                    logger.info(f"Valid question added: {response}")
+                    logger.info(f"Total generated questions: {len(generated_questions)}")
+            else:
+                if self.verbose:
+                    logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
+            
+            # Move to the next attempt regardless of success to ensure progress
+            attempts += 1
+
+        # Log if fewer questions are generated
+        if len(generated_questions) < num_questions:
+            logger.warning(f"Only generated {len(generated_questions)} out of {num_questions} requested questions")
         
-        # Clean up vectorstore process
         if self.verbose: logger.info(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
         
-        return generated_questions
+        # Return the list of questions
+        return generated_questions[:num_questions]
 
 class QuestionChoice(BaseModel):
     key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
