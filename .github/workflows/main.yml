@@ -19,7 +19,6 @@ jobs:
         run: |
           echo "ENV_TYPE=production" >> $GITHUB_ENV
           echo "PROJECT_ID=kai-ai-f63c8" >> $GITHUB_ENV
-          echo "BUCKET_NAME=ai-data--" >> $GITHUB_ENV
 
       - name: GCP Auth
         uses: "google-github-actions/auth@v1"
@@ -33,7 +32,6 @@ jobs:
           echo "env_variables:" >> app/app.yaml
           echo "  ENV_TYPE: '${{ env.ENV_TYPE }}'" >> app/app.yaml
           echo "  PROJECT_ID: '${{ env.PROJECT_ID }}'" >> app/app.yaml
-          echo "  BUCKET_NAME: '${{ env.BUCKET_NAME }}'" >> app/app.yaml
 
       - name: "Set up Cloud SDK"
         uses: "google-github-actions/setup-gcloud@v1"

@@ -25,12 +25,12 @@ backend/
 │   │   ├── Feature1/
 │   │   │   ├── core.py
 │   │   │   ├── tools.py
-│   │   │   ├── Prompt
+│   │   │   ├── Prompt/
 │   │   │   └── metadata.json
 │   │   ├── Feature2/
 │   │   │   ├── core.py
 │   │   │   ├── tools.py
-│   │   │   ├── Prompt
+│   │   │   ├── Prompt/
 │   │   │   └── metadata.json
 │   ├── services/            # Contains service modules
 │   ├── utils/               # Contains utility modules
@@ -121,6 +121,7 @@ NOTE: if you choose to authenticate Google Cloud through the SDK and not with a 
 
 Before you start, ensure you have the following installed:
 - Docker
+- Python
 
 
 ## Installation Instructions
