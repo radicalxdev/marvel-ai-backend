@@ -1,0 +1,14 @@
+{
+    "inputs": [
+        {
+            "label": "Solution",
+            "name": "solution",
+            "type": "file"
+        },
+        {
+            "label": "Submission",
+            "name": "submission",
+            "type": "file"
+        }
+    ]
+}
