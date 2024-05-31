@@ -1,7 +1,7 @@
 from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
-from pypdf import PdfReader
+#from pypdf import PdfReader
 from urllib.parse import urlparse
 import requests
 import os
@@ -9,6 +9,7 @@ import json
 import time
 
 from langchain_core.documents import Document
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
@@ -48,48 +49,71 @@ class RAGRunnable:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-class UploadPDFLoader:
-    def __init__(self, files: List[UploadFile]):
-        self.files = files
+# class UploadPDFLoader:
+#     def __init__(self, files: List[UploadFile]):
+#         self.files = files
 
-    def load(self) -> List[Document]:
-        documents = []
+#     def load(self) -> List[Document]:
+#         documents = []
 
-        for upload_file in self.files:
-            with upload_file.file as pdf_file:
-                pdf_reader = PdfReader(pdf_file)
+#         for upload_file in self.files:
+#             with upload_file.file as pdf_file:
+#                 pdf_reader = PdfReader(pdf_file)
 
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": upload_file.filename, "page_number": i + 1}
+#                 for i, page in enumerate(pdf_reader.pages):
+#                     page_content = page.extract_text()
+#                     metadata = {"source": upload_file.filename, "page_number": i + 1}
 
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
+#                     doc = Document(page_content=page_content, metadata=metadata)
+#                     documents.append(doc)
 
-        return documents
+#         return documents
 
-class BytesFilePDFLoader:
-    def __init__(self, files: List[Tuple[BytesIO, str]]):
-        self.files = files
+# class BytesFilePDFLoader:
+#     def __init__(self, files: List[Tuple[BytesIO, str]]):
+#         self.files = files
     
+#     def load(self) -> List[Document]:
+#         documents = []
+        
+#         for file, file_type in self.files:
+#             logger.debug(file_type)
+#             if file_type.lower() == "pdf":
+#                 pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+
+#                 for i, page in enumerate(pdf_reader.pages):
+#                     page_content = page.extract_text()
+#                     metadata = {"source": file_type, "page_number": i + 1}
+
+#                     doc = Document(page_content=page_content, metadata=metadata)
+#                     documents.append(doc)
+                    
+#             else:
+#                 raise ValueError(f"Unsupported file type: {file_type}")
+            
+#         return documents
+
+class LangChainPDFLoader:
+    def __init__(self, files: List[str]):
+        self.files = files
+
+    def clean_text(self, text: str) -> str:
+        # Replace line breaks with spaces, but ensure sentence integrity
+        lines = text.split('\n')
+        cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+        return cleaned_text
+
     def load(self) -> List[Document]:
         documents = []
+        for file_path in self.files:
+            loader = PyPDFLoader(file_path)
+            loaded_documents = loader.load()
+            documents.extend(loaded_documents)
         
-        for file, file_type in self.files:
-            logger.debug(file_type)
-            if file_type.lower() == "pdf":
-                pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_type, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-                    
-            else:
-                raise ValueError(f"Unsupported file type: {file_type}")
-            
+        # Clean the content of each document
+        for doc in documents:
+            doc.page_content = self.clean_text(doc.page_content)
+        
         return documents
 
 class LocalFileLoader:
