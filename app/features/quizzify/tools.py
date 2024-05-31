@@ -94,8 +94,30 @@ class RAGRunnable:
 #         return documents
 
 class LangChainPDFLoader:
-    def __init__(self, files: List[str]):
+    def clean_text(self, text: str) -> str:
+        # Replace line breaks with spaces, but ensure sentence integrity
+        lines = text.split('\n')
+        cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+        return cleaned_text
+
+    def load(self, files) -> List[Document]:
+        documents = []
+        for file_path in files:
+            try:
+                loader = PyPDFLoader(file_path)
+                loaded_documents = loader.load()
+                # Clean the content of each document
+                for doc in loaded_documents:
+                    doc.page_content = self.clean_text(doc.page_content)
+                    documents.append(doc)
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {e}")
+        return documents
+
+class LangChainDocxLoader:
+    def __init__(self, files: List[str], mode: str = "single"):
         self.files = files
+        self.mode = mode
 
     def clean_text(self, text: str) -> str:
         # Replace line breaks with spaces, but ensure sentence integrity
@@ -106,14 +128,15 @@ class LangChainPDFLoader:
     def load(self) -> List[Document]:
         documents = []
         for file_path in self.files:
-            loader = PyPDFLoader(file_path)
-            loaded_documents = loader.load()
-            documents.extend(loaded_documents)
-        
-        # Clean the content of each document
-        for doc in documents:
-            doc.page_content = self.clean_text(doc.page_content)
-        
+            try:
+                loader = UnstructuredWordDocumentLoader(file_path, mode=self.mode)
+                loaded_documents = loader.load()
+                # Clean the content of each document
+                for doc in loaded_documents:
+                    doc.page_content = self.clean_text(doc.page_content)
+                    documents.append(doc)
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {e}")
         return documents
 
 class LocalFileLoader:
