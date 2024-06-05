@@ -176,7 +176,7 @@ class LangChainPPTLoader:
         return documents
 
 class LangChainCSVLoader:
-    def __init__(self, files: List[str], mode: str = "single"):
+    def __init__(self, files: List[str], mode: str = "elements"):
         self.files = files
         self.mode = mode
 
@@ -281,14 +281,145 @@ class LocalFileLoader:
 
         return documents
 
+# class URLLoader:
+#     def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
+#         self.loader = file_loader or BytesFilePDFLoader
+#         self.expected_file_type = expected_file_type
+#         self.verbose = verbose
+
+#     def load(self, tool_files: List[ToolFile]) -> List[Document]:
+#         queued_files = []
+#         documents = []
+#         any_success = False
+
+#         for tool_file in tool_files:
+#             try:
+#                 url = tool_file.url
+#                 response = requests.get(url)
+#                 parsed_url = urlparse(url)
+#                 path = parsed_url.path
+
+#                 if response.status_code == 200:
+#                     # Read file
+#                     file_content = BytesIO(response.content)
+
+#                     # Check file type
+#                     file_type = path.split(".")[-1]
+#                     if file_type != self.expected_file_type:
+#                         raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+
+#                     # Append to Queue
+#                     queued_files.append((file_content, file_type))
+#                     if self.verbose:
+#                         logger.info(f"Successfully loaded file from {url}")
+
+#                     any_success = True  # Mark that at least one file was successfully loaded
+#                 else:
+#                     logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
+
+#             except Exception as e:
+#                 logger.error(f"Failed to load file from {url}")
+#                 logger.error(e)
+#                 continue
+
+#         # Pass Queue to the file loader if there are any successful loads
+#         if any_success:
+#             file_loader = self.loader(queued_files)
+#             documents = file_loader.load()
+
+#             if self.verbose:
+#                 logger.info(f"Loaded {len(documents)} documents")
+
+#         if not any_success:
+#             raise LoaderError("Unable to load any files from URLs")
+
+#         return documents
+
+# class RAGpipeline:
+#     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
+#         default_config = {
+#             "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
+#             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
+#             "vectorstore_class": Chroma,
+#             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
+#         }
+#         self.loader = loader or default_config["loader"]
+#         self.splitter = splitter or default_config["splitter"]
+#         self.vectorstore_class = vectorstore_class or default_config["vectorstore_class"]
+#         self.embedding_model = embedding_model or default_config["embedding_model"]
+#         self.verbose = verbose
+
+#     def load_PDFs(self, files) -> List[Document]:
+#         if self.verbose:
+#             logger.info(f"Loading {len(files)} files")
+#             logger.info(f"Loader type used: {type(self.loader)}")
+        
+#         logger.debug(f"Loader is a: {type(self.loader)}")
+        
+#         try:
+#             total_loaded_files = self.loader.load(files)
+#         except LoaderError as e:
+#             logger.error(f"Loader experienced error: {e}")
+#             raise LoaderError(e)
+            
+#         return total_loaded_files
+    
+#     def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:
+#         if self.verbose:
+#             logger.info(f"Splitting {len(loaded_documents)} documents")
+#             logger.info(f"Splitter type used: {type(self.splitter)}")
+            
+#         total_chunks = []
+#         chunks = self.splitter.split_documents(loaded_documents)
+#         total_chunks.extend(chunks)
+        
+#         if self.verbose: logger.info(f"Split {len(loaded_documents)} documents into {len(total_chunks)} chunks")
+        
+#         return total_chunks
+    
+#     def create_vectorstore(self, documents: List[Document]):
+#         if self.verbose:
+#             logger.info(f"Creating vectorstore from {len(documents)} documents")
+        
+#         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+
+#         if self.verbose: logger.info(f"Vectorstore created")
+#         return self.vectorstore
+    
+#     def compile(self):
+#         # Compile the pipeline
+#         self.load_PDFs = RAGRunnable(self.load_PDFs)
+#         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
+#         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
+#         if self.verbose: logger.info(f"Completed pipeline compilation")
+    
+#     def __call__(self, documents):
+#         # Returns a vectorstore ready for usage 
+        
+#         if self.verbose: 
+#             logger.info(f"Executing pipeline")
+#             logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
+        
+#         pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
+#         return pipeline(documents)
+
+
+# mine
+
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
-        self.expected_file_type = expected_file_type
+    def __init__(self, verbose=False):
         self.verbose = verbose
+        self.loaders = {
+            'pdf': LangChainPDFLoader,
+            'docx': LangChainDocxLoader,
+            'pptx': LangChainPPTLoader,
+            'csv': LangChainCSVLoader,
+            'url': LangChainURLLoader,
+            'youtube': LangChainYouTubeLoader
+        }
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
-        queued_files = []
+        file_dict = {key: [] for key in self.loaders.keys()}
         documents = []
         any_success = False
 
@@ -298,37 +429,36 @@ class URLLoader:
                 response = requests.get(url)
                 parsed_url = urlparse(url)
                 path = parsed_url.path
+                file_type = path.split(".")[-1].lower() if "." in path else None
 
                 if response.status_code == 200:
-                    # Read file
-                    file_content = BytesIO(response.content)
+                    if file_type in self.loaders:
+                        file_dict[file_type].append(url)
+                    elif 'youtube.com' in url.lower() or 'youtu.be' in url.lower():
+                        file_dict["youtube"].append(url)
+                    else:
+                        file_dict["url"].append(url)
 
-                    # Check file type
-                    file_type = path.split(".")[-1]
-                    if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-                    # Append to Queue
-                    queued_files.append((file_content, file_type))
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
 
-                    any_success = True  # Mark that at least one file was successfully loaded
+                    any_success = True
                 else:
-                    logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
+                    logger.error(f"Request failed to load file from {url} with status code {response.status_code}")
 
             except Exception as e:
                 logger.error(f"Failed to load file from {url}")
                 logger.error(e)
                 continue
 
-        # Pass Queue to the file loader if there are any successful loads
         if any_success:
-            file_loader = self.loader(queued_files)
-            documents = file_loader.load()
-
-            if self.verbose:
-                logger.info(f"Loaded {len(documents)} documents")
+            for file_type, urls in file_dict.items():
+                if urls:
+                    loader_class = self.loaders[file_type]
+                    loader = loader_class(urls)
+                    documents.extend(loader.load())
+                    if self.verbose:
+                        logger.info(f"Loaded {len(documents)} documents from {file_type} files")
 
         if not any_success:
             raise LoaderError("Unable to load any files from URLs")
@@ -349,7 +479,7 @@ class RAGpipeline:
         self.embedding_model = embedding_model or default_config["embedding_model"]
         self.verbose = verbose
 
-    def load_PDFs(self, files) -> List[Document]:
+    def load_files(self, files) -> List[Document]:
         if self.verbose:
             logger.info(f"Loading {len(files)} files")
             logger.info(f"Loader type used: {type(self.loader)}")
@@ -388,7 +518,7 @@ class RAGpipeline:
     
     def compile(self):
         # Compile the pipeline
-        self.load_PDFs = RAGRunnable(self.load_PDFs)
+        self.load_PDFs = RAGRunnable(self.load_files)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
         if self.verbose: logger.info(f"Completed pipeline compilation")
@@ -400,8 +530,13 @@ class RAGpipeline:
             logger.info(f"Executing pipeline")
             logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
         
-        pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
+        pipeline = self.load_files | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
+
+
+
+
+
 
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
