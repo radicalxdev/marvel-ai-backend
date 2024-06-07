@@ -159,7 +159,6 @@ The Docker container uses several key environment variables:
 You can access the backend by visiting:
 ```Bash
 http://localhost:8000
-
 ```
 
 After your container starts, you should see the FastAPI landing page, indicating that the application is running successfully.
