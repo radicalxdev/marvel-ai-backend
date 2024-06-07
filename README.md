@@ -94,17 +94,18 @@ pip install -r requirements.txt
 1. Open your command line interface.
 2. Set the path to the JSON key file by running:
    ```bash
-   set GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json```
+   set GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json
+   ```
 ## Set the environment type and project ID:
 
 
 ```bash
-  set ENV_TYPE="dev"
-  set PROJECT_ID="Enter your project ID here"
+set ENV_TYPE="dev"
+set PROJECT_ID="Enter your project ID here"
 ```
 
 ```bash
-  uvicorn main:app --reload
+uvicorn main:app --reload
 ```
 
 
