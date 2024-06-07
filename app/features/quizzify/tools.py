@@ -25,6 +25,23 @@ relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
 
+def transform_json_dict(input_data: dict):
+    # Check if each choice has 'key' and 'value'
+    for choice in input_data.get("choices", []):
+        if "key" not in choice or "value" not in choice:
+            # Print a message and return the original dictionary if any choice does not have 'key' and 'value'
+            return input_data
+    
+    # Create the transformed structure
+    transformed_data = {
+        "question": input_data["question"],
+        "choices": {choice["key"]: choice["value"] for choice in input_data["choices"]},
+        "answer": input_data["answer"],
+        "explanation": input_data["explanation"]
+    }
+    
+    return transformed_data
+
 def read_text_file(file_path):
     # Get the directory containing the script file
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -317,9 +334,12 @@ class QuizBuilder:
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
+
+            response = transform_json_dict(response)
+
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
-            
+
             # Directly check if the response format is valid
             if self.validate_response(response):
                 response["choices"] = self.format_choices(response["choices"])
