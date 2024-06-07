@@ -7,9 +7,15 @@ import requests
 import os
 import json
 import time
+from tqdm import tqdm
+import re
+import logging
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader,Docx2txtLoader,\
+    UnstructuredPowerPointLoader, TextLoader, UnstructuredExcelLoader, WebBaseLoader,\
+    UnstructuredURLLoader,PlaywrightURLLoader, CSVLoader
 from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
 from langchain_core.prompts import PromptTemplate
@@ -21,9 +27,12 @@ from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
 
+from vertexai.generative_models import GenerativeModel
+
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -68,29 +77,83 @@ class UploadPDFLoader:
 
         return documents
 
-class BytesFilePDFLoader:
-    def __init__(self, files: List[Tuple[BytesIO, str]]):
+class BytesFileLoader:
+    def __init__(self, files):
         self.files = files
+        self.documents = []
+        
+    def process_pdf(self, file: BytesIO):
+        pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+
+        for i, page in enumerate(pdf_reader.pages):
+            page_content = page.extract_text()
+            metadata = {"source": file_type, "page_number": i + 1}
+
+            doc = Document(page_content=page_content, metadata=metadata)
+            self.documents.append(doc)
+            
+    def process_xlsx(self, file: BytesIO):
+        loader = UnstructuredExcelLoader(file)
+        doc = loader.load()
+        self.documents.extend(doc)
+        
+    def process_txt(self, file: BytesIO):
+        loader = TextLoader(file)
+        doc = loader.load()
+        self.documents.extend(doc)
+    
+    def process_csv(self, file: BytesIO):
+        loader = CSVLoader(file)
+        doc = loader.load()
+        self.documents.extend(doc)
+        
+    def process_docx(self, file: BytesIO):
+        loader = Docx2txtLoader(file)
+        doc = loader.load()
+        self.documents.extend(doc)
+        
+    def process_pptx(self, file: BytesIO):
+        loader = UnstructuredPowerPointLoader(file)
+        doc = loader.load()
+        self.documents.extend(doc)
+    
+    def process_web(self, file: str):
+        loader = WebBaseLoader(file)
+        loader.request_kwargs = {'verify': False}
+        doc = loader.load()
+        self.documents.extend(doc)
+    
+    def process_youtube(self, file: str):
+        loader = YoutubeLoader.from_youtube_url(file, add_video_info=False)
+        doc = loader.load()
+        self.documents.extend(doc)
     
     def load(self) -> List[Document]:
-        documents = []
         
         for file, file_type in self.files:
             logger.debug(file_type)
-            if file_type.lower() == "pdf":
-                pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_type, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-                    
-            else:
-                raise ValueError(f"Unsupported file type: {file_type}")
+            match file_type.lower():
+                case "pdf":
+                    self.process_pdf(file)
+                case "xlsx":
+                    self.process_xlsx(file)
+                case "txt":
+                    self.process_txt(file)
+                case "csv":
+                    self.process_csv(file)
+                case "docx" | "doc":
+                    self.process_docx(file)
+                case "pptx" | "ppt":
+                    self.process_pptx(file)
+                case "web_url":
+                    self.process_web(file)
+                case "youtube":
+                    self.process_youtube(file)
+                case _:
+                    raise ValueError(f"Unsupported file type: {file_type}")
             
-        return documents
+        return self.documents
+
 
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], expected_file_type="pdf"):
@@ -124,7 +187,7 @@ class LocalFileLoader:
 
 class URLLoader:
     def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
+        self.loader = file_loader or BytesFileLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
 
@@ -141,16 +204,21 @@ class URLLoader:
                 path = parsed_url.path
 
                 if response.status_code == 200:
-                    # Read file
-                    file_content = BytesIO(response.content)
+                    if(self.expected_file_type not in ["youtube","web_url"]):
+                        # Read file
+                        file_content = BytesIO(response.content)
 
-                    # Check file type
-                    file_type = path.split(".")[-1]
-                    if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+                        # Check file type
+                        file_type = path.split(".")[-1]
+                        if file_type != self.expected_file_type:
+                            raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
 
-                    # Append to Queue
-                    queued_files.append((file_content, file_type))
+                        # Append to Queue
+                        queued_files.append((file_content, file_type))
+                    else:
+                        # Append to Queue
+                        queued_files.append((url, self.expected_file_type))
+
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
 
@@ -167,6 +235,7 @@ class URLLoader:
         if any_success:
             file_loader = self.loader(queued_files)
             documents = file_loader.load()
+                    
 
             if self.verbose:
                 logger.info(f"Loaded {len(documents)} documents")
@@ -175,11 +244,14 @@ class URLLoader:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
+  
+# Input file type for testing purposes   
+file_type = "web_url" # [pdf, doc, docx, ppt, pptx, Google Sheets, txt, xlsx, csv, web_url, google_sheets, youtube,]
 
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
+            "loader": URLLoader(verbose = verbose,expected_file_type=file_type), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
