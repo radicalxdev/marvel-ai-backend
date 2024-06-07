@@ -154,7 +154,11 @@ The Docker container uses several key environment variables:
 `LANGCHAIN_ENDPOINT`
 `LANGCHAIN_API_KEY`
 `LANGCHAIN_PROJECT`
-- Ensure these variables are correctly configured in your Dockerfile or passed as additional parameters to your Docker run command if needed.
+- Ensure these variables are correctly configured in your Dockerfile or passed as additional parameters to your Docker run command, as shown in the example below:
+  ```bash
+  docker run --env ENV_TYPE=dev --env="Enter your project ID here" -p 8000:8000 kai-backend:latest 
+  ```
+
 ## Accessing the Application
 You can access the backend by visiting:
 ```Bash
