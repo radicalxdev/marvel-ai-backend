@@ -16,6 +16,6 @@ COPY ./app /app
 
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json 
 ENV ENV_TYPE="dev"
-ENV PROJECT_ID="Enter your project ID here"
+ENV PROJECT_ID="heroic-climber-423918-r1"
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
