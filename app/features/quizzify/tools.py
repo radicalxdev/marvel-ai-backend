@@ -25,19 +25,19 @@ relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
 
-def transform_json_dict(input_data: dict):
-    # Check if each choice has 'key' and 'value'
-    for choice in input_data.get("choices", []):
-        if "key" not in choice or "value" not in choice:
-            # Print a message and return the original dictionary if any choice does not have 'key' and 'value'
-            return input_data
+def transform_json_dict(input_data: dict) -> dict:
+    # Validate and parse the input data to ensure it matches the QuizQuestion schema
+    quiz_question = QuizQuestion(**input_data)
+    
+    # Transform the choices list into a dictionary
+    transformed_choices = {choice.key: choice.value for choice in quiz_question.choices}
     
     # Create the transformed structure
     transformed_data = {
-        "question": input_data["question"],
-        "choices": {choice["key"]: choice["value"] for choice in input_data["choices"]},
-        "answer": input_data["answer"],
-        "explanation": input_data["explanation"]
+        "question": quiz_question.question,
+        "choices": transformed_choices,
+        "answer": quiz_question.answer,
+        "explanation": quiz_question.explanation
     }
     
     return transformed_data
@@ -367,8 +367,17 @@ class QuizBuilder:
 class QuestionChoice(BaseModel):
     key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
     value: str = Field(description="The text content of the choice")
+
 class QuizQuestion(BaseModel):
-    question: str = Field(description="The question text")
-    choices: List[QuestionChoice] = Field(description="A list of choices")
-    answer: str = Field(description="The correct answer")
-    explanation: str = Field(description="An explanation of why the answer is correct")
+    question: str = Field(
+        description="The question text. Example: 'If the regression equation is given as People.Phys. = 1650 + 21.3 People.Tel., where, People.Phys. represents the number of people per physician and People.Tel. represents the number of people per television set, what impact will removing an outlier with high People.Tel. and high People.Phys. values have on the slope of the regression line?'"
+    )
+    choices: List[QuestionChoice] = Field(
+        description="A list of choices for the question. Example: [{ 'key': 'A', 'value': 'The slope of the regression line will increase.' }, { 'key': 'B', 'value': 'The slope of the regression line will decrease.' }, { 'key': 'C', 'value': 'The slope of the regression line will remain the same.' }, { 'key': 'D', 'value': 'It is not possible to determine the impact on the slope without additional information.' }]"
+    )
+    answer: str = Field(
+        description="The correct answer key corresponding to one of the choices. Example: 'B'"
+    )
+    explanation: str = Field(
+        description="An explanation of why the answer is correct. Example: 'Since the outlier has high values for both, People.Tel. and People.Phys., removing it will bring the remaining data points closer together, resulting in a steeper slope. If the outlier were only high in People.Tel. but not in People.Phys., then it would have less impact on the slope.'"
+    )
