@@ -29,6 +29,8 @@ from api.error_utilities import LoaderError
 
 from vertexai.generative_models import GenerativeModel
 
+from youtube_transcript_api import YouTubeTranscriptApi
+
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
@@ -124,9 +126,36 @@ class BytesFileLoader:
         self.documents.extend(doc)
     
     def process_youtube(self, file: str):
-        loader = YoutubeLoader.from_youtube_url(file, add_video_info=False)
-        doc = loader.load()
-        self.documents.extend(doc)
+        
+        video_id = file.split("v=")[1].split("&")[0]
+        metadata = {'video_id': video_id}
+
+        # Get the transcript for the video
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+
+        # Initialize variables for formatting the transcript
+        transcript_content = ""
+        i = 0
+
+        # Iterate through the transcript entries
+        for entry in transcript:
+            words = entry['text'].split()
+            formatted_text = "\n".join(words)
+            metadata = {
+                'page': i,
+                'start_time': entry['start'],
+                'duration': entry['duration']
+            }
+            transcript_content += formatted_text + " "
+            doc = Document(page_content=transcript_content, metadata=metadata)
+            
+            i += 1
+            self.documents.append(doc)
+        
+        # Loading Documents through YoutubeLoader 
+        # loader = YoutubeLoader.from_youtube_url(file, add_video_info=False)
+        # doc = loader.load()
+        # self.documents.extend(doc)
     
     def load(self) -> List[Document]:
         
@@ -246,7 +275,7 @@ class URLLoader:
         return documents
   
 # Input file type for testing purposes   
-file_type = "web_url" # [pdf, doc, docx, ppt, pptx, Google Sheets, txt, xlsx, csv, web_url, google_sheets, youtube,]
+file_type = "web_url" # [pdf, doc, docx, ppt, pptx, txt, xlsx, csv, web_url, youtube]
 
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
