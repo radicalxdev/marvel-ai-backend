@@ -44,8 +44,8 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
     
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 1000,
-        chunk_overlap = 0
+        chunk_size = 2000 if length > 300 else 1000,
+        chunk_overlap = 100 if length > 300 else 0,
     )
     
     split_docs = splitter.split_documents(docs)
@@ -56,8 +56,9 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     if verbose:
         logger.info(f"Found video with title: {title} and length: {length}")
         logger.info(f"Splitting documents into {len(split_docs)} chunks")
-    
+
     chain = load_summarize_chain(model, chain_type='map_reduce')
+
     response = chain.invoke(split_docs)
     
     if response and verbose: logger.info("Successfully completed generating summary")
