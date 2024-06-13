@@ -7,18 +7,14 @@ from api.error_utilities import LoaderError, ToolExecutorError
 logger = setup_logger()
 
 def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=False):
-    
     try:
         if verbose: logger.debug(f"Files: {files}")
 
         # Instantiate RAG pipeline with default values
         pipeline = RAGpipeline(verbose=verbose)
-        
         pipeline.compile()
-        
         # Process the uploaded files
         db = pipeline(files)
-        
         # Create and return the quiz questions
         output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
     
@@ -33,4 +29,3 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
         raise ValueError(error_message)
     
     return output
-

@@ -17,4 +17,3 @@ youtube-transcript-api
 pytube
 unstructured
 python-docx
-pandas

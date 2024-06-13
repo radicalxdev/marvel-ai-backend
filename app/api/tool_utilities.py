@@ -14,18 +14,21 @@ def load_config():
     with open(config_path, 'r') as f:
         return json.load(f)
 
-tools_config = load_config()
+#tools_config = load_config()
 
 def get_executor_by_name(module_path):
     try:
         module = __import__(module_path, fromlist=['executor'])
-        return getattr(module, 'executor')
+        executor = getattr(module, 'executor')
+        return executor
     except Exception as e:
         logger.error(f"Failed to import executor from {module_path}: {str(e)}")
         raise ImportError(f"Failed to import module from {module_path}: {str(e)}")
 
 def load_tool_metadata(tool_id):
     logger.debug(f"Loading tool metadata for tool_id: {tool_id}")
+    
+    tools_config = load_config()
     tool_config = tools_config.get(str(tool_id))
     
     if not tool_config:
@@ -108,11 +111,12 @@ def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str
 
 def execute_tool(tool_id, request_inputs_dict):
     try:
+        tools_config = load_config()
         tool_config = tools_config.get(str(tool_id))
         
         if not tool_config:
             raise HTTPException(status_code=404, detail="Tool executable not found")
-        
+               
         execute_function = get_executor_by_name(tool_config['path'])
         request_inputs_dict['verbose'] = True
         

@@ -10,10 +10,11 @@ import time
 
 from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader
+#from langchain_community.document_loaders import UnstructuredPDFLoader
 from langchain_community.document_loaders import UnstructuredWordDocumentLoader
 from langchain_community.document_loaders import UnstructuredPowerPointLoader
 from langchain_community.document_loaders import UnstructuredCSVLoader
-import pandas
+#import pandas
 from langchain_community.document_loaders import UnstructuredURLLoader
 from langchain_community.document_loaders import YoutubeLoader
 
@@ -56,50 +57,6 @@ class RAGRunnable:
     
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
-
-# class UploadPDFLoader:
-#     def __init__(self, files: List[UploadFile]):
-#         self.files = files
-
-#     def load(self) -> List[Document]:
-#         documents = []
-
-#         for upload_file in self.files:
-#             with upload_file.file as pdf_file:
-#                 pdf_reader = PdfReader(pdf_file)
-
-#                 for i, page in enumerate(pdf_reader.pages):
-#                     page_content = page.extract_text()
-#                     metadata = {"source": upload_file.filename, "page_number": i + 1}
-
-#                     doc = Document(page_content=page_content, metadata=metadata)
-#                     documents.append(doc)
-
-#         return documents
-
-# class BytesFilePDFLoader:
-#     def __init__(self, files: List[Tuple[BytesIO, str]]):
-#         self.files = files
-    
-#     def load(self) -> List[Document]:
-#         documents = []
-        
-#         for file, file_type in self.files:
-#             logger.debug(file_type)
-#             if file_type.lower() == "pdf":
-#                 pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
-
-#                 for i, page in enumerate(pdf_reader.pages):
-#                     page_content = page.extract_text()
-#                     metadata = {"source": file_type, "page_number": i + 1}
-
-#                     doc = Document(page_content=page_content, metadata=metadata)
-#                     documents.append(doc)
-                    
-#             else:
-#                 raise ValueError(f"Unsupported file type: {file_type}")
-            
-#         return documents
 
 class LangChainPDFLoader:
     def __init__(self, files: List[str]):
@@ -251,160 +208,7 @@ class LangChainYouTubeLoader:
 
 
 
-class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
-        self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
-
-    def load(self) -> List[Document]:
-        documents = []
-        
-        # Ensure file paths is a list
-        self.file_paths = [self.file_paths] if isinstance(self.file_paths, str) else self.file_paths
-    
-        for file_path in self.file_paths:
-            
-            file_type = file_path.split(".")[-1]
-
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-            with open(file_path, 'rb') as file:
-                pdf_reader = PdfReader(file)
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_path, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-        return documents
-
-# class URLLoader:
-#     def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-#         self.loader = file_loader or BytesFilePDFLoader
-#         self.expected_file_type = expected_file_type
-#         self.verbose = verbose
-
-#     def load(self, tool_files: List[ToolFile]) -> List[Document]:
-#         queued_files = []
-#         documents = []
-#         any_success = False
-
-#         for tool_file in tool_files:
-#             try:
-#                 url = tool_file.url
-#                 response = requests.get(url)
-#                 parsed_url = urlparse(url)
-#                 path = parsed_url.path
-
-#                 if response.status_code == 200:
-#                     # Read file
-#                     file_content = BytesIO(response.content)
-
-#                     # Check file type
-#                     file_type = path.split(".")[-1]
-#                     if file_type != self.expected_file_type:
-#                         raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-#                     # Append to Queue
-#                     queued_files.append((file_content, file_type))
-#                     if self.verbose:
-#                         logger.info(f"Successfully loaded file from {url}")
-
-#                     any_success = True  # Mark that at least one file was successfully loaded
-#                 else:
-#                     logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
-
-#             except Exception as e:
-#                 logger.error(f"Failed to load file from {url}")
-#                 logger.error(e)
-#                 continue
-
-#         # Pass Queue to the file loader if there are any successful loads
-#         if any_success:
-#             file_loader = self.loader(queued_files)
-#             documents = file_loader.load()
-
-#             if self.verbose:
-#                 logger.info(f"Loaded {len(documents)} documents")
-
-#         if not any_success:
-#             raise LoaderError("Unable to load any files from URLs")
-
-#         return documents
-
-# class RAGpipeline:
-#     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
-#         default_config = {
-#             "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
-#             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
-#             "vectorstore_class": Chroma,
-#             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
-#         }
-#         self.loader = loader or default_config["loader"]
-#         self.splitter = splitter or default_config["splitter"]
-#         self.vectorstore_class = vectorstore_class or default_config["vectorstore_class"]
-#         self.embedding_model = embedding_model or default_config["embedding_model"]
-#         self.verbose = verbose
-
-#     def load_PDFs(self, files) -> List[Document]:
-#         if self.verbose:
-#             logger.info(f"Loading {len(files)} files")
-#             logger.info(f"Loader type used: {type(self.loader)}")
-        
-#         logger.debug(f"Loader is a: {type(self.loader)}")
-        
-#         try:
-#             total_loaded_files = self.loader.load(files)
-#         except LoaderError as e:
-#             logger.error(f"Loader experienced error: {e}")
-#             raise LoaderError(e)
-            
-#         return total_loaded_files
-    
-#     def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:
-#         if self.verbose:
-#             logger.info(f"Splitting {len(loaded_documents)} documents")
-#             logger.info(f"Splitter type used: {type(self.splitter)}")
-            
-#         total_chunks = []
-#         chunks = self.splitter.split_documents(loaded_documents)
-#         total_chunks.extend(chunks)
-        
-#         if self.verbose: logger.info(f"Split {len(loaded_documents)} documents into {len(total_chunks)} chunks")
-        
-#         return total_chunks
-    
-#     def create_vectorstore(self, documents: List[Document]):
-#         if self.verbose:
-#             logger.info(f"Creating vectorstore from {len(documents)} documents")
-        
-#         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
-
-#         if self.verbose: logger.info(f"Vectorstore created")
-#         return self.vectorstore
-    
-#     def compile(self):
-#         # Compile the pipeline
-#         self.load_PDFs = RAGRunnable(self.load_PDFs)
-#         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
-#         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
-#         if self.verbose: logger.info(f"Completed pipeline compilation")
-    
-#     def __call__(self, documents):
-#         # Returns a vectorstore ready for usage 
-        
-#         if self.verbose: 
-#             logger.info(f"Executing pipeline")
-#             logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
-        
-#         pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
-#         return pipeline(documents)
-
-
-# mine
+# Dmitri's URLLoader
 
 class URLLoader:
     def __init__(self, verbose=False):
@@ -510,7 +314,7 @@ class RAGpipeline:
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
-        
+        print(f'Document type: {type(documents[0])}')
         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
 
         if self.verbose: logger.info(f"Vectorstore created")
@@ -518,7 +322,7 @@ class RAGpipeline:
     
     def compile(self):
         # Compile the pipeline
-        self.load_PDFs = RAGRunnable(self.load_files)
+        self.load_files = RAGRunnable(self.load_files)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
         if self.verbose: logger.info(f"Completed pipeline compilation")
@@ -532,10 +336,6 @@ class RAGpipeline:
         
         pipeline = self.load_files | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
-
-
-
-
 
 
 class QuizBuilder:
