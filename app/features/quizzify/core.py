@@ -13,11 +13,13 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
 
         # Instantiate RAG pipeline with default values
         pipeline = RAGpipeline(verbose=verbose)
-        
+        print("--------------------------------RAG PIPELINE WORKS --------------------------------")
         pipeline.compile()
-        
+        print("--------------------------------PIPELINE COMPILER WORKS --------------------------------")
+        print("---FILES---",files)
         # Process the uploaded files
         db = pipeline(files)
+        print("--------------------------------PIPELINE WORKS --------------------------------")
         
         # Create and return the quiz questions
         output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
@@ -33,4 +35,3 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
         raise ValueError(error_message)
     
     return output
-

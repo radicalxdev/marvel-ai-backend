@@ -84,100 +84,91 @@ class BytesFileLoader:
         self.files = files
         self.documents = []
         
-    def process_pdf(self, file: BytesIO):
+    def process_pdf(self, file: BytesIO,section_start:float,section_end:float):
+        
         pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
 
         for i, page in enumerate(pdf_reader.pages):
-            page_content = page.extract_text()
-            metadata = {"source": file_type, "page_number": i + 1}
+            if section_start <= i+1 <= section_end:
+                page_content = page.extract_text()
+                metadata = {"source": "pdf", "page_number": i + 1}
 
             doc = Document(page_content=page_content, metadata=metadata)
             self.documents.append(doc)
+                
             
-    def process_xlsx(self, file: BytesIO):
+    def process_xlsx(self, file: BytesIO,section_start:float,section_end:float):
         loader = UnstructuredExcelLoader(file)
         doc = loader.load()
         self.documents.extend(doc)
         
-    def process_txt(self, file: BytesIO):
+    def process_txt(self, file: BytesIO,section_start:float,section_end:float):
         loader = TextLoader(file)
         doc = loader.load()
         self.documents.extend(doc)
     
-    def process_csv(self, file: BytesIO):
+    def process_csv(self, file: BytesIO,section_start:float,section_end:float):
         loader = CSVLoader(file)
         doc = loader.load()
         self.documents.extend(doc)
         
-    def process_docx(self, file: BytesIO):
+    def process_docx(self, file: BytesIO,section_start:float,section_end:float):
         loader = Docx2txtLoader(file)
         doc = loader.load()
         self.documents.extend(doc)
         
-    def process_pptx(self, file: BytesIO):
+    def process_pptx(self, file: BytesIO,section_start:float,section_end:float):
         loader = UnstructuredPowerPointLoader(file)
         doc = loader.load()
         self.documents.extend(doc)
     
-    def process_web(self, file: str):
+    def process_web(self, file: str,section_start:float,section_end:float):
         loader = WebBaseLoader(file)
         loader.request_kwargs = {'verify': False}
         doc = loader.load()
         self.documents.extend(doc)
+        
     
-    def process_youtube(self, file: str):
+    def process_youtube(self, file: str,section_start:float,section_end:float):
         
         video_id = file.split("v=")[1].split("&")[0]
-        metadata = {'video_id': video_id}
-
-        # Get the transcript for the video
+        logger.info(f"Processing Youtube Video ID: {video_id}")
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
-
-        # Initialize variables for formatting the transcript
-        transcript_content = ""
-        i = 0
-
-        # Iterate through the transcript entries
+        transcript_segments = []
         for entry in transcript:
-            words = entry['text'].split()
-            formatted_text = "\n".join(words)
             metadata = {
-                'page': i,
+                'source': 'youtube',
+                'video_id': video_id,
                 'start_time': entry['start'],
                 'duration': entry['duration']
             }
-            transcript_content += formatted_text + " "
-            doc = Document(page_content=transcript_content, metadata=metadata)
-            
-            i += 1
-            self.documents.append(doc)
+            doc = Document(page_content=entry['text'],metadata = metadata)
+            transcript_segments.append(doc)
+        filtered_segments = [doc for doc in transcript_segments if section_start <= doc.metadata['start_time'] <= section_end]
+        self.documents.extend(filtered_segments)
         
-        # Loading Documents through YoutubeLoader 
-        # loader = YoutubeLoader.from_youtube_url(file, add_video_info=False)
-        # doc = loader.load()
-        # self.documents.extend(doc)
     
     def load(self) -> List[Document]:
         
-        for file, file_type in self.files:
+        for file, file_type,section_start,section_end in self.files:
             logger.debug(file_type)
             match file_type.lower():
                 case "pdf":
-                    self.process_pdf(file)
+                    self.process_pdf(file,section_start,section_end)
                 case "xlsx":
-                    self.process_xlsx(file)
+                    self.process_xlsx(file,section_start,section_end)
                 case "txt":
-                    self.process_txt(file)
+                    self.process_txt(file,section_start,section_end)
                 case "csv":
-                    self.process_csv(file)
+                    self.process_csv(file,section_start,section_end)
                 case "docx" | "doc":
-                    self.process_docx(file)
+                    self.process_docx(file,section_start,section_end)
                 case "pptx" | "ppt":
-                    self.process_pptx(file)
+                    self.process_pptx(file,section_start,section_end)
                 case "web_url":
-                    self.process_web(file)
+                    self.process_web(file,section_start,section_end)
                 case "youtube":
-                    self.process_youtube(file)
+                    self.process_youtube(file,section_start,section_end)
                 case _:
                     raise ValueError(f"Unsupported file type: {file_type}")
             
@@ -231,6 +222,12 @@ class URLLoader:
                 response = requests.get(url)
                 parsed_url = urlparse(url)
                 path = parsed_url.path
+                self.expected_file_type = tool_file.file_type
+                section_start = tool_file.section_start if tool_file.section_start > 0 else 0
+                section_end = tool_file.section_end or float('inf')
+                if(section_start >= section_end):
+                    raise LoaderError(f"section_start must be less than section_end")
+                
 
                 if response.status_code == 200:
                     if(self.expected_file_type not in ["youtube","web_url"]):
@@ -243,15 +240,22 @@ class URLLoader:
                             raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
 
                         # Append to Queue
-                        queued_files.append((file_content, file_type))
+                        queued_files.append((file_content, file_type,section_start,section_end))
                     else:
-                        # Append to Queue
-                        queued_files.append((url, self.expected_file_type))
+                        if("youtube" in url):
+                            if(self.expected_file_type != "youtube"):
+                                raise LoaderError(f"Expected file type: {self.expected_file_type}")
+                            else:
+                                # Append to Queue
+                                queued_files.append((url, "youtube",section_start,section_end))
+                        else:
+                            queued_files.append((url, "web_url",section_start,section_end))
 
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
 
                     any_success = True  # Mark that at least one file was successfully loaded
+                    
                 else:
                     logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
@@ -264,8 +268,7 @@ class URLLoader:
         if any_success:
             file_loader = self.loader(queued_files)
             documents = file_loader.load()
-                    
-
+                
             if self.verbose:
                 logger.info(f"Loaded {len(documents)} documents")
 
@@ -273,14 +276,12 @@ class URLLoader:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
-  
-# Input file type for testing purposes   
-file_type = "web_url" # [pdf, doc, docx, ppt, pptx, txt, xlsx, csv, web_url, youtube]
+
 
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            "loader": URLLoader(verbose = verbose,expected_file_type=file_type), # Creates instance on call with verbosity
+            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
@@ -291,7 +292,7 @@ class RAGpipeline:
         self.embedding_model = embedding_model or default_config["embedding_model"]
         self.verbose = verbose
 
-    def load_PDFs(self, files) -> List[Document]:
+    def load_docs(self, files) -> List[Document]:
         if self.verbose:
             logger.info(f"Loading {len(files)} files")
             logger.info(f"Loader type used: {type(self.loader)}")
@@ -330,7 +331,7 @@ class RAGpipeline:
     
     def compile(self):
         # Compile the pipeline
-        self.load_PDFs = RAGRunnable(self.load_PDFs)
+        self.load_docs = RAGRunnable(self.load_docs)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
         if self.verbose: logger.info(f"Completed pipeline compilation")
@@ -342,7 +343,7 @@ class RAGpipeline:
             logger.info(f"Executing pipeline")
             logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
         
-        pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
+        pipeline = self.load_docs | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
 
 class QuizBuilder:
