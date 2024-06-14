@@ -4,7 +4,6 @@
 **/submit-tool**
 
 ```json
-
 {
   "user": {
     "id": "test123",
@@ -25,7 +24,7 @@
         },
         {
             "name": "files",
-            "value": ["/Users/danieldacosta/Documents/RadicalAI/kai-ai-backend/app/api/tests/linear_regression.pdf"]
+            "value": [{"url": "https://drive.google.com/file/d/1i86ZEygL4i2ZHvVD9akzt8O48Rr4cxw0/view?usp=sharing", "filePath": "/Users/danieldacosta/Documents/RadicalAI/kai-ai-backend/app/api/tests/linear_regression.pdf"}]
         }
     ]
   }
