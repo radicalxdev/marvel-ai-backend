@@ -21,6 +21,6 @@ class ToolFile(BaseModel):
     url: str
     filename: Optional[str] = None
     specific_list: Optional[List[int]] = None
-    section_start: Optional[float] = None
+    section_start: Optional[float] = 0
     section_end : Optional[float] = float('inf')
     file_type: str # [pdf, doc, docx, ppt, pptx, txt, xlsx, csv, web_url, youtube]

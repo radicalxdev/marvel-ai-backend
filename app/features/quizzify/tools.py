@@ -3,6 +3,8 @@ from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
 from pptx import Presentation
+from docx import Document as DocumentFromDocx
+import pandas as pd
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import urllib.request
@@ -16,7 +18,7 @@ import logging
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import Docx2txtLoader,\
+from langchain_community.document_loaders import UnstructuredWordDocumentLoader,\
     UnstructuredPowerPointLoader, TextLoader, UnstructuredExcelLoader, WebBaseLoader, CSVLoader
 from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
@@ -100,9 +102,7 @@ class BytesFileLoader:
             doc = Document(page_content=page_content, metadata=metadata)
             pdf_segments.append(doc)
             
-        if(specific_list is None and section_start is None):
-                filtered_segments = pdf_segments
-        elif(specific_list is not None):
+        if(specific_list is not None):
             filtered_segments = [doc for doc in pdf_segments if doc.metadata['page_number'] in specific_list]
         else:
             filtered_segments = [doc for doc in pdf_segments if section_start <= doc.metadata['page_number'] <= section_end]
@@ -112,27 +112,147 @@ class BytesFileLoader:
             
     def process_xlsx(self, file: BytesIO, section_start:float,section_end:float):
         
-        with open("temp.xlsx", 'wb') as temp_file:
-            temp_file.write(file.getbuffer())
-        loader = UnstructuredExcelLoader("temp.xlsx")
-        doc = loader.load()
-        self.documents.extend(doc)
-        os.unlink("temp.xlsx")
+        df = pd.read_excel(file)
         
-    def process_txt(self, file: BytesIO, section_start:float,section_end:float):
-        loader = TextLoader(file)
-        doc = loader.load()
-        self.documents.extend(doc)
+        section_start = int(section_start)
+        if(section_end == float('inf')):
+            section_end = len(df)
+        else:
+            section_end = int(section_end)
+
+        row_start, col_start = section_start, section_start
+        row_end, col_end = section_end, section_end
+
+        row_start = max(0, row_start)
+        row_end = min(len(df) - 1, row_end)
+        col_start = max(0, col_start)
+        col_end = min(len(df.columns) - 1, col_end)
+        filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
+
+        for index, row in filtered_df.iterrows():
+
+            filtered_text = row.to_string()
+            filtered_doc = {
+                "page_content": filtered_text,
+                "metadata": {
+                    "row": index,
+                    "columns": index
+                }
+            }
+            self.documents.append(Document(page_content=filtered_doc["page_content"],metadata=filtered_doc["metadata"]))
+
+        
+    def process_txt(self, file: BytesIO, specific_list:List[int], section_start:float,section_end:float):
+
+        full_text = file.read().decode("utf-8")
+        txt_segments = []
+        
+        split_lines = False
+        
+        if(len(full_text.split("\n\n")) <= 1):
+            logger.warning("Txt file does not have paragraphs. Splitting by line")
+            split_lines = True
+            split_full_text = full_text.split("\n")
+        else:
+            split_full_text = full_text.split("\n\n")
+        
+        for i,entry in enumerate(split_full_text):
+            if(split_lines):
+                metadata = {
+                    'source': 'txt',
+                    'line': i + 1
+                }
+            else:
+                metadata = {
+                    'source': 'txt',
+                    'paragraph': i + 1
+                }
+            doc = Document(page_content=entry,metadata = metadata)
+            txt_segments.append(doc)
+            
+        if(specific_list is not None):
+            if(split_lines):
+                filtered_segments = [doc for doc in txt_segments if doc.metadata['line'] in specific_list]
+            else:
+                filtered_segments = [doc for doc in txt_segments if doc.metadata['paragraph'] in specific_list]
+        else:
+            filtered_segments = [doc for doc in txt_segments if section_start <= doc.metadata['line'] <= section_end]
+        
+        self.documents.extend(filtered_segments)
     
     def process_csv(self, file: BytesIO, section_start:float,section_end:float):
-        loader = CSVLoader(file)
-        doc = loader.load()
-        self.documents.extend(doc)
+
+        df = pd.read_csv(file)
+
+        section_start = int(section_start)
+        if(section_end == float('inf')):
+            section_end = len(df)
+        else:
+            section_end = int(section_end)
+
+        row_start = max(0, row_start)
+        row_end = min(len(df) - 1, row_end)
+        col_start = max(0, col_start)
+        col_end = min(len(df.columns) - 1, col_end)
+        filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
+
+        for index, row in filtered_df.iterrows():
+            filtered_text = row.to_string()
+            filtered_doc = {
+                "page_content": filtered_text,
+                "metadata": {
+                    "row": index,
+                    "columns": index
+                }
+            }
+            self.documents.append(Document(page_content=filtered_doc["page_content"],metadata=filtered_doc["metadata"]))
         
-    def process_docx(self, file: BytesIO, section_start:float,section_end:float):
-        loader = Docx2txtLoader(file)
-        doc = loader.load()
-        self.documents.extend(doc)
+    def process_docx(self, file: BytesIO, file_type:str, specific_list:List[int], section_start:float,section_end:float):
+        
+        if(file_type == "doc"):
+            logger.warning("Specific pages is not implemented for doc files. Convert to docx for specific pages")
+            with open("temp.doc", 'wb') as temp_file:
+                temp_file.write(file.getbuffer())
+            loader = UnstructuredWordDocumentLoader("temp.doc")
+            doc = loader.load()
+            self.documents.extend(doc)
+            os.unlink("temp.doc")
+
+        else:
+            doc = DocumentFromDocx(file)
+            doc_text = []
+            for paragraph in doc.paragraphs:
+                doc_text.append(paragraph.text)
+            current_page = []
+            word_count = 0 
+            words_per_page = 500
+            pages = []
+            page_number = 1
+            for para in doc_text:
+                word_count += len(para.split())
+                current_page.append(para)
+                if word_count >= words_per_page:
+                    page_content = " ".join(current_page)
+                    logger.info(page_content)
+                    pages.append((page_content,{'source':'docx','page_number':page_number})) 
+                    current_page = []
+                    word_count = 0
+                    page_number += 1
+            if current_page:
+                pages.append((page_content,{'source':'docx','page_number':page_number})) 
+                page_number += 1
+            
+            filtered_pages = []
+            for page_content, metadata in pages:
+                if(specific_list is not None):
+                    if metadata['page_number'] in specific_list:
+                        filtered_pages.append((page_content,metadata))
+                else:
+                    if section_start <= metadata['page_number'] <= section_end:
+                        filtered_pages.append((page_content,metadata))
+                    
+            for page_content, metadata in filtered_pages:
+                self.documents.append(Document(page_content=page_content,metadata=metadata))
         
     def process_pptx(self, file: BytesIO, file_type:str, specific_list:List[int],section_start:float,section_end:float):
         
@@ -144,7 +264,7 @@ class BytesFileLoader:
             doc = loader.load()
             self.documents.extend(doc)
             os.unlink("temp.ppt")
-            
+         
         else:   
             presentation = Presentation(file)
             
@@ -158,9 +278,7 @@ class BytesFileLoader:
                 doc = Document(page_content=slide_content, metadata=metadata)
                 presentation_segments.append(doc)
             
-            if(specific_list is None and section_start is None):
-                filtered_segments = presentation_segments
-            elif(specific_list is not None):
+            if(specific_list is not None):
                 filtered_segments = [doc for doc in presentation_segments if doc.metadata['slide_number'] in specific_list]
             else:
                 filtered_segments = [doc for doc in presentation_segments if section_start <= doc.metadata['slide_number'] <= section_end]
@@ -176,19 +294,36 @@ class BytesFileLoader:
         web_text = ' '.join(BeautifulSoup(html, "html.parser").stripped_strings)
         web_segments = []
         
-        for i,entry in enumerate(web_text.split("\n")):
-            metadata = {
-                'source': 'web_url',
-                'url': file,
-                'line': i + 1
-            }
+        split_lines = False
+        
+        if(len(web_text.split("\n\n")) <= 1):
+            logger.warning("Web page does not have paragraphs. Splitting by line")
+            split_lines = True
+            split_web_text = web_text.split("\n")
+        else:
+            split_web_text = web_text.split("\n\n")
+        
+        for i,entry in enumerate(split_web_text):
+            if(split_lines):
+                metadata = {
+                    'source': 'web_url',
+                    'url': file,
+                    'line': i + 1
+                }
+            else:
+                metadata = {
+                    'source': 'web_url',
+                    'url': file,
+                    'paragraph': i + 1
+                }
             doc = Document(page_content=entry,metadata = metadata)
             web_segments.append(doc)
             
-        if(specific_list is None and section_start is None):
-            filtered_segments = web_segments
-        elif(specific_list is not None):
-            filtered_segments = [doc for doc in web_segments if doc.metadata['line'] in specific_list]
+        if(specific_list is not None):
+            if(split_lines):
+                filtered_segments = [doc for doc in web_segments if doc.metadata['line'] in specific_list]
+            else:
+                filtered_segments = [doc for doc in web_segments if doc.metadata['paragraph'] in specific_list]
         else:
             filtered_segments = [doc for doc in web_segments if section_start <= doc.metadata['line'] <= section_end]
             
@@ -210,10 +345,8 @@ class BytesFileLoader:
             }
             doc = Document(page_content=entry['text'],metadata = metadata)
             transcript_segments.append(doc)
-        if(section_start is None):
-            filtered_segments = transcript_segments
-        else:
-            filtered_segments = [doc for doc in transcript_segments if section_start <= doc.metadata['start_time'] <= section_end]
+        
+        filtered_segments = [doc for doc in transcript_segments if section_start <= doc.metadata['start_time'] <= section_end]
         self.documents.extend(filtered_segments)
         
     
@@ -227,11 +360,11 @@ class BytesFileLoader:
                 case "xlsx":
                     self.process_xlsx(file,section_start,section_end)
                 case "txt":
-                    self.process_txt(file,section_start,section_end)
+                    self.process_txt(file,specific_list,section_start,section_end)
                 case "csv":
                     self.process_csv(file,section_start,section_end)
                 case "docx" | "doc":
-                    self.process_docx(file,section_start,section_end)
+                    self.process_docx(file,file_type,specific_list,section_start,section_end)
                 case "pptx" | "ppt":
                     self.process_pptx(file,file_type,specific_list,section_start,section_end)
                 case "web_url":
