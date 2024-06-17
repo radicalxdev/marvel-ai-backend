@@ -182,13 +182,16 @@ class BytesFileLoader:
     
     def process_csv(self, file: BytesIO, section_start:float,section_end:float):
 
-        df = pd.read_csv(file)
+        df = pd.read_csv(file,sep='delimiter', header=None)
 
         section_start = int(section_start)
         if(section_end == float('inf')):
             section_end = len(df)
         else:
             section_end = int(section_end)
+            
+        row_start, col_start = section_start, section_start
+        row_end, col_end = section_end, section_end
 
         row_start = max(0, row_start)
         row_end = min(len(df) - 1, row_end)
