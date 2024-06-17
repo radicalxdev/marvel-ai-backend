@@ -1,47 +1,46 @@
 name: Deploy to Google App Engine
 
 on:
-    push:
-        branches:
-            - main # Trigger workflow 
+  push:
+    branches:
+      - main # Trigger workflow
 
 jobs:
-    deploy:
-        runs-on: ubuntu-latest
-    
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-        
-        # Set env variables based on branch
-        - name: Set Environment Variables for Production
-          if: github.ref == 'refs/heads/main'
-          run: |
-            echo "ENV_TYPE=production" >> $GITHUB_ENV
-            echo "PROJECT_ID=kai-ai-f63c8" >> $GITHUB_ENV
-        
-        - name: GCP Auth
-          uses: 'google-github-actions/auth@v1'
-          with:
-            credentials_json: ${{ secrets.PRODUCTION_CREDENTIALS_JSON }}
-        
-        # Dynamically Update app.yaml
-        - name: Update app.yaml
-          run: |
-            echo "" >> app/app.yaml
-            echo "env_variables:" >> app/app.yaml
-            echo "  ENV_TYPE: '${{ env.ENV_TYPE }}'" >> app/app.yaml
-            echo "  PROJECT_ID: '${{ env.PROJECT_ID }}'" >> app/app.yaml
+  deploy:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
 
-        - name: 'Set up Cloud SDK'
-          uses: 'google-github-actions/setup-gcloud@v1'
-          with:
-            version: '>= 363.0.0'
-        
-        - name: Deploy To App Engine (Production)
-          if: github.ref == 'refs/heads/main'
-          uses: 'google-github-actions/deploy-appengine@v0.2.0'
-          with:
-            deliverables: app/app.yaml
-            version: v1
+      # Set env variables based on branch
+      - name: Set Environment Variables for Production
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "ENV_TYPE=production" >> $GITHUB_ENV
+          echo "PROJECT_ID=kai-ai-f63c8" >> $GITHUB_ENV
+
+      - name: GCP Auth
+        uses: "google-github-actions/auth@v1"
+        with:
+          credentials_json: ${{ secrets.PRODUCTION_CREDENTIALS_JSON }}
+
+      # Dynamically Update app.yaml
+      - name: Update app.yaml
+        run: |
+          echo "" >> app/app.yaml
+          echo "env_variables:" >> app/app.yaml
+          echo "  ENV_TYPE: '${{ env.ENV_TYPE }}'" >> app/app.yaml
+          echo "  PROJECT_ID: '${{ env.PROJECT_ID }}'" >> app/app.yaml
+
+      - name: "Set up Cloud SDK"
+        uses: "google-github-actions/setup-gcloud@v1"
+        with:
+          version: ">= 363.0.0"
+
+      - name: Deploy To App Engine (Production)
+        if: github.ref == 'refs/heads/main'
+        uses: "google-github-actions/deploy-appengine@v0.2.0"
+        with:
+          deliverables: app/app.yaml
+          version: v1
