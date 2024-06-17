@@ -23,6 +23,12 @@ from api.error_utilities import LoaderError
 
 relative_path = "features/quzzify"
 
+models_metadata_path = "app/features/Kaichat/metadata.json"
+
+# Load the metadata from the JSON file
+with open(models_metadata_path, "r") as f:
+  metadata = json.load(f)
+
 logger = setup_logger(__name__)
 
 def read_text_file(file_path):
@@ -247,7 +253,7 @@ class RAGpipeline:
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
-            "model": VertexAI(model="gemini-1.0-pro"),
+            "model": VertexAI(model=metadata["models"][0]["latest_model_name"]), 
             "parser": JsonOutputParser(pydantic_object=QuizQuestion),
             "prompt": read_text_file("prompt/quizzify-prompt.txt")
         }
