@@ -133,7 +133,7 @@ class LangChainPPTLoader:
         return documents
 
 class LangChainCSVLoader:
-    def __init__(self, files: List[str], mode: str = "elements"):
+    def __init__(self, files: List[str], mode: str = "single"):
         self.files = files
         self.mode = mode
 
@@ -259,6 +259,7 @@ class URLLoader:
             for file_type, urls in file_dict.items():
                 if urls:
                     loader_class = self.loaders[file_type]
+                    logger.debug(f"Loader file type used: {loader_class}")
                     loader = loader_class(urls)
                     documents.extend(loader.load())
                     if self.verbose:
@@ -314,8 +315,7 @@ class RAGpipeline:
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
-        print(f'Document type: {type(documents[0])}')
-        self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+        self.vectorstore = self.vectorstore_class.from_documents(documents[:25], self.embedding_model)
 
         if self.verbose: logger.info(f"Vectorstore created")
         return self.vectorstore
@@ -341,7 +341,7 @@ class RAGpipeline:
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
-            "model": VertexAI(model="gemini-1.0-pro"),
+            "model": VertexAI(model="gemini-1.0-pro", temperature = 0),
             "parser": JsonOutputParser(pydantic_object=QuizQuestion),
             "prompt": read_text_file("prompt/quizzify-prompt.txt")
         }
@@ -393,6 +393,28 @@ class QuizBuilder:
             if self.verbose:
                 logger.error(f"TypeError during response validation: {e}")
             return False
+    
+    def validate_and_format_response(self) -> bool:
+        try:
+            if isinstance(self.response, dict):
+                if 'question' in self.response and 'choices' in self.response and 'answer' in self.response and 'explanation' in self.response:
+                    choices = self.response['choices']
+                    if isinstance(choices, dict):
+                        # Format choices if they are in dict format
+                        self.response['choices'] = self.format_choices(choices)
+                    elif isinstance(choices, list):
+                        # Check if choices are already formatted correctly
+                        for choice in choices:
+                            if not isinstance(choice, dict) or 'key' not in choice or 'value' not in choice:
+                                return False
+                    else:
+                        return False
+                    return True
+            return False
+        except TypeError as e:
+            if self.verbose:
+                logger.error(f"TypeError during response validation: {e}")
+            return False
 
     def format_choices(self, choices: Dict[str, str]) -> List[Dict[str, str]]:
         return [{"key": k, "value": v} for k, v in choices.items()]
@@ -410,16 +432,25 @@ class QuizBuilder:
         max_attempts = num_questions * 5  # Allow for more attempts to generate questions
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
-            response = chain.invoke(self.topic)
+            self.response = chain.invoke(self.topic)
+            
             if self.verbose:
-                logger.info(f"Generated response attempt {attempts + 1}: {response}")
+                logger.info(f"Generated response attempt {attempts + 1}: {self.response}")
             
             # Directly check if the response format is valid
-            if self.validate_response(response):
-                response["choices"] = self.format_choices(response["choices"])
-                generated_questions.append(response)
+            # if self.validate_response(response):
+            #     response["choices"] = self.format_choices(response["choices"])
+            #     generated_questions.append(response)
+            #     if self.verbose:
+            #         logger.info(f"Valid question added: {response}")
+            #         logger.info(f"Total generated questions: {len(generated_questions)}")
+            # else:
+            #     if self.verbose:
+            #         logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
+            if self.validate_and_format_response():
+                generated_questions.append(self.response)
                 if self.verbose:
-                    logger.info(f"Valid question added: {response}")
+                    logger.info(f"Valid question added: {self.response}")
                     logger.info(f"Total generated questions: {len(generated_questions)}")
             else:
                 if self.verbose:
