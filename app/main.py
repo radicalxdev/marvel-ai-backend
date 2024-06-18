@@ -7,6 +7,11 @@ from api.router import router
 from services.logger import setup_logger
 from api.error_utilities import ErrorResponse
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 logger = setup_logger(__name__)
 
 @asynccontextmanager
