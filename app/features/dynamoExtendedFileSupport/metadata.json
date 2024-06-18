@@ -1,0 +1,14 @@
+{
+    "inputs": [
+        {
+            "label": "File Url",
+            "name": "file_url",
+            "type": "string"
+        },
+        {
+            "label": "App Type",
+            "name": "app_type",
+            "type": "string"
+        }
+    ]
+}

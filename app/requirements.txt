@@ -15,3 +15,17 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
+
+unstructured
+python-pptx
+docx2txt
+networkx
+pandas
+xlrd
+openpyxl
+
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+langchain-google-community[drive]
+langchain-googledrive

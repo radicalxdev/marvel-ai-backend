@@ -162,3 +162,6 @@ cython_debug/
 **/env/
 **/key.txt
 **/local-auth.json
+**/credentials.json
+**/google_token.json
+**/token.json
