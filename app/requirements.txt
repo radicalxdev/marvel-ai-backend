@@ -18,3 +18,5 @@ pytube
 python-docx
 pandas
 python-pptx
+unstructured[pdf]
+unstructured

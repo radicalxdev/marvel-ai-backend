@@ -7,6 +7,9 @@ import requests
 import os
 import json
 import time
+import docx
+from pptx import Presentation
+import pandas as pd
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -16,6 +19,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_community.document_loaders import UnstructuredURLLoader
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -34,6 +38,54 @@ def read_text_file(file_path):
     
     with open(absolute_file_path, 'r') as file:
         return file.read()
+    
+def extract_text_from_docx(docx_file):
+    doc = docx.Document(docx_file)
+    return "\n".join([paragraph.text for paragraph in doc.paragraphs])
+
+def extract_text_from_pptx(pptx_file):
+    prs = Presentation(pptx_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
+    return "\n".join(text_runs)
+
+class WebPageLoader:
+    def __init__(self, url: str, verbose=False):
+        self.url = url
+        self.verbose = verbose
+
+    def load(self) -> List[Document]:
+        documents = []
+
+        try:
+            loader = UnstructuredURLLoader(urls=[self.url])
+            loaded_docs = loader.load()
+            for doc in loaded_docs:
+                # Extract content and metadata
+                page_content = doc.page_content
+                metadata = {"source": self.url}
+                paragraphs = page_content.split('\n')  # Split content into paragraphs
+                combined_content = "\n".join([paragraph.strip() for paragraph in paragraphs if paragraph.strip()])
+
+                # Create a Document instance with page content and metadata
+                new_doc = Document(page_content=combined_content, metadata=metadata)
+                documents.append(new_doc) 
+            
+            if self.verbose:
+                logger.info(f"Successfully loaded content from {self.url}")
+        except Exception as e:
+            logger.error(f"Failed to load content from {self.url}")
+            logger.error(e)
+
+        if not documents:
+            raise LoaderError("Unable to load any content from the URL")
+
+        return documents
+
+
 
 class RAGRunnable:
     def __init__(self, func):
@@ -48,7 +100,7 @@ class RAGRunnable:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-class UploadPDFLoader:
+class UploadFileLoader:
     def __init__(self, files: List[UploadFile]):
         self.files = files
 
@@ -56,19 +108,43 @@ class UploadPDFLoader:
         documents = []
 
         for upload_file in self.files:
-            with upload_file.file as pdf_file:
-                pdf_reader = PdfReader(pdf_file)
+            file_type = upload_file.filename.split(".")[-1].lower()
+            with upload_file.file as file:
+                if file_type == "pdf":
+                    pdf_reader = PdfReader(file)
+                    for i, page in enumerate(pdf_reader.pages):
+                        page_content = page.extract_text()
+                        metadata = {"source": upload_file.filename, "page_number": i + 1}
 
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": upload_file.filename, "page_number": i + 1}
+                        doc = Document(page_content=page_content, metadata=metadata)
+                        documents.append(doc)
 
+                elif file_type in ["doc", "docx"]:
+                    page_content = extract_text_from_docx(file)
+                    metadata = {"source": upload_file.filename}
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
 
+                elif file_type in ["ppt", "pptx"]:
+                    page_content = extract_text_from_pptx(file)
+                    metadata = {"source": upload_file.filename}
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+
+                elif file_type == "csv":
+                    df = pd.read_csv(file)
+                    page_content = df.to_string()
+                    metadata = {"source": upload_file.filename}
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+
+                else:
+                    raise ValueError(f"Unsupported file type: {file_type}")
+                
+
         return documents
 
-class BytesFilePDFLoader:
+class BytesFileLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -86,6 +162,27 @@ class BytesFilePDFLoader:
 
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
+
+            
+            elif file_type in ["doc", "docx"]:
+                page_content = extract_text_from_docx(file)
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+                
+
+            elif file_type in ["ppt", "pptx"]:
+                page_content = extract_text_from_pptx(file)
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+
+            elif file_type == "csv":
+                df = pd.read_csv(file)
+                page_content = df.to_string()
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
                     
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
@@ -93,9 +190,9 @@ class BytesFilePDFLoader:
         return documents
 
 class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
+    def __init__(self, file_paths: list[str], expected_file_types=None):
         self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
+        self.expected_file_types = expected_file_types or ["pdf"]
 
     def load(self) -> List[Document]:
         documents = []
@@ -105,27 +202,50 @@ class LocalFileLoader:
     
         for file_path in self.file_paths:
             
-            file_type = file_path.split(".")[-1]
-
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+            file_type = file_path.split(".")[-1].lower()
+            if file_type not in self.expected_file_types:
+                raise ValueError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
 
             with open(file_path, 'rb') as file:
-                pdf_reader = PdfReader(file)
+                if file_type == "pdf":
+                    pdf_reader = PdfReader(file)
+                    for i, page in enumerate(pdf_reader.pages):
+                        page_content = page.extract_text()
+                        metadata = {"source": file_path, "page_number": i + 1}
 
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_path, "page_number": i + 1}
+                        doc = Document(page_content=page_content, metadata=metadata)
+                        documents.append(doc)
 
+                elif file_type in ["doc", "docx"]:
+                    page_content = extract_text_from_docx(file)
+                    metadata = {"source": file_path}
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
+
+                elif file_type in ["ppt", "pptx"]:
+                    page_content = extract_text_from_pptx(file)
+                    metadata = {"source": file_path}
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+
+                elif file_type == "csv":
+                    df = pd.read_csv(file)
+                    page_content = df.to_string()
+                    metadata = {"source": file_path}
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+
+                else:
+                    raise ValueError(f"Unsupported file type: {file_type}")
+
+                
 
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
-        self.expected_file_type = expected_file_type
+    def __init__(self, file_loader=None, expected_file_types=None, verbose=False):
+        self.loader = file_loader or BytesFileLoader
+        self.expected_file_types = expected_file_types or ["pdf", "doc", "docx", "ppt", "pptx", "csv"]
         self.verbose = verbose
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
@@ -136,35 +256,35 @@ class URLLoader:
         for tool_file in tool_files:
             try:
                 url = tool_file.url
-                response = requests.get(url)
-                parsed_url = urlparse(url)
-                path = parsed_url.path
+                if url.endswith(('.pdf', '.doc', '.docx', '.ppt', '.pptx', '.csv')):
+                    response = requests.get(url)
+                    parsed_url = urlparse(url)
+                    path = parsed_url.path
 
-                if response.status_code == 200:
-                    # Read file
-                    file_content = BytesIO(response.content)
-
-                    # Check file type
-                    file_type = path.split(".")[-1]
-                    if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-                    # Append to Queue
-                    queued_files.append((file_content, file_type))
-                    if self.verbose:
-                        logger.info(f"Successfully loaded file from {url}")
-
-                    any_success = True  # Mark that at least one file was successfully loaded
+                    if response.status_code == 200:
+                        file_content = BytesIO(response.content)
+                        file_type = tool_file.filename.split(".")[-1].lower()
+                        if file_type not in self.expected_file_types:
+                            raise LoaderError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
+                        queued_files.append((file_content, file_type))
+                        if self.verbose:
+                            logger.info(f"Successfully loaded file from {url}")
+                        any_success = True
+                    else:
+                        logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
                 else:
-                    logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
-
+                    # Handle web page loading
+                    web_page_loader = WebPageLoader(url, self.verbose)
+                    web_documents = web_page_loader.load()
+                    documents.extend(web_documents)
+                    any_success = True
             except Exception as e:
                 logger.error(f"Failed to load file from {url}")
                 logger.error(e)
                 continue
 
-        # Pass Queue to the file loader if there are any successful loads
-        if any_success:
+
+        if any_success and queued_files:
             file_loader = self.loader(queued_files)
             documents = file_loader.load()
 
@@ -175,6 +295,8 @@ class URLLoader:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
+
+
 
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
@@ -202,7 +324,7 @@ class RAGpipeline:
         except LoaderError as e:
             logger.error(f"Loader experienced error: {e}")
             raise LoaderError(e)
-            
+
         return total_loaded_files
     
     def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:
