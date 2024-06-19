@@ -1,8 +1,8 @@
 import json
 import os
-from services.logger import setup_logger
-from services.tool_registry import ToolFile
-from api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
+from app.services.logger import setup_logger
+from app.services.tool_registry import ToolFile
+from app.api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
 from typing import Dict, Any, List
 from fastapi import HTTPException
 from pydantic import ValidationError
