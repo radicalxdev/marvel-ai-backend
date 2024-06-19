@@ -1,7 +1,7 @@
 from langchain_community.document_loaders import YoutubeLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
-from langchain_google_vertexai import VertexAI
+from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.chains.summarize import load_summarize_chain
 from langchain_core.pydantic_v1 import BaseModel, Field
@@ -14,7 +14,7 @@ import os
 logger = setup_logger(__name__)
 
 # AI Model
-model = VertexAI(model="gemini-1.0-pro")
+model = GoogleGenerativeAI(model="gemini-1.0-pro")
 
 
 def read_text_file(file_path):
@@ -53,6 +53,9 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     full_transcript = [doc.page_content for doc in split_docs]
     full_transcript = " ".join(full_transcript)
 
+    full_transcript = [doc.page_content for doc in split_docs]
+    full_transcript = " ".join(full_transcript)
+
     if length > max_video_length:
         raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
 
@@ -63,7 +66,8 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     
     prompt_template = read_text_file("prompt/summarize-prompt.txt")
     summarize_prompt = PromptTemplate.from_template(prompt_template)
-    summarize_model = VertexAI(model="gemini-1.5-flash")
+
+    summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
     
     chain = summarize_prompt | summarize_model 
     
