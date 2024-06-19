@@ -17,6 +17,11 @@ import tempfile
 import uuid
 import requests
 
+from langchain_core.messages import HumanMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.output_parsers import JsonOutputParser
+
 logger = setup_logger(__name__)
 
 class FileHandler:
@@ -161,3 +166,27 @@ gfile_loader_map = {
     GFileType.SHEET: load_gsheets_documents,
     GFileType.SLIDE: load_gslides_documents
 }
+
+
+
+llm = ChatGoogleGenerativeAI(model="gemini-pro-vision")
+
+def generate_concepts_from_img(img_url):
+    parser = JsonOutputParser(pydantic_object=Flashcard)
+    message = HumanMessage(
+    content=[
+            {
+                "type": "text",
+                "text": "Give me the key concepts of what you see in the image",
+            },  # You can optionally provide text parts
+            {"type": "image_url", "image_url": img_url},
+            {"type": "text", "text": f"In this format: {parser.get_format_instructions()}"}
+        ]
+    )
+    response = llm.invoke([message]).content
+    return parser.parse(response)
+
+
+class Flashcard(BaseModel):
+    concept: str = Field(description="The concept of the flashcard")
+    definition: str = Field(description="The definition of the flashcard")

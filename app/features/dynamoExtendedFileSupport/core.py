@@ -1,5 +1,5 @@
 from services.logger import setup_logger
-from features.dynamoExtendedFileSupport.tools import file_loader_map, gfile_loader_map
+from features.dynamoExtendedFileSupport.tools import file_loader_map, generate_concepts_from_img, gfile_loader_map
 from utils.allowed_file_extensions import FileType, GFileType
 from utils.extract_url_file_extension import get_file_extension
 
@@ -23,3 +23,5 @@ def executor(file_url: str, app_type: str, verbose=False):
             file_loader(file_url)
         except KeyError:
             print(f"Error")
+    elif(app_type=="3"):
+        return generate_concepts_from_img(file_url)
