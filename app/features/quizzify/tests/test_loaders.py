@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from services.tool_registry import ToolFile
-from features.quizzify.tools import URLLoader, BytesFilePDFLoader, Document  # Adjust the import path as necessary
+from app.services.tool_registry import ToolFile
+from app.features.quizzify.tools import URLLoader, BytesFilePDFLoader, Document  # Adjust the import path as necessary
 
 @pytest.fixture
 def pdf_loader():
