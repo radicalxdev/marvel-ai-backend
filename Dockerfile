@@ -14,8 +14,6 @@ COPY ./app /code/app
 # When set to dev, API Key on endpoint requests are just 'dev'
 # When set to production, API Key on endpoint requests are the actual API Key
 
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json 
-ENV ENV_TYPE="dev"
-ENV PROJECT_ID="kai-ai-f63c8"
+ENV PYTHONPATH=/code/app
 
 CMD ["fastapi", "run", "app/main.py", "--port", "8000"]
