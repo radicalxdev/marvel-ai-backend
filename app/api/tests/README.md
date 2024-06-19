@@ -24,7 +24,7 @@
         },
         {
             "name": "files",
-            "value": [{"url": "https://drive.google.com/file/d/1i86ZEygL4i2ZHvVD9akzt8O48Rr4cxw0/view?usp=sharing", "filePath": "/Users/danieldacosta/Documents/RadicalAI/kai-ai-backend/app/api/tests/linear_regression.pdf"}]
+            "value": [{"url": "https://proceedings.neurips.cc/paper_files/paper/2012/file/c399862d3b9d6b76c8436e924a68c45b-Paper.pdf"}]
         }
     ]
   }
