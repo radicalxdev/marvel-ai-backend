@@ -25,6 +25,23 @@ relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
 
+def transform_json_dict(input_data: dict) -> dict:
+    # Validate and parse the input data to ensure it matches the QuizQuestion schema
+    quiz_question = QuizQuestion(**input_data)
+
+    # Transform the choices list into a dictionary
+    transformed_choices = {choice.key: choice.value for choice in quiz_question.choices}
+
+    # Create the transformed structure
+    transformed_data = {
+        "question": quiz_question.question,
+        "choices": transformed_choices,
+        "answer": quiz_question.answer,
+        "explanation": quiz_question.explanation
+    }
+
+    return transformed_data
+
 def read_text_file(file_path):
     # Get the directory containing the script file
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -320,6 +337,8 @@ class QuizBuilder:
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
             
+            response = transform_json_dict(response)
+
             # Directly check if the response format is valid
             if self.validate_response(response):
                 response["choices"] = self.format_choices(response["choices"])
@@ -345,10 +364,28 @@ class QuizBuilder:
         return generated_questions[:num_questions]
 
 class QuestionChoice(BaseModel):
-    key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
+    key: str = Field(description="A unique identifier for the choice using letters A, B, C, or D.")
     value: str = Field(description="The text content of the choice")
 class QuizQuestion(BaseModel):
     question: str = Field(description="The question text")
-    choices: List[QuestionChoice] = Field(description="A list of choices")
-    answer: str = Field(description="The correct answer")
+    choices: List[QuestionChoice] = Field(description="A list of choices for the question, each with a key and a value")
+    answer: str = Field(description="The key of the correct answer from the choices list")
     explanation: str = Field(description="An explanation of why the answer is correct")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": """ 
+                {
+                "question": "What is the capital of France?",
+                "choices": [
+                    {"key": "A", "value": "Berlin"},
+                    {"key": "B", "value": "Madrid"},
+                    {"key": "C", "value": "Paris"},
+                    {"key": "D", "value": "Rome"}
+                ],
+                "answer": "C",
+                "explanation": "Paris is the capital of France."
+              }
+          """
+        }
+      }
