@@ -49,6 +49,9 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     )
     
     split_docs = splitter.split_documents(docs)
+    
+    full_transcript = [doc.page_content for doc in split_docs]
+    full_transcript = " ".join(full_transcript)
 
     full_transcript = [doc.page_content for doc in split_docs]
     full_transcript = " ".join(full_transcript)
@@ -63,6 +66,7 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     
     prompt_template = read_text_file("prompt/summarize-prompt.txt")
     summarize_prompt = PromptTemplate.from_template(prompt_template)
+
     summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
     
     chain = summarize_prompt | summarize_model 
