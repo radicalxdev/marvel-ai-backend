@@ -1,13 +1,13 @@
 # backend/Dockerfile
 FROM python:3.10.12
 
-WORKDIR /app
+WORKDIR /code
 
-COPY app/ /app
+COPY app/requirements.txt /code/requirements.txt
 
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --no-cache-dir -r /code/requirements.txt
 
-COPY ./app /app
+COPY ./app /code/app
 
 # Local development key set
 # ENV TYPES: dev, production
@@ -16,6 +16,6 @@ COPY ./app /app
 
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json 
 ENV ENV_TYPE="dev"
-ENV PROJECT_ID="Enter your project ID here"
+ENV PROJECT_ID="kai-ai-f63c8"
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["fastapi", "run", "app/main.py", "--port", "8000"]
