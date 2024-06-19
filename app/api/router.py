@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from typing import Union
-from app.services.schemas import ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
-from app.utils.auth import key_check
-from app.services.logger import setup_logger
-from app.api.error_utilities import InputValidationError, ErrorResponse
-from app.api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from services.schemas import ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
+from utils.auth import key_check
+from services.logger import setup_logger
+from api.error_utilities import InputValidationError, ErrorResponse
+from api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -46,7 +46,7 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat( request: ChatRequest, _ = Depends(key_check) ):
-    from app.features.Kaichat.core import executor as kaichat_executor
+    from features.Kaichat.core import executor as kaichat_executor
     
     user_name = request.user.fullName
     chat_messages = request.messages

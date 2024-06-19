@@ -1,9 +1,9 @@
 import json
 import pytest
 from unittest.mock import patch, MagicMock, mock_open
-from app.services.tool_registry import BaseTool, ToolInput, ToolFile
+from services.tool_registry import BaseTool, ToolInput, ToolFile
 from fastapi import HTTPException
-from app.api.tool_utilities import get_executor_by_name, load_tool_metadata, prepare_input_data, execute_tool
+from api.tool_utilities import get_executor_by_name, load_tool_metadata, prepare_input_data, execute_tool
 
 # Sample configuration for tools_config
 tools_config = {

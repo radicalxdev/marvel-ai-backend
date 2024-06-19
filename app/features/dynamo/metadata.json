@@ -5,10 +5,5 @@
             "name": "youtube_url",
             "type": "string"
         }
-    ],
-    "models": {
-        "Gemini 1.0": "gemini-1.0-pro",
-        "Gemini 1.5 Flash": "gemini-1.5-flash",
-        "Gemini 1.5 Pro": "gemini-1.5-pro"
-    }
+    ]
 }
