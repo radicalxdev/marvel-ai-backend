@@ -3,14 +3,9 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from app.api.router import router
-from app.services.logger import setup_logger
-from app.api.error_utilities import ErrorResponse
-
-import os
-from dotenv import load_dotenv, find_dotenv
-
-load_dotenv(find_dotenv())
+from api.router import router
+from services.logger import setup_logger
+from api.error_utilities import ErrorResponse
 
 logger = setup_logger(__name__)
 
