@@ -1,0 +1,19 @@
+{
+    "models":[
+        {
+            "label": "Gemini 1.5 Pro",
+            "latest_model_name": "gemini-1.5-pro-001",
+            "model_list": ["gemini-1.5-pro-001"]
+        },
+        {
+            "label": "Gemini 1.5 Flash",
+            "latest_model_name": "gemini-1.5-flash-001",
+            "model_list": ["gemini-1.5-flash-001"]
+        },
+        {
+            "label": "Gemini 1.0 Pro",
+            "latest_model_name": "gemini-1.0-pro-002",
+            "model_list": ["gemini-1.0-pro-002","gemini-1.0-pro-001","gemini-1.0-pro"]
+        }
+    ]
+}
