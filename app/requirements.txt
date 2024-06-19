@@ -29,3 +29,6 @@ google-auth-httplib2
 google-auth-oauthlib
 langchain-google-community[drive]
 langchain-googledrive
+langchain_google_genai
+
+pytest

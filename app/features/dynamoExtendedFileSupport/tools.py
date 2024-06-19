@@ -53,52 +53,52 @@ class FileHandler:
 def load_pdf_documents(pdf_url: str):
     pdf_loader = FileHandler(PyPDFLoader, "pdf")
     pages = pdf_loader.load(pdf_url)
-    print(pages)
+    return pages
 
 def load_csv_documents(csv_url: str):
     csv_loader = FileHandler(CSVLoader, "csv")
     pages = csv_loader.load(csv_url)
-    print(pages)
+    return pages
 
 def load_txt_documents(notes_url: str):
     notes_loader = FileHandler(TextLoader, "txt")
     pages = notes_loader.load(notes_url)
-    print(pages)
+    return pages
 
 def load_md_documents(notes_url: str):
     notes_loader = FileHandler(TextLoader, "md")
     pages = notes_loader.load(notes_url)
-    print(pages)
+    return pages
 
 def load_url_documents(url: str):
     url_loader = UnstructuredURLLoader([url])
     pages = url_loader.load()
-    print(pages)
+    return pages
 
 def load_pptx_documents(pptx_url: str):
     pptx_handler = FileHandler(UnstructuredPowerPointLoader, 'pptx')
     pages = pptx_handler.load(pptx_url)
-    print(pages)
+    return pages
 
 def load_docx_documents(docx_url: str):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
     pages = docx_handler.load(docx_url)
-    print(pages)
+    return pages
 
 def load_xls_documents(xls_url: str):
     xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
     pages = xls_handler.load(xls_url)
-    print(pages)
+    return pages
 
 def load_xlsx_documents(xlsx_url: str):
     xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
     pages = xlsx_handler.load(xlsx_url)
-    print(pages)
+    return pages
 
 def load_xml_documents(xml_url: str):
     xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
     pages = xml_handler.load(xml_url)
-    print(pages)
+    return pages
 
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
@@ -126,8 +126,8 @@ class FileHandlerForGoogleDrive:
         file_id = extract_folder_id(url)
 
         loader = self.file_loader(
-            credentials_path=os.getcwd()+'\credentials.json',
-            token_path=os.getcwd()+'\google_token.json',
+            credentials_path=os.getcwd()+'/credentials.json',
+            token_path=os.getcwd()+'/google_token.json',
             folder_id=file_id,
             file_types=[self.file_type],
             recursive=False,
@@ -140,12 +140,12 @@ class FileHandlerForGoogleDrive:
 def load_gdocs_documents(drive_folder_url: str):
     gdocs_loader = FileHandlerForGoogleDrive(file_type="document")
     pages = gdocs_loader.load(drive_folder_url)
-    print(pages)
+    return pages
 
 def load_gsheets_documents(drive_folder_url: str):
     gsheets_loader = FileHandlerForGoogleDrive(file_type="sheet")
     pages = gsheets_loader.load(drive_folder_url)
-    print(pages)
+    return pages
 
 def load_gslides_documents(drive_folder_url: str):
 
@@ -158,7 +158,7 @@ def load_gslides_documents(drive_folder_url: str):
     )
 
     pages = gslides_loader.load()
-    print(pages)
+    return pages
 
 
 gfile_loader_map = {
