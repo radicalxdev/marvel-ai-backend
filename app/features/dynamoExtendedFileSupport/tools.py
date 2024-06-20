@@ -22,7 +22,15 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.output_parsers import JsonOutputParser
 
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+
 logger = setup_logger(__name__)
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size = 1000,
+    chunk_overlap = 0
+)
 
 class FileHandler:
     def __init__(self, file_loader, file_extension):
@@ -52,53 +60,72 @@ class FileHandler:
 
 def load_pdf_documents(pdf_url: str):
     pdf_loader = FileHandler(PyPDFLoader, "pdf")
-    pages = pdf_loader.load(pdf_url)
-    print(pages)
+    docs = pdf_loader.load(pdf_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_csv_documents(csv_url: str):
     csv_loader = FileHandler(CSVLoader, "csv")
-    pages = csv_loader.load(csv_url)
-    print(pages)
+    docs = csv_loader.load(csv_url)
+    print(docs)
+    #print(len(docs))
 
 def load_txt_documents(notes_url: str):
     notes_loader = FileHandler(TextLoader, "txt")
-    pages = notes_loader.load(notes_url)
-    print(pages)
+    docs = notes_loader.load(notes_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_md_documents(notes_url: str):
     notes_loader = FileHandler(TextLoader, "md")
-    pages = notes_loader.load(notes_url)
-    print(pages)
+    docs = notes_loader.load(notes_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_url_documents(url: str):
-    url_loader = UnstructuredURLLoader([url])
-    pages = url_loader.load()
-    print(pages)
+    url_loader = UnstructuredURLLoader(urls=[url])
+    docs = url_loader.load()
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_pptx_documents(pptx_url: str):
     pptx_handler = FileHandler(UnstructuredPowerPointLoader, 'pptx')
-    pages = pptx_handler.load(pptx_url)
-    print(pages)
+    docs = pptx_handler.load(pptx_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_docx_documents(docx_url: str):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
-    pages = docx_handler.load(docx_url)
-    print(pages)
+    docs = docx_handler.load(docx_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_xls_documents(xls_url: str):
     xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
-    pages = xls_handler.load(xls_url)
-    print(pages)
+    docs = xls_handler.load(xls_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_xlsx_documents(xlsx_url: str):
     xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
-    pages = xlsx_handler.load(xlsx_url)
-    print(pages)
+    docs = xlsx_handler.load(xlsx_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_xml_documents(xml_url: str):
     xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
-    pages = xml_handler.load(xml_url)
-    print(pages)
+    docs = xml_handler.load(xml_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
@@ -139,13 +166,16 @@ class FileHandlerForGoogleDrive:
     
 def load_gdocs_documents(drive_folder_url: str):
     gdocs_loader = FileHandlerForGoogleDrive(file_type="document")
-    pages = gdocs_loader.load(drive_folder_url)
-    print(pages)
+    docs = gdocs_loader.load(drive_folder_url)
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 def load_gsheets_documents(drive_folder_url: str):
     gsheets_loader = FileHandlerForGoogleDrive(file_type="sheet")
-    pages = gsheets_loader.load(drive_folder_url)
-    print(pages)
+    docs = gsheets_loader.load(drive_folder_url)
+    print(docs)
+    #print(len(docs))
 
 def load_gslides_documents(drive_folder_url: str):
 
@@ -157,14 +187,40 @@ def load_gslides_documents(drive_folder_url: str):
         recursive=False,
     )
 
-    pages = gslides_loader.load()
-    print(pages)
+    docs = gslides_loader.load()
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
+def load_gpdf_documents(drive_folder_url: str):
+
+    gpdf_loader = FileHandlerForGoogleDrive(file_type="pdf")
+
+    docs = gpdf_loader.load(drive_folder_url)
+    print(docs)
+    #print(f"{len(docs)}")
+
+def load_ipynb_documents(drive_folder_url: str):
+
+    file_id = extract_folder_id(drive_folder_url)
+
+    gslides_loader = GoogleDriveLoader2(
+        folder_id=file_id,
+        file_types=['application/vnd.google.colaboratory'],
+        recursive=False,
+    )
+
+    docs = gslides_loader.load()
+    split_docs = splitter.split_documents(docs)
+    print(split_docs)
+    #print(f"{len(docs)} -> {len(split_docs)}")
 
 gfile_loader_map = {
     GFileType.DOC: load_gdocs_documents,
     GFileType.SHEET: load_gsheets_documents,
-    GFileType.SLIDE: load_gslides_documents
+    GFileType.SLIDE: load_gslides_documents,
+    GFileType.PDF: load_gpdf_documents,
+    GFileType.IPYNB: load_ipynb_documents
 }
 
 

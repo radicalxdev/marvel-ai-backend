@@ -29,3 +29,4 @@ google-auth-httplib2
 google-auth-oauthlib
 langchain-google-community[drive]
 langchain-googledrive
+PyPDF2

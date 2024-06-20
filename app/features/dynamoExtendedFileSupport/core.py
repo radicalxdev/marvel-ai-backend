@@ -17,11 +17,14 @@ def executor(file_url: str, app_type: str, verbose=False):
             file_loader(file_url)
         except KeyError:
             print(f"Unsupported file type: {file_type}")
-    elif(app_type[0]=="2"):        
+    elif (app_type[0]=="2"):
+        file_loader = file_loader_map[FileType(app_type[4:].lower())]
+        file_loader(file_url)
+    elif(app_type[0]=="3"):        
         try:
             file_loader = gfile_loader_map[GFileType(app_type[4:].lower())]
             file_loader(file_url)
         except KeyError:
             print(f"Error")
-    elif(app_type=="3"):
+    elif(app_type=="4"):
         return generate_concepts_from_img(file_url)

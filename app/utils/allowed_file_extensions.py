@@ -16,3 +16,5 @@ class GFileType(Enum):
     DOC = 'doc'
     SHEET = "sheet"
     SLIDE = "slide"
+    PDF = 'pdf'
+    IPYNB = 'ipynb'
