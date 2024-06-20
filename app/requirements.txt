@@ -32,3 +32,4 @@ langchain-googledrive
 langchain_google_genai
 
 pytest
+PyPDF2
