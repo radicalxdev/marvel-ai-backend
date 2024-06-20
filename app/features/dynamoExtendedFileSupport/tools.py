@@ -79,7 +79,7 @@ def load_pdf_documents(pdf_url: str, verbose=False):
             logger.info(f"Found PDF file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_csv_documents(csv_url: str, verbose=False):
     csv_loader = FileHandler(CSVLoader, "csv")
@@ -90,7 +90,7 @@ def load_csv_documents(csv_url: str, verbose=False):
             logger.info(f"Found CSV file")
             logger.info(f"Splitting documents into {len(docs)} chunks")
 
-        print(docs)
+        return docs
 
 def load_txt_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "txt")
@@ -104,7 +104,7 @@ def load_txt_documents(notes_url: str, verbose=False):
             logger.info(f"Found TXT file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_md_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "md")
@@ -118,7 +118,7 @@ def load_md_documents(notes_url: str, verbose=False):
             logger.info(f"Found MD file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_url_documents(url: str, verbose=False):
     url_loader = UnstructuredURLLoader(urls=[url])
@@ -131,7 +131,7 @@ def load_url_documents(url: str, verbose=False):
             logger.info(f"Found URL")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_pptx_documents(pptx_url: str, verbose=False):
     pptx_handler = FileHandler(UnstructuredPowerPointLoader, 'pptx')
@@ -145,7 +145,7 @@ def load_pptx_documents(pptx_url: str, verbose=False):
             logger.info(f"Found PPTX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_docx_documents(docx_url: str, verbose=False):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
@@ -158,7 +158,7 @@ def load_docx_documents(docx_url: str, verbose=False):
             logger.info(f"Found DOCX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_xls_documents(xls_url: str, verbose=False):
     xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
@@ -171,7 +171,7 @@ def load_xls_documents(xls_url: str, verbose=False):
             logger.info(f"Found XLS file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
     xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
@@ -184,7 +184,7 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
             logger.info(f"Found XLSX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_xml_documents(xml_url: str, verbose=False):
     xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
@@ -197,7 +197,7 @@ def load_xml_documents(xml_url: str, verbose=False):
             logger.info(f"Found XML file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
@@ -255,7 +255,7 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Docs files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
     gsheets_loader = FileHandlerForGoogleDrive(file_type="sheet")
@@ -266,7 +266,7 @@ def load_gsheets_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Sheets files")
             logger.info(f"Splitting documents into {len(docs)} chunks")
 
-        print(docs)
+        return docs
 
 def load_gslides_documents(drive_folder_url: str, verbose=False):
 
@@ -296,7 +296,7 @@ def load_gslides_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Slides files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
@@ -309,7 +309,7 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google PDF files")
             logger.info(f"Splitting documents into {len(docs)} chunks")
 
-        print(docs)
+        return docs
 
 def load_ipynb_documents(drive_folder_url: str, verbose=False):
 
@@ -338,7 +338,7 @@ def load_ipynb_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Colab Notebook files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        return split_docs
 
 gfile_loader_map = {
     GFileType.DOC: load_gdocs_documents,
