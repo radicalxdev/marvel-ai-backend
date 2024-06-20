@@ -10,5 +10,9 @@
     "2": {
         "path": "features.code_check.core",
         "metadata_file": "metadata.json"
+    },
+    "3": {
+        "path": "features.worksheet.core",
+        "metadata_file": "metadata.json"
     }
 }

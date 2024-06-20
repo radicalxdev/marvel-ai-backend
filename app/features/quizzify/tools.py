@@ -377,22 +377,22 @@ class QuizBuilder:
         
         return chain
 
-    def validate_response(self, response: Dict) -> bool:
-        try:
-            # Assuming the response is already a dictionary
-            if isinstance(response, dict):
-                if 'question' in response and 'choices' in response and 'answer' in response and 'explanation' in response:
-                    choices = response['choices']
-                    if isinstance(choices, dict):
-                        for key, value in choices.items():
-                            if not isinstance(key, str) or not isinstance(value, str):
-                                return False
-                        return True
-            return False
-        except TypeError as e:
-            if self.verbose:
-                logger.error(f"TypeError during response validation: {e}")
-            return False
+    # def validate_response(self, response: Dict) -> bool:
+    #     try:
+    #         # Assuming the response is already a dictionary
+    #         if isinstance(response, dict):
+    #             if 'question' in response and 'choices' in response and 'answer' in response and 'explanation' in response:
+    #                 choices = response['choices']
+    #                 if isinstance(choices, dict):
+    #                     for key, value in choices.items():
+    #                         if not isinstance(key, str) or not isinstance(value, str):
+    #                             return False
+    #                     return True
+    #         return False
+    #     except TypeError as e:
+    #         if self.verbose:
+    #             logger.error(f"TypeError during response validation: {e}")
+    #         return False
     
     def validate_and_format_response(self) -> bool:
         try:
