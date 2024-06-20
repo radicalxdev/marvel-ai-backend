@@ -20,3 +20,15 @@ __pycache__/
 env/
 local-auth.json
 .env
+
+# Root files
+contribution.md
+diagram.png
+Dockerfile
+LICENSE
+load_env.sh
+local-start.sh
+README.md
+.github/
+.pytest_cache/
+.vscode/
