@@ -31,26 +31,14 @@ def read_text_file(file_path):
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
-
-class WorksheetBuilder:
-    def __init__(self, topic, grade_level, prompt_summary=None, prompt_multiple_choice=None, model=None, parser_multiple_choice=None, verbose=False):
-        if topic is None or grade_level is None:
-            raise ValueError("Topic and Grade level must be provided")
-        
-        default_config = {
-            "model": VertexAI(model="gemini-1.0-pro", temperature = 0.3),
-            "parser_multiple_choice": JsonOutputParser(pydantic_object=QuizQuestion),
-            "prompt_summary": read_text_file("prompts/worksheet_prompt_summary.txt"),
-            "prompt_multiple_choice": read_text_file("prompts/worksheet_prompt_multiple_choice.txt")
-        }
-        
-        self.prompt_summary = prompt_summary or default_config["prompt_summary"]
-        self.prompt_multiple_choice = prompt_multiple_choice or default_config["prompt_multiple_choice"]
-        self.model = model or default_config["model"]
-        self.parser_multiple_choice = parser_multiple_choice or default_config["parser_multiple_choice"]
-        
+# Multiple Choice Questions class
+class MCQ:
+    def __init__(self, model, topic, grade_level, prompt_multiple_choice, parser_multiple_choice, verbose):
+        self.model = model
         self.topic = topic
         self.grade_level = grade_level
+        self.prompt_multiple_choice = prompt_multiple_choice
+        self.parser_multiple_choice = parser_multiple_choice
         self.verbose = verbose
     
     def validate_and_format_multiple_choice_response(self, response) -> Tuple[bool, Dict]:
@@ -78,6 +66,12 @@ class WorksheetBuilder:
     def format_choices(self, choices: Dict[str, str]) -> List[Dict[str, str]]:
         return [{"key": k, "value": v} for k, v in choices.items()]
     
+    def is_unique(self, question, question_bank):
+        if question in question_bank:
+            return False
+        else:
+            return True
+    
     def mcq_to_string(self, mcq_dict):
         mcq_string = ''
         mcq_string += mcq_dict['question'] + '\n'
@@ -98,14 +92,21 @@ class WorksheetBuilder:
         
         if self.verbose: logger.info(f"Chain compilation complete")
 
-        ### Create multiple choice here
         attempts = 0
         max_attempts = num_multiple_choice * 5  # Allow for more attempts to generate questions
+        question_bank = set()
         generated_questions = []
 
         while len(generated_questions) < num_multiple_choice and attempts < max_attempts:
             response = chain.invoke({"topic": self.topic, "grade_level": self.grade_level})
-            
+            # check if question is unique
+            question = response['question']
+            if self.is_unique(question, question_bank):
+                question_bank.add(question)
+            else:
+                attempts += 1
+                continue
+
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
             
@@ -122,29 +123,68 @@ class WorksheetBuilder:
             
             # Move to the next attempt regardless of success to ensure progress
             attempts += 1
-            # Log if fewer questions are generated
-            if len(generated_questions) < num_multiple_choice:
-                logger.warning(f"Only generated {len(generated_questions)} out of {num_multiple_choice} requested questions")
+        
+        # Log if fewer questions are generated
+        if len(generated_questions) < num_multiple_choice:
+            logger.warning(f"Only generated {len(generated_questions)} out of {num_multiple_choice} requested questions")
 
-            generated_questions = generated_questions[:num_multiple_choice]
-            generated_questions_string = 'Multiple-Choice Questions\n'
-            for i, gq in enumerate(generated_questions):
-                generated_questions_string += 'MCQ ' + str(i + 1) + ':\n'
-                mcq_string = self.mcq_to_string(gq)
-                generated_questions_string += mcq_string + '\n'
+        generated_questions = generated_questions[:num_multiple_choice]
+        generated_questions_string = 'Multiple-Choice Questions\n'
+        for i, gq in enumerate(generated_questions):
+            generated_questions_string += 'MCQ ' + str(i + 1) + ':\n'
+            mcq_string = self.mcq_to_string(gq)
+            generated_questions_string += mcq_string + '\n'
             
         return generated_questions_string
 
+
+### Create Summary class here
+class Summary:
+    def __init__(self):
+        pass
+
+### Create Fill in the Blank class here
+class FitB:
+    def __init__(self):
+        pass
+
+### Create Open ended question class here
+class OEQ:
+    def __init__(self):
+        pass
+
+
+class WorksheetBuilder:
+    def __init__(self, topic, grade_level, prompt_summary=None, prompt_multiple_choice=None, model=None, parser_multiple_choice=None, verbose=False):
+        if topic is None or grade_level is None:
+            raise ValueError("Topic and Grade level must be provided")
+        
+        default_config = {
+            "model": VertexAI(model="gemini-1.0-pro", temperature = 0.3),
+            "parser_multiple_choice": JsonOutputParser(pydantic_object=QuizQuestion),
+            "prompt_summary": read_text_file("prompts/worksheet_prompt_summary.txt"),
+            "prompt_multiple_choice": read_text_file("prompts/worksheet_prompt_multiple_choice.txt")
+        }
+        
+        self.prompt_summary = prompt_summary or default_config["prompt_summary"]
+        self.prompt_multiple_choice = prompt_multiple_choice or default_config["prompt_multiple_choice"]
+        self.model = model or default_config["model"]
+        self.parser_multiple_choice = parser_multiple_choice or default_config["parser_multiple_choice"]
+        
+        self.topic = topic
+        self.grade_level = grade_level
+        self.verbose = verbose
+    
     def create_worksheets(self, num_worksheets: int = 1, num_multiple_choice: int = 1) -> List[str]:
         if self.verbose: logger.info(f"Creating {num_multiple_choice} questions")
         
         if num_worksheets > 10:
             return {"message": "error", "data": "Number of questions cannot exceed 10"}
         
-        
+        mcq = MCQ(self.model, self.topic, self.grade_level, self.prompt_multiple_choice, self.parser_multiple_choice, self.verbose)
         generated_worksheets = []
         for i in range(num_worksheets):
-            generated_multiple_choice = self.create_multiple_choice(num_multiple_choice)
+            generated_multiple_choice = mcq.create_multiple_choice(num_multiple_choice)
             generated_worksheets.append(generated_multiple_choice)
         # Return the list of worksheets
         return generated_worksheets[:num_worksheets]
