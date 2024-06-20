@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 langchain
 langchain-core
-langchain-google-genai
+langchain-google-vertexai
 langchain-chroma
 langchain-community
 google-cloud-secret-manager
@@ -15,4 +15,3 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
-python-dotenv
