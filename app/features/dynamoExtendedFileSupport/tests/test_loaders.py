@@ -1,43 +1,43 @@
 import pytest
 import requests
 from unittest.mock import patch, MagicMock
-from features.dynamoExtendedFileSupport.tools import load_pdf_documents, load_csv_documents, load_txt_documents, load_md_documents, load_url_documents
+from features.dynamoExtendedFileSupport.tools import load_pdf_documents, load_csv_documents, load_txt_documents, load_md_documents, load_url_documents, load_pptx_documents, load_docx_documents, load_xls_documents, load_xlsx_documents, load_xml_documents, load_gdocs_documents
 from api.error_utilities import FileHandlerError
 
 def test_load_pdf_documents_valid():
-    pdf_url = "https://gbihr.org/images/docs/test.pdf"
-    pages = load_pdf_documents(pdf_url)
-    assert isinstance(pages, list)
-    assert len(pages) > 0
+    pdf_url = "https://filesamples.com/samples/document/pdf/sample1.pdf"
+    docs = load_pdf_documents(pdf_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
 
 def test_load_pdf_documents_invalid():
-    dummy_pdf_url = "https://gbihr.org/images/docs/dummy.pdf"
+    dummy_pdf_url = "https://filesamples.com/samples/document/pdf/dummy.pdf"
 
     with pytest.raises(requests.exceptions.HTTPError) as exc_info:
-        pages = load_pdf_documents(dummy_pdf_url)
+        docs = load_pdf_documents(dummy_pdf_url)
 
     assert isinstance(exc_info.value, requests.exceptions.HTTPError)
     assert exc_info.value.response.status_code == 404
 
 def test_load_pdf_documents_invalid_file_type():
-    not_pdf_url = "https://github.com/AaronSosaRamos/kai-ai-backend/blob/epic-7.2-imp/README.md"
+    not_pdf_url = "https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md"
 
     with pytest.raises(FileHandlerError) as exc_info:
-        pages = load_pdf_documents(not_pdf_url)
+        docs = load_pdf_documents(not_pdf_url)
 
     assert isinstance(exc_info.value, FileHandlerError)
 
 def test_load_csv_documents_valid():
-    csv_url = "https://github.com/ShapeLab/ZooidsCompositePhysicalizations/blob/master/Zooid_Vis/bin/data/student-dataset.csv"
-    pages = load_csv_documents(csv_url)
-    assert isinstance(pages, list)
-    assert len(pages) > 0
+    csv_url = "https://filesamples.com/samples/document/csv/sample1.csv"
+    docs = load_csv_documents(csv_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
 
 def test_load_csv_documents_invalid():
-    dummy_csv_url = "https://people.sc.fsu.edu/~jburkardt/data/csv/dummy.csv"
+    dummy_csv_url = "https://filesamples.com/samples/document/csv/dummy.csv"
 
     with pytest.raises(requests.exceptions.HTTPError) as exc_info:
-        pages = load_csv_documents(dummy_csv_url)
+        docs = load_csv_documents(dummy_csv_url)
 
     assert isinstance(exc_info.value, requests.exceptions.HTTPError)
     assert exc_info.value.response.status_code == 404 
@@ -46,21 +46,21 @@ def test_load_csv_documents_invalid_file_type():
     not_csv_url = "https://gbihr.org/images/docs/test.pdf"
 
     with pytest.raises(FileHandlerError) as exc_info:
-        pages = load_csv_documents(not_csv_url)
+        docs = load_csv_documents(not_csv_url)
 
     assert isinstance(exc_info.value, FileHandlerError)
 
 def test_load_txt_documents_valid():
-    txt_url = "https://example-files.online-convert.com/document/txt/example.txt"
-    pages = load_txt_documents(txt_url)
-    assert isinstance(pages, list)
-    assert len(pages) > 0
+    txt_url = "https://filesamples.com/samples/document/txt/sample1.txt"
+    docs = load_txt_documents(txt_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
 
 def test_load_txt_documents_invalid():
-    dummy_txt_url = "https://example-files.online-convert.com/document/txt/dummy.txt"
+    dummy_txt_url = "https://filesamples.com/samples/document/txt/dummy.txt"
 
     with pytest.raises(requests.exceptions.HTTPError) as exc_info:
-        pages = load_txt_documents(dummy_txt_url)
+        docs = load_txt_documents(dummy_txt_url)
 
     assert isinstance(exc_info.value, requests.exceptions.HTTPError)
     assert exc_info.value.response.status_code == 404
@@ -69,21 +69,21 @@ def test_load_txt_documents_invalid_file_type():
     not_txt_url = "https://gbihr.org/images/docs/test.pdf"
 
     with pytest.raises(FileHandlerError) as exc_info:
-        pages = load_txt_documents(not_txt_url)
+        docs = load_txt_documents(not_txt_url)
 
     assert isinstance(exc_info.value, FileHandlerError)
 
 def test_load_md_documents_valid():
-    md_url = "https://github.com/AaronSosaRamos/kai-ai-backend/blob/epic-7.2-imp/README.md"
-    pages = load_md_documents(md_url)
-    assert isinstance(pages, list)
-    assert len(pages) > 0
+    md_url = "https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md"
+    docs = load_md_documents(md_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
 
 def test_load_md_documents_invalid():
-    dummy_md_url = "https://github.com/AaronSosaRamos/kai-ai-backend/blob/epic-7.2-imp/dummy.md"
+    dummy_md_url = "https://github.com/radicalxdev/kai-ai-backend/blob/main/dummy.md"
 
     with pytest.raises(requests.exceptions.HTTPError) as exc_info:
-        pages = load_md_documents(dummy_md_url)
+        docs = load_md_documents(dummy_md_url)
 
     assert isinstance(exc_info.value, requests.exceptions.HTTPError)
     assert exc_info.value.response.status_code == 404
@@ -92,12 +92,127 @@ def test_load_md_documents_invalid_file_type():
     not_md_url = "https://gbihr.org/images/docs/test.pdf"
 
     with pytest.raises(FileHandlerError) as exc_info:
-        pages = load_md_documents(not_md_url)
+        docs = load_md_documents(not_md_url)
 
     assert isinstance(exc_info.value, FileHandlerError)
 
 def test_load_url_documents_valid():
     valid_url = "https://en.wikipedia.org/wiki/Gemini_(language_model)"
-    pages = load_url_documents(valid_url)
-    assert isinstance(pages, list)
-    assert len(pages) > 0
+    docs = load_url_documents(valid_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
+
+def test_load_pptx_documents_valid():
+    pptx_url = "https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx"
+    docs = load_pptx_documents(pptx_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
+
+def test_load_pptx_documents_invalid():
+    dummy_pptx_url = "https://scholar.harvard.edu/files/torman_personal/files/dummy.pptx"
+
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        docs = load_pptx_documents(dummy_pptx_url)
+
+    assert isinstance(exc_info.value, requests.exceptions.HTTPError)
+    assert exc_info.value.response.status_code == 404
+
+def test_load_pptx_documents_invalid_file_type():
+    not_pptx_url = "https://gbihr.org/images/docs/test.pdf"
+
+    with pytest.raises(FileHandlerError) as exc_info:
+        docs = load_md_documents(not_pptx_url)
+
+    assert isinstance(exc_info.value, FileHandlerError)
+
+def test_load_docx_documents_valid():
+    docx_url = "https://filesamples.com/samples/document/docx/sample1.docx"
+    docs = load_docx_documents(docx_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
+
+def test_load_docx_documents_invalid():
+    dummy_docx_url = "https://filesamples.com/samples/document/docx/dummy.docx"
+
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        docs = load_docx_documents(dummy_docx_url)
+
+    assert isinstance(exc_info.value, requests.exceptions.HTTPError)
+    assert exc_info.value.response.status_code == 404
+
+def test_load_docx_documents_invalid_file_type():
+    not_docx_url = "https://gbihr.org/images/docs/test.pdf"
+
+    with pytest.raises(FileHandlerError) as exc_info:
+        docs = load_docx_documents(not_docx_url)
+
+    assert isinstance(exc_info.value, FileHandlerError)
+
+def test_load_xls_documents_valid():
+    xls_url = "https://filesamples.com/samples/document/xls/sample1.xls"
+    docs = load_xls_documents(xls_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
+
+def test_load_xls_documents_invalid():
+    dummy_xls_url = "https://filesamples.com/samples/document/xls/dummy.xls"
+
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        docs = load_xls_documents(dummy_xls_url)
+
+    assert isinstance(exc_info.value, requests.exceptions.HTTPError)
+    assert exc_info.value.response.status_code == 404
+
+def test_load_xls_documents_invalid_file_type():
+    not_xls_url = "https://gbihr.org/images/docs/test.pdf"
+
+    with pytest.raises(FileHandlerError) as exc_info:
+        docs = load_xls_documents(not_xls_url)
+
+    assert isinstance(exc_info.value, FileHandlerError)
+
+def test_load_xlsx_documents_valid():
+    xlsx_url = "https://filesamples.com/samples/document/xlsx/sample1.xlsx"
+    docs = load_xlsx_documents(xlsx_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
+
+def test_load_xlsx_documents_invalid():
+    dummy_xlsx_url = "https://filesamples.com/samples/document/xlsx/dummy.xlsx"
+
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        docs = load_xlsx_documents(dummy_xlsx_url)
+
+    assert isinstance(exc_info.value, requests.exceptions.HTTPError)
+    assert exc_info.value.response.status_code == 404
+
+def test_load_xlsx_documents_invalid_file_type():
+    not_xlsx_url = "https://gbihr.org/images/docs/test.pdf"
+
+    with pytest.raises(FileHandlerError) as exc_info:
+        docs = load_xlsx_documents(not_xlsx_url)
+
+    assert isinstance(exc_info.value, FileHandlerError)
+
+def test_load_xml_documents_valid():
+    xml_url = "https://filesampleshub.com/download/code/xml/sample1.xml"
+    docs = load_xml_documents(xml_url)
+    assert isinstance(docs, list)
+    assert len(docs) > 0
+
+def test_load_xml_documents_invalid():
+    dummy_xml_url = "https://filesampleshub.com/download/code/xml/dummy.xml"
+
+    with pytest.raises(requests.exceptions.HTTPError) as exc_info:
+        docs = load_xml_documents(dummy_xml_url)
+
+    assert isinstance(exc_info.value, requests.exceptions.HTTPError)
+    assert exc_info.value.response.status_code == 404
+
+def test_load_xml_documents_invalid_file_type():
+    not_xml_url = "https://gbihr.org/images/docs/test.pdf"
+
+    with pytest.raises(FileHandlerError) as exc_info:
+        docs = load_xml_documents(not_xml_url)
+
+    assert isinstance(exc_info.value, FileHandlerError)

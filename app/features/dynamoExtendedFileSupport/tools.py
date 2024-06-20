@@ -226,7 +226,7 @@ class FileHandlerForGoogleDrive:
 
         if(not file_id):
             logger.error(f"No such Google Drive file id found at {url}")
-            raise FileHandlerError(f"No Google Drive file id found ", url) from e
+            raise FileHandlerError(f"No Google Drive file id found ", url)
 
         loader = self.file_loader(
             credentials_path=os.getcwd()+'/credentials.json',
