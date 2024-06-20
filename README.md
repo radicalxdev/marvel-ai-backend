@@ -89,25 +89,11 @@ pip install -r requirements.txt
 1. Rename the downloaded JSON key to `local-auth.json`.
 2. Move or copy this file to your application's directory, specifically inside the `/app` directory.
 
-### Step 4: Set Environment Variables
+### Step 4: Utilize Local Start Script
 
-1. Open your command line interface.
-2. Set the path to the JSON key file by running:
-   ```bash
-   set GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json```
-## Set the environment type and project ID:
-
-
-```bash
-  set ENV_TYPE="dev"
-  set PROJECT_ID="Enter your project ID here"
-```
-
-```bash
-  uvicorn main:app --reload
-```
-
-
+1. Modify the `local-start.sh` script's environment variable `PROJECT_ID` to match the project ID of your Google Cloud project.
+2. Run the script: `./local-start.sh`
+3. Navigate to `http://localhost:8000` to view the application.
 
 # Docker Setup Guide
 
@@ -153,7 +139,10 @@ The Docker container uses several key environment variables:
 `LANGCHAIN_ENDPOINT`
 `LANGCHAIN_API_KEY`
 `LANGCHAIN_PROJECT`
-- Ensure these variables are correctly configured in your Dockerfile or passed as additional parameters to your Docker run command if needed.
+- Ensure these variables are correctly configured in your Dockerfile or passed as additional parameters to your Docker run command, as shown in the example below:
+  ```bash
+  docker run --env ENV_TYPE=dev --env="Enter your project ID here" -p 8000:8000 kai-backend:latest 
+  ```
 ## Accessing the Application
 You can access the backend by visiting:
 ```Bash

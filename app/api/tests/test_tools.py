@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 from main import app  
-from services.tool_registry import validate_inputs
+from app.services.tool_registry import validate_inputs
 import pytest
 import os
 
