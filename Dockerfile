@@ -16,4 +16,4 @@ COPY ./app /code/app
 
 ENV PYTHONPATH=/code/app
 
-CMD ["fastapi", "run", "app/main.py", "--port", "8000"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "$PORT"]
