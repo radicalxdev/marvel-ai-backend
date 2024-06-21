@@ -53,9 +53,6 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     full_transcript = [doc.page_content for doc in split_docs]
     full_transcript = " ".join(full_transcript)
 
-    full_transcript = [doc.page_content for doc in split_docs]
-    full_transcript = " ".join(full_transcript)
-
     if length > max_video_length:
         raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
 
