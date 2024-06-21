@@ -1,6 +1,6 @@
 from typing import List
 from langchain_core.documents import Document
-from langchain.document_loaders import UnstructuredURLLoader
+from langchain_community.document_loaders import UnstructuredURLLoader
 
 class WebPageLoader:
     def __init__(self, url: str, verbose=False):
@@ -37,7 +37,7 @@ class WebPageLoader:
 
 # Example usage
 if __name__ == "__main__":
-    url = "https://see.stanford.edu/materials/aimlcs229/transcripts/MachineLearning-Lecture01.pdf"  # Replace with your desired URL
+    url = "https://lilianweng.github.io/posts/2023-06-23-agent/"  # Replace with your desired URL
     loader = WebPageLoader(url=url, verbose=True)
     documents = loader.load()
     for doc in documents:

@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Any
+from typing import List, Sequence, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
@@ -20,6 +20,8 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_community.document_loaders import UnstructuredURLLoader
+from bs4 import BeautifulSoup
+from langchain_community.document_loaders import WebBaseLoader
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -52,7 +54,55 @@ def extract_text_from_pptx(pptx_file):
                 text_runs.append(shape.text)
     return "\n".join(text_runs)
 
+
+
 class WebPageLoader:
+    def __init__(self, web_paths: Sequence[str], verbose=False, **kwargs):
+        self.loader = WebBaseLoader(web_paths=web_paths, **kwargs)
+        self.verbose = verbose
+
+    def load(self) -> List[Document]:
+        documents = []
+
+        for url in self.loader.web_paths:
+            try:
+                response = requests.get(url)
+                response.raise_for_status()  # Raise an error for bad status codes
+
+                # Specify the encoding when parsing HTML content
+                soup = BeautifulSoup(response.content, 'lxml', from_encoding=response.encoding)
+
+                # Find all heading tags (h1, h2, h3)
+                headings = [heading.get_text().strip() for heading in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])]
+
+                # Find all paragraph tags
+                paragraphs = [paragraph.get_text().strip() for paragraph in soup.find_all('p')]
+
+                # Combine headings and paragraphs
+                combined_content = "\n".join(headings + paragraphs)
+
+                if combined_content:
+                    # Create a Document instance with combined content and metadata
+                    metadata = {"source": url}
+                    new_doc = Document(page_content=combined_content, metadata=metadata)
+                    documents.append(new_doc)
+
+                if self.verbose:
+                    if documents:
+                        print(f"Successfully loaded content from {url}")
+                    else:
+                        print(f"No relevant content found at {url}")
+            except Exception as e:
+                if self.verbose:
+                    print(f"Failed to load content from {url}")
+                    print(e)
+
+        if not documents and self.verbose:
+            print("Unable to load any content from the URLs")
+
+        return documents
+    
+class UnstructuredLoader:
     def __init__(self, url: str, verbose=False):
         self.url = url
         self.verbose = verbose
@@ -256,11 +306,10 @@ class URLLoader:
         for tool_file in tool_files:
             try:
                 url = tool_file.url
-                if url.endswith(('.pdf', '.doc', '.docx', '.ppt', '.pptx', '.csv')):
-                    response = requests.get(url)
-                    parsed_url = urlparse(url)
-                    path = parsed_url.path
-
+                response = requests.get(url)
+                parsed_url = urlparse(url)
+                path = parsed_url.path
+                if parsed_url.netloc in ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.csv']:                    
                     if response.status_code == 200:
                         file_content = BytesIO(response.content)
                         file_type = tool_file.filename.split(".")[-1].lower()
@@ -272,9 +321,14 @@ class URLLoader:
                         any_success = True
                     else:
                         logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
+
+                elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
+                    print("Youtube")
+
                 else:
                     # Handle web page loading
-                    web_page_loader = WebPageLoader(url, self.verbose)
+                    # web_page_loader = WebPageLoader([url], self.verbose)
+                    web_page_loader = UnstructuredLoader(url, self.verbose)
                     web_documents = web_page_loader.load()
                     documents.extend(web_documents)
                     any_success = True
