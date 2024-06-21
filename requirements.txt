@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 langchain
 langchain-core
-langchain-google-vertexai
+langchain-google-genai
 langchain-chroma
 langchain-community
 google-cloud-secret-manager
@@ -33,3 +33,4 @@ langchain_google_genai
 
 pytest
 PyPDF2
+python-dotenv
