@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Union
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
@@ -108,107 +108,89 @@ class BytesFileLoader:
             filtered_segments = [doc for doc in pdf_segments if section_start <= doc.metadata['page_number'] <= section_end]
             
         self.documents.extend(filtered_segments)
+        
+    def process_csv(self, file: BytesIO, section_start:Union[float, List[float]],section_end:Union[float, List[float]]):
+    
+        df = pd.read_csv(file)
+
+        start_row, start_col = self.parse_section(section_start)
+        end_row, end_col = self.parse_section(section_end)
+
+        row_start = max(0, min(start_row, end_row, len(df) - 1))
+        row_end = min(len(df) - 1, max(start_row, end_row))
+        col_start = max(0, min(start_col, end_col, len(df.columns) - 1))
+        col_end = min(len(df.columns) - 1, max(start_col, end_col))
+
+        filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
+
+        for index, row in filtered_df.iterrows():
+            filtered_text = row.to_string()
+            metadata = {
+                "row": index,
+                "columns": ", ".join(filtered_df.columns)  
+            }
+            self.documents.append(Document(page_content=filtered_text, metadata=metadata))
                 
             
-    def process_xlsx(self, file: BytesIO, section_start:float,section_end:float):
+    def process_xlsx(self, file: BytesIO, section_start:Union[float, List[float]],section_end:Union[float, List[float]]):
         
         df = pd.read_excel(file)
         
-        section_start = int(section_start)
-        if(section_end == float('inf')):
-            section_end = len(df)
-        else:
-            section_end = int(section_end)
+        start_row, start_col = self.parse_section(section_start)
+        end_row, end_col = self.parse_section(section_end)
 
-        row_start, col_start = section_start, section_start
-        row_end, col_end = section_end, section_end
+        row_start = max(0, min(start_row, end_row, len(df) - 1))
+        row_end = min(len(df) - 1, max(start_row, end_row))
+        col_start = max(0, min(start_col, end_col, len(df.columns) - 1))
+        col_end = min(len(df.columns) - 1, max(start_col, end_col))
 
-        row_start = max(0, row_start)
-        row_end = min(len(df) - 1, row_end)
-        col_start = max(0, col_start)
-        col_end = min(len(df.columns) - 1, col_end)
         filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
 
         for index, row in filtered_df.iterrows():
-
             filtered_text = row.to_string()
-            filtered_doc = {
-                "page_content": filtered_text,
-                "metadata": {
-                    "row": index,
-                    "columns": index
-                }
+            metadata = {
+                "row": index,
+                "columns": ", ".join(filtered_df.columns)  
             }
-            self.documents.append(Document(page_content=filtered_doc["page_content"],metadata=filtered_doc["metadata"]))
+            self.documents.append(Document(page_content=filtered_text, metadata=metadata))
 
+        
+    def parse_section(self, section):
+        if isinstance(section, (int, float)):
+            return int(section), 0  
+        elif isinstance(section, list):
+            return int(section[0]), int(section[1])
+        else:
+            raise ValueError(f"Invalid section format: {section}")
         
     def process_txt(self, file: BytesIO, specific_list:List[int], section_start:float,section_end:float):
+        
+        try:
+            txt_content = file.getvalue().decode("utf-8")
+        except UnicodeDecodeError:
+            txt_content = file.getvalue().decode("latin-1")
 
-        full_text = file.read().decode("utf-8")
-        txt_segments = []
-        
-        split_lines = False
-        
-        if(len(full_text.split("\n\n")) <= 1):
-            logger.warning("Txt file does not have paragraphs. Splitting by line")
-            split_lines = True
-            split_full_text = full_text.split("\n")
-        else:
-            split_full_text = full_text.split("\n\n")
-        
-        for i,entry in enumerate(split_full_text):
-            if(split_lines):
-                metadata = {
-                    'source': 'txt',
-                    'line': i + 1
-                }
-            else:
-                metadata = {
-                    'source': 'txt',
-                    'paragraph': i + 1
-                }
-            doc = Document(page_content=entry,metadata = metadata)
-            txt_segments.append(doc)
+        pages = []
+        words_per_page = 500
+        words = txt_content.split()
+        num_words = len(words)
+        num_pages = (num_words // words_per_page) + (1 if num_words % words_per_page > 0 else 0)
+
+        for i in range(num_pages):
+            start_idx = i * words_per_page
+            end_idx = min((i+1) * words_per_page, num_words)
+            page_content = ' '.join(words[start_idx:end_idx])
+            metadata = {'source': 'txt', 'page_number': i + 1}
+            pages.append((page_content, metadata))
             
         if(specific_list is not None):
-            if(split_lines):
-                filtered_segments = [doc for doc in txt_segments if doc.metadata['line'] in specific_list]
-            else:
-                filtered_segments = [doc for doc in txt_segments if doc.metadata['paragraph'] in specific_list]
+            filtered_pages = [page for page in pages if page[1]['page_number'] in specific_list]
         else:
-            filtered_segments = [doc for doc in txt_segments if section_start <= doc.metadata['line'] <= section_end]
+            filtered_pages = [page for page in pages if section_start <= page[1]['page_number'] <= section_end]
         
-        self.documents.extend(filtered_segments)
+        for page_content, metadata in filtered_pages:
+            self.documents.append(Document(page_content=page_content, metadata=metadata))
     
-    def process_csv(self, file: BytesIO, section_start:float,section_end:float):
-
-        df = pd.read_csv(file,sep='delimiter', header=None)
-
-        section_start = int(section_start)
-        if(section_end == float('inf')):
-            section_end = len(df)
-        else:
-            section_end = int(section_end)
-            
-        row_start, col_start = section_start, section_start
-        row_end, col_end = section_end, section_end
-
-        row_start = max(0, row_start)
-        row_end = min(len(df) - 1, row_end)
-        col_start = max(0, col_start)
-        col_end = min(len(df.columns) - 1, col_end)
-        filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
-
-        for index, row in filtered_df.iterrows():
-            filtered_text = row.to_string()
-            filtered_doc = {
-                "page_content": filtered_text,
-                "metadata": {
-                    "row": index,
-                    "columns": index
-                }
-            }
-            self.documents.append(Document(page_content=filtered_doc["page_content"],metadata=filtered_doc["metadata"]))
         
     def process_docx(self, file: BytesIO, file_type:str, specific_list:List[int], section_start:float,section_end:float):
         
@@ -428,11 +410,14 @@ class URLLoader:
                 parsed_url = urlparse(url)
                 path = parsed_url.path
                 self.expected_file_type = tool_file.file_type
-                section_start = tool_file.section_start if tool_file.section_start > 0 else 0
+                section_start = tool_file.section_start
                 section_end = tool_file.section_end or float('inf')
                 specific_list = tool_file.specific_list
-                if(section_start >= section_end):
-                    raise LoaderError(f"section_start must be less than section_end")
+                if(type(section_start) == float):
+                    if(section_start >= section_end):
+                        raise LoaderError(f"section_start must be less than section_end")
+                    if(section_start < 0):
+                        section_start = 0
                 
 
                 if response.status_code == 200:
