@@ -8,10 +8,7 @@ from langchain_community.document_loaders import UnstructuredPowerPointLoader
 from langchain_community.document_loaders import Docx2txtLoader
 from langchain_community.document_loaders import UnstructuredExcelLoader
 from langchain_community.document_loaders import UnstructuredXMLLoader
-from langchain_google_community import GoogleDriveLoader
-from langchain_googledrive.document_loaders import GoogleDriveLoader as GoogleDriveLoader2
 from utils.allowed_file_extensions import FileType, GFileType
-from utils.extract_gdrive_folder_id import extract_folder_id
 import os
 import tempfile
 import uuid
@@ -24,6 +21,10 @@ from langchain_core.output_parsers import JsonOutputParser
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from api.error_utilities import FileHandlerError, ImageHandlerError
+from langchain.prompts import PromptTemplate
+from langchain_google_genai import GoogleGenerativeAI
+
+import gdown
 
 
 logger = setup_logger(__name__)
@@ -32,6 +33,25 @@ splitter = RecursiveCharacterTextSplitter(
     chunk_size = 1000,
     chunk_overlap = 0
 )
+
+def build_chain():
+    prompt_template = read_text_file("prompt/summarize-prompt.txt")
+    summarize_prompt = PromptTemplate.from_template(prompt_template)
+
+    summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
+        
+    chain = summarize_prompt | summarize_model 
+    return chain
+
+def read_text_file(file_path):
+    # Get the directory containing the script file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Combine the script directory with the relative file path
+    absolute_file_path = os.path.join(script_dir, file_path)
+    
+    with open(absolute_file_path, 'r') as file:
+        return file.read()
 
 class FileHandler:
     def __init__(self, file_loader, file_extension):
@@ -79,7 +99,12 @@ def load_pdf_documents(pdf_url: str, verbose=False):
             logger.info(f"Found PDF file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_csv_documents(csv_url: str, verbose=False):
     csv_loader = FileHandler(CSVLoader, "csv")
@@ -90,7 +115,12 @@ def load_csv_documents(csv_url: str, verbose=False):
             logger.info(f"Found CSV file")
             logger.info(f"Splitting documents into {len(docs)} chunks")
 
-        print(docs)
+        full_content = [doc.page_content for doc in docs]
+        full_content = " ".join(full_content)
+
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_txt_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "txt")
@@ -104,7 +134,12 @@ def load_txt_documents(notes_url: str, verbose=False):
             logger.info(f"Found TXT file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_md_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "md")
@@ -118,7 +153,12 @@ def load_md_documents(notes_url: str, verbose=False):
             logger.info(f"Found MD file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_url_documents(url: str, verbose=False):
     url_loader = UnstructuredURLLoader(urls=[url])
@@ -131,7 +171,12 @@ def load_url_documents(url: str, verbose=False):
             logger.info(f"Found URL")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_pptx_documents(pptx_url: str, verbose=False):
     pptx_handler = FileHandler(UnstructuredPowerPointLoader, 'pptx')
@@ -144,9 +189,14 @@ def load_pptx_documents(pptx_url: str, verbose=False):
         if verbose:
             logger.info(f"Found PPTX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
+        
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
 
-        print(split_docs)
+        chain = build_chain() 
 
+        print(chain.invoke(full_content))
+        
 def load_docx_documents(docx_url: str, verbose=False):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
     docs = docx_handler.load(docx_url)
@@ -158,7 +208,12 @@ def load_docx_documents(docx_url: str, verbose=False):
             logger.info(f"Found DOCX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_xls_documents(xls_url: str, verbose=False):
     xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
@@ -171,7 +226,12 @@ def load_xls_documents(xls_url: str, verbose=False):
             logger.info(f"Found XLS file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
     xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
@@ -184,7 +244,12 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
             logger.info(f"Found XLSX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_xml_documents(xml_url: str, verbose=False):
     xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
@@ -197,7 +262,12 @@ def load_xml_documents(xml_url: str, verbose=False):
             logger.info(f"Found XML file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
@@ -216,25 +286,21 @@ file_loader_map = {
 
 
 class FileHandlerForGoogleDrive:
-    def __init__(self, file_loader=GoogleDriveLoader, file_type='document'):
+    def __init__(self, file_loader, file_extension='docx'):
         self.file_loader = file_loader
-        self.file_type = file_type
+        self.file_extension = file_extension
 
     def load(self, url):
 
-        file_id = extract_folder_id(url)
+        unique_filename = f"{uuid.uuid4()}.{self.file_extension}"
 
-        if(not file_id):
-            logger.error(f"No such Google Drive file id found at {url}")
-            raise FileHandlerError(f"No Google Drive file id found ", url) from e
+        gdown.download(url=url, output=unique_filename, fuzzy=True)
 
-        loader = self.file_loader(
-            credentials_path=os.getcwd()+'\credentials.json',
-            token_path=os.getcwd()+'\google_token.json',
-            folder_id=file_id,
-            file_types=[self.file_type],
-            recursive=False,
-        )
+        try:
+            loader = self.file_loader(file_path=unique_filename)
+        except Exception as e:
+            logger.error(f"No such file found at {unique_filename}")
+            raise FileHandlerError(f"No file found", unique_filename) from e
 
         try:
             documents = loader.load()
@@ -242,11 +308,16 @@ class FileHandlerForGoogleDrive:
             logger.error(f"File content might be private or unavailable or the URL is incorrect.")
             raise FileHandlerError(f"No file content available") from e
 
+        os.remove(unique_filename)
+
         return documents
     
 def load_gdocs_documents(drive_folder_url: str, verbose=False):
-    gdocs_loader = FileHandlerForGoogleDrive(file_type="document")
+
+    gdocs_loader = FileHandlerForGoogleDrive(Docx2txtLoader)
+
     docs = gdocs_loader.load(drive_folder_url)
+    
     if docs: 
 
         split_docs = splitter.split_documents(docs)
@@ -255,52 +326,52 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Docs files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
-    gsheets_loader = FileHandlerForGoogleDrive(file_type="sheet")
+    gsheets_loader = FileHandlerForGoogleDrive(UnstructuredExcelLoader, 'xlsx')
     docs = gsheets_loader.load(drive_folder_url)
     if docs: 
 
+        split_docs = splitter.split_documents(docs)
+
         if verbose:
             logger.info(f"Found Google Sheets files")
-            logger.info(f"Splitting documents into {len(docs)} chunks")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
+
+        print(chain.invoke(full_content))
 
 def load_gslides_documents(drive_folder_url: str, verbose=False):
-
-    file_id = extract_folder_id(drive_folder_url)
-    if(not file_id):
-        logger.error(f"No such Google Drive file id found at {drive_folder_url}")
-        raise FileHandlerError(f"No Google Drive file id found ", drive_folder_url) from e
-
-    gslides_loader = GoogleDriveLoader2(
-        folder_id=file_id,
-        file_types=['application/vnd.google-apps.presentation'],
-        recursive=False,
-    )
-
-    
-    try:
-        docs = gslides_loader.load()
-    except Exception as e:
-        logger.error(f"File content might be private or unavailable or the URL is incorrect.")
-        raise FileHandlerError(f"No file content available") from e
-
+    gslides_loader = FileHandlerForGoogleDrive(UnstructuredPowerPointLoader, 'pptx')
+    docs = gslides_loader.load(drive_folder_url)
     if docs: 
 
         split_docs = splitter.split_documents(docs)
-        
+
         if verbose:
             logger.info(f"Found Google Slides files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        print(split_docs)
+        full_content = [doc.page_content for doc in split_docs]
+        full_content = " ".join(full_content)
+        
+        chain = build_chain()
 
+        print(chain.invoke(full_content))
+    
 def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
-    gpdf_loader = FileHandlerForGoogleDrive(file_type="pdf")
+    gpdf_loader = FileHandlerForGoogleDrive(PyPDFLoader,'pdf')
 
     docs = gpdf_loader.load(drive_folder_url)
     if docs: 
@@ -309,46 +380,20 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google PDF files")
             logger.info(f"Splitting documents into {len(docs)} chunks")
 
-        print(docs)
-
-def load_ipynb_documents(drive_folder_url: str, verbose=False):
-
-    file_id = extract_folder_id(drive_folder_url)
-    if(not file_id):
-        logger.error(f"No such Google Drive file id found at {drive_folder_url}")
-        raise FileHandlerError(f"No Google Drive file id found ", drive_folder_url) from e
-
-    gslides_loader = GoogleDriveLoader2(
-        folder_id=file_id,
-        file_types=['application/vnd.google.colaboratory'],
-        recursive=False,
-    )
-
-    try:
-        docs = gslides_loader.load()
-    except Exception as e:
-        logger.error(f"File content might be private or unavailable or the URL is incorrect.")
-        raise FileHandlerError(f"No file content available") from e
-    
-    if docs: 
-
-        split_docs = splitter.split_documents(docs)
+        full_content = [doc.page_content for doc in docs]
+        full_content = " ".join(full_content)
         
-        if verbose:
-            logger.info(f"Found Google Colab Notebook files")
-            logger.info(f"Splitting documents into {len(split_docs)} chunks")
+        chain = build_chain()
 
-        print(split_docs)
+        print(chain.invoke(full_content))
+
 
 gfile_loader_map = {
     GFileType.DOC: load_gdocs_documents,
     GFileType.SHEET: load_gsheets_documents,
     GFileType.SLIDE: load_gslides_documents,
-    GFileType.PDF: load_gpdf_documents,
-    GFileType.IPYNB: load_ipynb_documents
+    GFileType.PDF: load_gpdf_documents
 }
-
-
 
 llm = ChatGoogleGenerativeAI(model="gemini-pro-vision")
 
@@ -367,6 +412,7 @@ def generate_concepts_from_img(img_url):
 
     try:
         response = llm.invoke([message]).content
+        logger.info(f"Generated concepts: {response}")
     except Exception as e:
         logger.error(f"Error processing the request due to Invalid Content or Invalid Image URL")
         raise ImageHandlerError(f"Error processing the request", img_url) from e
