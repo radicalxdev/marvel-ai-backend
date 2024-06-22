@@ -1,4 +1,4 @@
-from typing import List, Sequence, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
@@ -19,9 +19,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_community.document_loaders import UnstructuredURLLoader
-from bs4 import BeautifulSoup
-from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.document_transformers import BeautifulSoupTransformer
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -54,87 +52,46 @@ def extract_text_from_pptx(pptx_file):
                 text_runs.append(shape.text)
     return "\n".join(text_runs)
 
-
-
 class WebPageLoader:
-    def __init__(self, web_paths: Sequence[str], verbose=False, **kwargs):
-        self.loader = WebBaseLoader(web_paths=web_paths, **kwargs)
-        self.verbose = verbose
-
-    def load(self) -> List[Document]:
-        documents = []
-
-        for url in self.loader.web_paths:
-            try:
-                response = requests.get(url)
-                response.raise_for_status()  # Raise an error for bad status codes
-
-                # Specify the encoding when parsing HTML content
-                soup = BeautifulSoup(response.content, 'lxml', from_encoding=response.encoding)
-
-                # Find all heading tags (h1, h2, h3)
-                headings = [heading.get_text().strip() for heading in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])]
-
-                # Find all paragraph tags
-                paragraphs = [paragraph.get_text().strip() for paragraph in soup.find_all('p')]
-
-                # Combine headings and paragraphs
-                combined_content = "\n".join(headings + paragraphs)
-
-                if combined_content:
-                    # Create a Document instance with combined content and metadata
-                    metadata = {"source": url}
-                    new_doc = Document(page_content=combined_content, metadata=metadata)
-                    documents.append(new_doc)
-
-                if self.verbose:
-                    if documents:
-                        print(f"Successfully loaded content from {url}")
-                    else:
-                        print(f"No relevant content found at {url}")
-            except Exception as e:
-                if self.verbose:
-                    print(f"Failed to load content from {url}")
-                    print(e)
-
-        if not documents and self.verbose:
-            print("Unable to load any content from the URLs")
-
-        return documents
-    
-class UnstructuredLoader:
     def __init__(self, url: str, verbose=False):
         self.url = url
         self.verbose = verbose
 
     def load(self) -> List[Document]:
         documents = []
+        tags_to_extract = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "table"]
 
         try:
-            loader = UnstructuredURLLoader(urls=[self.url])
-            loaded_docs = loader.load()
-            for doc in loaded_docs:
-                # Extract content and metadata
-                page_content = doc.page_content
-                metadata = {"source": self.url}
-                paragraphs = page_content.split('\n')  # Split content into paragraphs
-                combined_content = "\n".join([paragraph.strip() for paragraph in paragraphs if paragraph.strip()])
+            response = requests.get(self.url)
+            response.raise_for_status()  # Raise an error for bad status codes
 
-                # Create a Document instance with page content and metadata
-                new_doc = Document(page_content=combined_content, metadata=metadata)
-                documents.append(new_doc) 
+            # Decode HTML content
+            html_content = response.content.decode("utf-8")
+
+            # Create a Document object with the HTML content and metadata
+            doc = Document(page_content=html_content, metadata={"source": self.url})
+
+            # Initialize the BeautifulSoupTransformer
+            bs_transformer = BeautifulSoupTransformer()
+
+            # Transform the document
+            transformed_docs = bs_transformer.transform_documents([doc], tags_to_extract=tags_to_extract)
             
-            if self.verbose:
-                logger.info(f"Successfully loaded content from {self.url}")
-        except Exception as e:
-            logger.error(f"Failed to load content from {self.url}")
-            logger.error(e)
+            # Add transformed documents to the list
+            documents.extend(transformed_docs)
 
-        if not documents:
-            raise LoaderError("Unable to load any content from the URL")
+            if self.verbose:
+                print(f"Successfully loaded and transformed content from {self.url}")
+        except Exception as e:
+            if self.verbose:
+                print(f"Failed to load content from {self.url}")
+                print(e)
+
+        if not documents and self.verbose:
+            print("Unable to load any content from the URL")
 
         return documents
-
+    
 
 
 class RAGRunnable:
@@ -307,15 +264,18 @@ class URLLoader:
             try:
                 url = tool_file.url
                 response = requests.get(url)
-                parsed_url = urlparse(url)
+                parsed_url = urlparse(url)                
                 path = parsed_url.path
-                if parsed_url.netloc in ['.pdf', '.doc', '.docx', '.ppt', '.pptx', '.csv']:                    
+                                
+                if path.endswith(('.pdf', '.doc', '.docx', '.ppt', '.pptx', '.csv')):
+                                      
                     if response.status_code == 200:
                         file_content = BytesIO(response.content)
                         file_type = tool_file.filename.split(".")[-1].lower()
                         if file_type not in self.expected_file_types:
                             raise LoaderError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
                         queued_files.append((file_content, file_type))
+                        print("Queued files successfully")
                         if self.verbose:
                             logger.info(f"Successfully loaded file from {url}")
                         any_success = True
@@ -323,12 +283,12 @@ class URLLoader:
                         logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
                 elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
+                    #Handle Youtube Transcript Loading
                     print("Youtube")
 
                 else:
-                    # Handle web page loading
-                    # web_page_loader = WebPageLoader([url], self.verbose)
-                    web_page_loader = UnstructuredLoader(url, self.verbose)
+                    # Handle web page loading                    
+                    web_page_loader = WebPageLoader(url, self.verbose)                    
                     web_documents = web_page_loader.load()
                     documents.extend(web_documents)
                     any_success = True
@@ -341,6 +301,7 @@ class URLLoader:
         if any_success and queued_files:
             file_loader = self.loader(queued_files)
             documents = file_loader.load()
+            
 
             if self.verbose:
                 logger.info(f"Loaded {len(documents)} documents")
