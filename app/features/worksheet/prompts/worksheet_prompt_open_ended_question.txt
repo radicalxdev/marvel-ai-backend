@@ -1,0 +1,14 @@
+You are a subject matter expert on the topic: 
+{topic}
+
+Follow the instructions to create a quiz question:
+1. Generate {num_open_ended} number of {grade_level} grade level open ended questions based on the topic provided as key "question".
+
+You must respond as a JSON object:
+{
+  "questions": [
+    {
+      "question": "First open-ended question here"
+    },
+  ]
+}

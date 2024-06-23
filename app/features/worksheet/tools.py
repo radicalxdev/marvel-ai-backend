@@ -150,12 +150,66 @@ class FitB:
 
 ### Create Open ended question class here
 class OEQ:
-    def __init__(self):
-        pass
+    def __init__(self, model, topic, grade_level, prompt_open_ended, parser_open_ended, verbose):
+        self.model = model
+        self.topic = topic
+        self.grade_level = grade_level
+        self.prompt_open_ended = prompt_open_ended
+        self.parser_open_ended = parser_open_ended
+        self.verbose = verbose
+
+    def is_unique(self, question, question_bank):
+        return question not in question_bank
+
+    def oeq_to_string(self, oeq_dict):
+        return f"{oeq_dict['question']}\n"
+
+    def create_open_ended(self, num_open_ended) -> str:
+        prompt = PromptTemplate(
+            template=self.prompt_open_ended,
+            input_variables=["topic", "grade_level"],
+            partial_variables={"format_instructions": self.parser_open_ended.get_format_instructions()}
+        )
+
+        chain = prompt | self.model | self.parser_open_ended
+
+        if self.verbose:
+            logger.info("Chain compilation is complete")
+
+        attempts = 0
+        max_attempts = num_open_ended * 5
+        question_bank = set()
+        questions = []
+
+        while len(questions) < num_open_ended and attempts < max_attempts:
+            response = chain.invoke({"topic": self.topic, "grade_level": self.grade_level})
+            question = response.get('question', '')
+
+            if self.is_unique(question, question_bank):
+                question_bank.add(question)
+                questions.append(response)
+                if self.verbose:
+                    logger.info(f"Generated question {len(questions)}: {question}")
+            else:
+                if self.verbose:
+                    logger.info(f"Duplicate question generated. Attempt {attempts + 1} of {max_attempts}")
+            
+            attempts += 1
+
+        if len(questions) < num_open_ended:
+            logger.warning(f"Only generated {len(questions)} out of {num_open_ended} requested questions.")
+
+        questions_string = "Open-Ended Questions\n"
+        for i, question in enumerate(questions):
+            questions_string += f"OEQ {i + 1}:\n"
+            questions_string += self.oeq_to_string(question) + '\n'
+
+        return questions_string
+
 
 
 class WorksheetBuilder:
-    def __init__(self, topic, grade_level, prompt_summary=None, prompt_multiple_choice=None, model=None, parser_multiple_choice=None, verbose=False):
+    def __init__(self, topic, grade_level, prompt_summary=None, prompt_multiple_choice=None, model=None, parser_multiple_choice=None, prompt_open_ended=None, parser_open_ended=None, verbose=False):
         if topic is None or grade_level is None:
             raise ValueError("Topic and Grade level must be provided")
         
@@ -163,13 +217,17 @@ class WorksheetBuilder:
             "model": VertexAI(model="gemini-1.0-pro", temperature = 0.3),
             "parser_multiple_choice": JsonOutputParser(pydantic_object=QuizQuestion),
             "prompt_summary": read_text_file("prompts/worksheet_prompt_summary.txt"),
-            "prompt_multiple_choice": read_text_file("prompts/worksheet_prompt_multiple_choice.txt")
+            "prompt_multiple_choice": read_text_file("prompts/worksheet_prompt_multiple_choice.txt"),
+            "prompt_open_ended": read_text_file("prompts/worksheet_prompt_open_ended.txt"),
+            "parser_open_ended": JsonOutputParser(pydantic_object=QuizQuestion)
         }
         
         self.prompt_summary = prompt_summary or default_config["prompt_summary"]
         self.prompt_multiple_choice = prompt_multiple_choice or default_config["prompt_multiple_choice"]
         self.model = model or default_config["model"]
         self.parser_multiple_choice = parser_multiple_choice or default_config["parser_multiple_choice"]
+        self.prompt_open_ended = prompt_open_ended or default_config["prompt_open_ended"]
+        self.parser_open_ended = parser_open_ended or default_config["parser_open_ended"]
         
         self.topic = topic
         self.grade_level = grade_level
