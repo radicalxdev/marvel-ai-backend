@@ -43,6 +43,20 @@ def transform_json_dict(input_data: dict) -> dict:
 
     return transformed_data
 
+def has_properties_key(dictionary):
+    """
+    Check if the given dictionary has a 'properties' key.
+    
+    Parameters:
+    dictionary (dict): The dictionary to check.
+    
+    Returns:
+    bool: True if the dictionary has a 'properties' key, False otherwise.
+    """
+    if isinstance(dictionary, dict):
+        return 'properties' in dictionary
+    return False
+
 def read_text_file(file_path):
     # Get the directory containing the script file
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -338,18 +352,24 @@ class QuizBuilder:
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
 
-            response = transform_json_dict(response)
-            # Directly check if the response format is valid
-            if self.validate_response(response):
-                response["choices"] = self.format_choices(response["choices"])
-                generated_questions.append(response)
-                if self.verbose:
-                    logger.info(f"Valid question added: {response}")
-                    logger.info(f"Total generated questions: {len(generated_questions)}")
+            appropriate_result = has_properties_key(response)
+
+            if(not appropriate_result):
+                response = transform_json_dict(response)
+                # Directly check if the response format is valid
+                if self.validate_response(response):
+                    response["choices"] = self.format_choices(response["choices"])
+                    generated_questions.append(response)
+                    if self.verbose:
+                        logger.info(f"Valid question added: {response}")
+                        logger.info(f"Total generated questions: {len(generated_questions)}")
+                else:
+                    if self.verbose:
+                        logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
             else:
                 if self.verbose:
                     logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
-            
+
             # Move to the next attempt regardless of success to ensure progress
             attempts += 1
 
