@@ -17,4 +17,3 @@ class GFileType(Enum):
     SHEET = "sheet"
     SLIDE = "slide"
     PDF = 'pdf'
-    IPYNB = 'ipynb'

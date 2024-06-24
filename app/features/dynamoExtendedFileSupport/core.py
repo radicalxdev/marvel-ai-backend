@@ -26,11 +26,11 @@ def executor(file_url: str, app_type: str, verbose=True):
             logger.error(f"Invalid URL: {file_url}")
             raise FileHandlerError(f"Invalid URL", file_url) from e
     elif(app_type[0]=="3"):        
-        try:
-            file_loader = gfile_loader_map[GFileType(app_type[4:].lower())]
-            file_loader(file_url, verbose)
-        except Exception as e:
-            logger.error(f"Unsupported file type for Google Drive")
-            raise FileHandlerError(f"Unsupported file type for Google Drive", file_url) from e
+        #try:
+        file_loader = gfile_loader_map[GFileType(app_type[4:].lower())]
+        file_loader(file_url, verbose)
+        #except Exception as e:
+            #logger.error(f"Unsupported file type for Google Drive")
+            #raise FileHandlerError(f"Unsupported file type for Google Drive", file_url) from e
     elif(app_type=="4"):
         return generate_concepts_from_img(file_url)
