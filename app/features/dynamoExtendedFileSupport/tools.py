@@ -43,6 +43,10 @@ def build_chain():
     chain = summarize_prompt | summarize_model 
     return chain
 
+def get_summary(full_content: str):
+    chain = build_chain()
+    return chain.invoke(full_content)
+
 def read_text_file(file_path):
     # Get the directory containing the script file
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -102,9 +106,7 @@ def load_pdf_documents(pdf_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_csv_documents(csv_url: str, verbose=False):
     csv_loader = FileHandler(CSVLoader, "csv")
@@ -118,9 +120,7 @@ def load_csv_documents(csv_url: str, verbose=False):
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_txt_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "txt")
@@ -137,9 +137,7 @@ def load_txt_documents(notes_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_md_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "md")
@@ -156,9 +154,7 @@ def load_md_documents(notes_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_url_documents(url: str, verbose=False):
     url_loader = UnstructuredURLLoader(urls=[url])
@@ -174,9 +170,7 @@ def load_url_documents(url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_pptx_documents(pptx_url: str, verbose=False):
     pptx_handler = FileHandler(UnstructuredPowerPointLoader, 'pptx')
@@ -193,9 +187,7 @@ def load_pptx_documents(pptx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain() 
-
-        print(chain.invoke(full_content))
+        return full_content
         
 def load_docx_documents(docx_url: str, verbose=False):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
@@ -211,9 +203,7 @@ def load_docx_documents(docx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_xls_documents(xls_url: str, verbose=False):
     xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
@@ -229,9 +219,7 @@ def load_xls_documents(xls_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
     xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
@@ -247,9 +235,7 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_xml_documents(xml_url: str, verbose=False):
     xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
@@ -265,9 +251,7 @@ def load_xml_documents(xml_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
@@ -294,7 +278,11 @@ class FileHandlerForGoogleDrive:
 
         unique_filename = f"{uuid.uuid4()}.{self.file_extension}"
 
-        gdown.download(url=url, output=unique_filename, fuzzy=True)
+        try:
+            gdown.download(url=url, output=unique_filename, fuzzy=True)
+        except Exception as e:
+            logger.error(f"File content might be private or unavailable or the URL is incorrect.")
+            raise FileHandlerError(f"No file content available") from e
 
         try:
             loader = self.file_loader(file_path=unique_filename)
@@ -329,9 +317,7 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
     gsheets_loader = FileHandlerForGoogleDrive(UnstructuredExcelLoader, 'xlsx')
@@ -347,9 +333,7 @@ def load_gsheets_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_gslides_documents(drive_folder_url: str, verbose=False):
     gslides_loader = FileHandlerForGoogleDrive(UnstructuredPowerPointLoader, 'pptx')
@@ -365,9 +349,7 @@ def load_gslides_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
     
 def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
@@ -383,9 +365,7 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
-
-        print(chain.invoke(full_content))
+        return full_content
 
 
 gfile_loader_map = {

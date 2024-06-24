@@ -1,5 +1,5 @@
 from services.logger import setup_logger
-from features.dynamoExtendedFileSupport.tools import file_loader_map, generate_concepts_from_img, gfile_loader_map
+from features.dynamoExtendedFileSupport.tools import file_loader_map, generate_concepts_from_img, gfile_loader_map, get_summary
 from utils.allowed_file_extensions import FileType, GFileType
 from utils.extract_url_file_extension import get_file_extension
 from api.error_utilities import FileHandlerError
@@ -14,21 +14,24 @@ def executor(file_url: str, app_type: str, verbose=True):
         file_type = get_file_extension(file_url)
         try:
             file_loader = file_loader_map[FileType(file_type.lower())]
-            file_loader(file_url, verbose)
+            full_content = file_loader(file_url, verbose)
+            summary = get_summary(full_content)
         except Exception as e:
             logger.error(f"Unsupported file type: {file_type}")
             raise FileHandlerError(f"Unsupported file type", file_url) from e
     elif (app_type[0]=="2"):
         try:
             file_loader = file_loader_map[FileType(app_type[4:].lower())]
-            file_loader(file_url, verbose)
+            full_content = file_loader(file_url, verbose)
+            summary = get_summary(full_content)
         except Exception as e:
             logger.error(f"Invalid URL: {file_url}")
             raise FileHandlerError(f"Invalid URL", file_url) from e
     elif(app_type[0]=="3"):        
         #try:
         file_loader = gfile_loader_map[GFileType(app_type[4:].lower())]
-        file_loader(file_url, verbose)
+        full_content = file_loader(file_url, verbose)
+        summary = get_summary(full_content)
         #except Exception as e:
             #logger.error(f"Unsupported file type for Google Drive")
             #raise FileHandlerError(f"Unsupported file type for Google Drive", file_url) from e
