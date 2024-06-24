@@ -21,9 +21,6 @@ from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
 
-from .YoutubeLoader import CustomYoutubeLoader
-from .TextLoader import TextLoader
-
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
@@ -126,24 +123,7 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type=None, verbose=False):
-        # if file_loader:
-        #     self.loader = file_loader
-        # elif expected_file_type == 'pdf':
-        #     self.loader = LocalFileLoader
-        # elif expected_file_type == 'txt':
-        #     self.loader = TextLoader
-        # else:
-        #     self.loader = TextLoader
-            # raise ValueError(f"Expected a file type or file loader, but recieved file type: {expected_file_type} & file loader: {file_loader}")
-        # match expected_file_type:
-        #     case "pdf":
-        #         self.loader = BytesFilePDFLoader
-        #     case "txt":
-        #         self.loader = TextLoader
-        #     case _:
-        #         raise ValueError(f"")
-        # self.loader = file_loader if file_loader else BytesFilePDFLoader if expected_file_type == "pdf" else TextLoader
+    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
         self.loader = file_loader or BytesFilePDFLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
@@ -197,10 +177,9 @@ class URLLoader:
         return documents
 
 class RAGpipeline:
-    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False, tool_data = None):
+    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            # "loader": CustomYoutubeLoader(verbose = verbose, url=tool_data[0].url), # Creates instance on call with verbosity
-            "loader": self.choose_loader(tool_data[0].url,tool_data[0].filename, verbose), # Creates instance on call with verbosity
+            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
@@ -211,39 +190,6 @@ class RAGpipeline:
         self.embedding_model = embedding_model or default_config["embedding_model"]
         self.verbose = verbose
 
-    def choose_loader(self, url, file_name, verbose):
-        '''
-
-        :param url:
-        :param file_name:
-        :return:
-        '''
-        if url.lower().startswith('https://www.youtube.com') and file_name.lower() == 'youtube':
-            return CustomYoutubeLoader(verbose=verbose)
-        elif file_name.lower().strip().replace(' ','') == 'webpage' and not url.lower().startswith('https://www.youtube.com'):
-            pass
-            # return WebPageLoader(verbose)
-        else:
-            if file_name.lower().endswith('.txt'):
-                return TextLoader(verbose=verbose)
-            elif file_name.lower().endswith('.ppt'):
-                pass
-                # return PptLoader(verbose=verbose)
-            elif file_name.lower().endswith('.csv'):
-                pass
-                # return CsvLoader(verbose=verbose)
-            elif file_name.lower().endswith('.doc'):
-                pass
-                # return DocLoader(verbose=verbose)
-            elif file_name.lower().endswith('.docx'):
-                pass
-                # return DocxLoader(verbose=verbose)
-            elif file_name.lower().endswith('.pdf'):
-                URLLoader(verbose=verbose)
-            else:
-                raise ValueError(f"Received {file_name}, Unsupported File Type\n"
-                                 f"Supported File Types '.txt','.ppt','.csv','.doc','.docx','Youtube Url'")
-        pass
     def load_PDFs(self, files) -> List[Document]:
         if self.verbose:
             logger.info(f"Loading {len(files)} files")

@@ -12,7 +12,7 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
         if verbose: logger.debug(f"Files: {files}")
 
         # Instantiate RAG pipeline with default values
-        pipeline = RAGpipeline(verbose=verbose,tool_data = files)
+        pipeline = RAGpipeline(verbose=verbose)
         
         pipeline.compile()
         
