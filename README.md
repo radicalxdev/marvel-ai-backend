@@ -1,9 +1,9 @@
 # Kai AI Platform
+
 ![Static Badge](https://img.shields.io/badge/v3.10.12-blue?logo=python&logoColor=yellow&labelColor=gray)
 ![Static Badge](https://img.shields.io/badge/Gemini%201.0-blue?logo=googlegemini&logoColor=blue&labelColor=gray)
 ![Static Badge](https://img.shields.io/badge/Vertex%20AI-blue?logo=googlecloud&logoColor=white&labelColor=gray)
 ![Static Badge](https://img.shields.io/badge/FastAPI-blue?logo=fastapi&logoColor=white&labelColor=gray)
-
 
 ## Table of Contents
 
@@ -12,9 +12,10 @@
 - [Setup](#Setup)
 - [Local Development](#local-development)
 - [Contributing](#Contributing)
-![Architectural Diagram](diagram.png)
+  ![Architectural Diagram](diagram.png)
 
 ## Folder Structure
+
 ```plaintext
 backend/
 ├── app/                     # Contains the main application code
@@ -41,14 +42,17 @@ backend/
 ├── Dockerfile               # Dockerfile for containerizing the application
 └── README.md                # Documentation file
 ```
+
 ## Install all the necessary libraries:
 
 ### Navigate to the app directory
+
 ```bash
 cd backend/app
 ```
 
 ### Create and activate Virtual Environment
+
 ```bash
 python -m venv env
 source env/bin/activate
@@ -57,7 +61,8 @@ source env/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-## To Run Locally and Test 
+
+## To Run Locally and Test
 
 ## Prerequisites
 
@@ -66,34 +71,33 @@ pip install -r requirements.txt
 
 ## Steps for Authentication Setup
 
-### Step 1: Create a Service Account
+### Step 1: Create a Google Cloud Project
 
-1. Navigate to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Go to **IAM & Admin** > **Service Accounts**.
-3. Click **Create Service Account**.
-4. Enter a name and description for the service account.
-5. Click **Create**.
-6. Assign the necessary roles to the service account (e.g., Editor, Viewer).
-7. Click **Continue** and then **Done** to finish creating the service account.
+1. Navigate to the [Google Cloud Console](https://console.cloud.google.com/) and create a new project.
 
-### Step 2: Download the Service Account Key
+### Step 2: Enable the Google Cloud APIs
 
-1. In the **Service Accounts** page, click on the newly created service account.
-2. Go to the **Keys** tab.
-3. Click **Add Key**, then select **Create new key**.
-4. Choose **JSON** as the key type and click **Create**.
-5. The key will be downloaded automatically. Save this file securely.
+1. Enable the following APIs:
+   - VertexAI
 
-### Step 3: Rename and Store the Key
+### Step 3: Create a new AI Studio API Key
 
-1. Rename the downloaded JSON key to `local-auth.json`.
-2. Move or copy this file to your application's directory, specifically inside the `/app` directory.
+1. Navigate to the [AI Studio API Key page](https://aistudio.google.com/app/u/1/apikey) and create a new API key. This will connect with your Google Cloud Project.
 
-### Step 4: Utilize Local Start Script
+### Step 4: Create a new .env and store the API Key
 
-1. Modify the `local-start.sh` script's environment variable `PROJECT_ID` to match the project ID of your Google Cloud project.
-2. Run the script: `./local-start.sh`
-3. Navigate to `http://localhost:8000` to view the application.
+1. Create a new file called `.env` in the root of the project.
+2. Copy the contents of the `.env.example` file into the `.env` file.
+3. Replace the placeholder values with your API key and project ID.
+4. Set the `ENV_TYPE` variable to `dev`.
+
+### Step 4: Run the Application with Local Shell Script
+
+1. Run the following command to start the application:
+
+```bash
+./local-start.sh
+```
 
 # Docker Setup Guide
 
@@ -101,53 +105,52 @@ pip install -r requirements.txt
 
 This guide is designed to help contributors set up and run the backend service using Docker. Follow these steps to ensure that your development environment is configured correctly.
 
-NOTE: if you choose to authenticate Google Cloud through the SDK and not with a local serice account key, you must comment out `GOOGLE_APPLICATION_CREDENTIALS` in the Dockerfile.
-
 ## Prerequisites
 
 Before you start, ensure you have the following installed:
+
 - Docker
 - Python
 
-
 ## Installation Instructions
 
-### 1. Setting Up Local Credentials
-Obtain a local-auth.json file which contains the Google service account credentials and place it in the root of the app/ directory within your project.
+### 1. Build the Docker Image
 
-### 2. Build the Docker Image
-Navigate to the project's root directory and build the Docker image:
-``` Bash
-docker build -t kai-backend:latest .
+Navigate to the project's root directory and build the Docker image. Typically, this is done with the following command:
+
+```Bash
+docker build -t <image_name> .
 ```
+
 ### 3 Run the Docker Container
 
 Run the Docker container using the following command:
-``` bash
-docker run -p 8000:8000 kai-backend:latest
+
+```bash
+docker run -p 8000:8000 <image_name>
 ```
+
 This command starts a detached container that maps port 8000 of the container to port 8000 on the host.
 
 ## Environment Variables
+
 The Docker container uses several key environment variables:
 
--  GOOGLE_APPLICATION_CREDENTIALS points to /app/local-auth.json.
--  ENV_TYPE set to "sandbox" for development.
+- ENV_TYPE set to "dev" for development.
 - PROJECT_ID specifies your Google Cloud project ID.
-- LangChain API integration is configured via:
-`LANGCHAIN_TRACING_V2`
-`LANGCHAIN_ENDPOINT`
-`LANGCHAIN_API_KEY`
-`LANGCHAIN_PROJECT`
-- Ensure these variables are correctly configured in your Dockerfile or passed as additional parameters to your Docker run command, as shown in the example below:
-  ```bash
-  docker run --env ENV_TYPE=dev --env="Enter your project ID here" -p 8000:8000 kai-backend:latest 
-  ```
-## Accessing the Application
-You can access the backend by visiting:
-```Bash
-http://localhost:8000
+- It is possible to enable LangChain tracing by setting the following environment variables. More information can be found on LangSmith
+  `LANGCHAIN_TRACING_V2`
+  `LANGCHAIN_ENDPOINT`
+  `LANGCHAIN_API_KEY`
+  `LANGCHAIN_PROJECT`
+- Ensure these variables are correctly configured in a .env file.
 
+## Accessing the Application
+
+You can access the backend by visiting:
+
+```Bash
+http://localhost:8000/docs
 ```
 
 After your container starts, you should see the FastAPI landing page, indicating that the application is running successfully.
