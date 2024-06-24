@@ -1,20 +1,20 @@
 from langchain_community.document_loaders import YoutubeLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
-from langchain_google_vertexai import VertexAI
+from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.chains.summarize import load_summarize_chain
 from langchain_core.pydantic_v1 import BaseModel, Field
-from api.error_utilities import VideoTranscriptError
+from app.api.error_utilities import VideoTranscriptError
 from fastapi import HTTPException
-from services.logger import setup_logger
+from app.services.logger import setup_logger
 import os
 
 
 logger = setup_logger(__name__)
 
 # AI Model
-model = VertexAI(model="gemini-1.0-pro")
+model = GoogleGenerativeAI(model="gemini-1.0-pro")
 
 
 def read_text_file(file_path):
@@ -49,26 +49,35 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     )
     
     split_docs = splitter.split_documents(docs)
+    
+    full_transcript = [doc.page_content for doc in split_docs]
+    full_transcript = " ".join(full_transcript)
+
+    full_transcript = [doc.page_content for doc in split_docs]
+    full_transcript = " ".join(full_transcript)
 
     if length > max_video_length:
         raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
 
     if verbose:
         logger.info(f"Found video with title: {title} and length: {length}")
-        logger.info(f"Splitting documents into {len(split_docs)} chunks")
+        logger.info(f"Combined documents into a single string.")
+        logger.info(f"Beginning to process transcript...")
     
-    chain = load_summarize_chain(model, chain_type='map_reduce')
-    response = chain.invoke(split_docs)
+    prompt_template = read_text_file("prompt/summarize-prompt.txt")
+    summarize_prompt = PromptTemplate.from_template(prompt_template)
+
+    summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
     
-    if response and verbose: logger.info("Successfully completed generating summary")
+    chain = summarize_prompt | summarize_model 
     
-    return response['output_text']
+    return chain.invoke(full_transcript)
 
 def generate_flashcards(summary: str, verbose=False) -> list:
     # Receive the summary from the map reduce chain and generate flashcards
     parser = JsonOutputParser(pydantic_object=Flashcard)
     
-    if verbose: logger.info(f"Beginning to process summary")
+    if verbose: logger.info(f"Beginning to process flashcards from summary")
     
     template = read_text_file("prompt/dynamo-prompt.txt")
     examples = read_text_file("prompt/examples.txt")
@@ -90,6 +99,6 @@ def generate_flashcards(summary: str, verbose=False) -> list:
     return response
 
 class Flashcard(BaseModel):
-    concept: str = Field(description="The concept of the flashcard")
+    concept: str = Field(description="The concept of the flashcard") 
     definition: str = Field(description="The definition of the flashcard")
     

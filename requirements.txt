@@ -15,10 +15,13 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
+<<<<<<< HEAD:app/requirements.txt
 BeautifulSoup4
 python-pptx
 python-docx
 pandas
 unstructured
 openpyxl
+=======
+>>>>>>> origin/main:requirements.txt
 python-dotenv
