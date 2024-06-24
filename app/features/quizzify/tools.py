@@ -28,9 +28,9 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from app.services.logger import setup_logger
-from app.services.tool_registry import ToolFile
-from app.api.error_utilities import LoaderError
+from services.logger import setup_logger
+from services.tool_registry import ToolFile
+from api.error_utilities import LoaderError
 
 from vertexai.generative_models import GenerativeModel
 
