@@ -34,14 +34,15 @@ splitter = RecursiveCharacterTextSplitter(
     chunk_overlap = 0
 )
 
-def build_chain():
-    prompt_template = read_text_file("prompt/summarize-prompt.txt")
+def build_chain(prompt: str):
+    prompt_template = read_text_file(prompt)
     summarize_prompt = PromptTemplate.from_template(prompt_template)
 
     summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
         
     chain = summarize_prompt | summarize_model 
     return chain
+
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -102,7 +103,7 @@ def load_pdf_documents(pdf_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -118,7 +119,7 @@ def load_csv_documents(csv_url: str, verbose=False):
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -137,7 +138,7 @@ def load_txt_documents(notes_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -156,7 +157,7 @@ def load_md_documents(notes_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -174,7 +175,7 @@ def load_url_documents(url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -193,7 +194,7 @@ def load_pptx_documents(pptx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain() 
+        chain = build_chain("prompt/summarize-prompt.txt") 
 
         print(chain.invoke(full_content))
         
@@ -211,7 +212,7 @@ def load_docx_documents(docx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -229,7 +230,7 @@ def load_xls_documents(xls_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -247,7 +248,7 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -265,7 +266,7 @@ def load_xml_documents(xml_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -329,7 +330,7 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -347,7 +348,7 @@ def load_gsheets_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
 
         print(chain.invoke(full_content))
 
@@ -365,7 +366,7 @@ def load_gslides_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
     
@@ -383,7 +384,7 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain()
+        chain = build_chain("prompt/summarize-prompt.txt")
 
         print(chain.invoke(full_content))
 
