@@ -20,6 +20,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_community.document_transformers import BeautifulSoupTransformer
+from youtube_transcript_api import YouTubeTranscriptApi
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -94,6 +95,61 @@ class WebPageLoader:
     
 
 
+class YoutubeLoader:
+    def __init__(self, url: str, verbose=False):
+        self.url = url
+        self.verbose = verbose
+
+    def load(self) -> List[Document]:
+        documents = []
+        video_id = self.extract_video_id(self.url)
+
+        try:
+            transcript = self.fetch_transcript(video_id)
+            text_content = self.create_text_content(transcript)
+            doc = self.create_document(text_content, self.url)
+            documents.append(doc)
+
+            if self.verbose:
+                print(f"Successfully loaded and transformed content from {self.url}")
+        except Exception as e:
+            if self.verbose:
+                print(f"Failed to load content from {self.url}")
+                print(e)
+
+        if not documents and self.verbose:
+            print("Unable to load any content from the URL")
+
+        return documents
+
+    def extract_video_id(self, url: str) -> str:
+        # Extract the video ID from the URL
+        if 'v=' in url:
+            return url.split('v=')[1].split('&')[0]
+        else:
+            raise ValueError("Invalid YouTube URL")
+
+    def fetch_transcript(self, video_id: str):
+        # Fetch transcript using YouTubeTranscriptApi
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        return transcript
+
+    def create_text_content(self, transcript):
+        # Create plain text content from the transcript
+        text_content = "Transcript\n\n"
+        for entry in transcript:
+            start_time = entry['start']
+            minutes = int(start_time // 60)
+            seconds = int(start_time % 60)
+            timestamp = f"{minutes}:{seconds:02d}"
+            text_content += f"{timestamp}\n{entry['text']}\n\n"
+        return text_content
+
+    def create_document(self, text_content, url):
+        # Create a Document object with page content and metadata
+        doc = Document(page_content=text_content, metadata={"source": url})
+        return doc
+    
 class RAGRunnable:
     def __init__(self, func):
         self.func = func
@@ -284,7 +340,10 @@ class URLLoader:
 
                 elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
                     #Handle Youtube Transcript Loading
-                    print("Youtube")
+                    youtube_loader = YoutubeLoader(url, self.verbose)
+                    youtube_documents = youtube_loader.load()
+                    documents.extend(youtube_documents)
+                    any_success = True
 
                 else:
                     # Handle web page loading                    
