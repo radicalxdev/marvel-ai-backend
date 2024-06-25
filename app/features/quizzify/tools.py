@@ -11,37 +11,22 @@ import time
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
+from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_google_genai import GoogleGenerativeAI
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from app.services.logger import setup_logger
-from app.services.tool_registry import ToolFile
-from app.api.error_utilities import LoaderError
+from services.logger import setup_logger
+from services.tool_registry import ToolFile
+from api.error_utilities import LoaderError
+
+from .YoutubeLoader import CustomYoutubeLoader
 
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
 
-def transform_json_dict(input_data: dict) -> dict:
-    # Validate and parse the input data to ensure it matches the QuizQuestion schema
-    quiz_question = QuizQuestion(**input_data)
-
-    # Transform the choices list into a dictionary
-    transformed_choices = {choice.key: choice.value for choice in quiz_question.choices}
-
-    # Create the transformed structure
-    transformed_data = {
-        "question": quiz_question.question,
-        "choices": transformed_choices,
-        "answer": quiz_question.answer,
-        "explanation": quiz_question.explanation
-    }
-
-    return transformed_data
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -49,22 +34,25 @@ def read_text_file(file_path):
 
     # Combine the script directory with the relative file path
     absolute_file_path = os.path.join(script_dir, file_path)
-    
+
     with open(absolute_file_path, 'r') as file:
         return file.read()
+
 
 class RAGRunnable:
     def __init__(self, func):
         self.func = func
-    
+
     def __or__(self, other):
         def chained_func(*args, **kwargs):
             # Result of previous function is passed as first argument to next function
             return other(self.func(*args, **kwargs))
+
         return RAGRunnable(chained_func)
-    
+
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
+
 
 class UploadPDFLoader:
     def __init__(self, files: List[UploadFile]):
@@ -86,17 +74,52 @@ class UploadPDFLoader:
 
         return documents
 
+
+class TextLoader:
+
+    def __init__(self, files: List[UploadFile]):
+        self.files = files
+
+    def load(self) -> List[Document]:
+        documents = []
+
+        # Checking whether it's a list of files or not. If not converting it into list of files
+        self.files = [self.files] if isinstance(self.files, str) else self.files
+
+        # variable to keep track of current file
+        curent_file_pointer = 0
+
+        # Iterating through each file
+        for each_file in self.files:
+
+            # Verifying whether the file is a text document or not
+            if each_file.lower().endswith('.txt'):
+
+                # Processing file data
+                with open(each_file, encoding="utf-8") as file_data:
+                    file_content = file_data.read()
+                    metadata = {"source": each_file, "file_number": curent_file_pointer}
+                    doc = Document(page_content=file_content, metadata=metadata)
+                    documents.append(doc)
+                    file_data.close()
+
+            else:
+                raise ValueError(f"Expected file type: .txt, but got: {each_file.split('.')[-1]}")
+
+        return documents
+
+
 class BytesFilePDFLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
-    
+
     def load(self) -> List[Document]:
         documents = []
-        
+
         for file, file_type in self.files:
             logger.debug(file_type)
             if file_type.lower() == "pdf":
-                pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                pdf_reader = PdfReader(file)  # ! PyPDF2.PdfReader is deprecated
 
                 for i, page in enumerate(pdf_reader.pages):
                     page_content = page.extract_text()
@@ -104,11 +127,12 @@ class BytesFilePDFLoader:
 
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
-                    
+
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
-            
+
         return documents
+
 
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], expected_file_type="pdf"):
@@ -117,12 +141,12 @@ class LocalFileLoader:
 
     def load(self) -> List[Document]:
         documents = []
-        
+
         # Ensure file paths is a list
         self.file_paths = [self.file_paths] if isinstance(self.file_paths, str) else self.file_paths
-    
+
         for file_path in self.file_paths:
-            
+
             file_type = file_path.split(".")[-1]
 
             if file_type != self.expected_file_type:
@@ -140,8 +164,26 @@ class LocalFileLoader:
 
         return documents
 
+
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
+    def __init__(self, file_loader=None, expected_file_type=None, verbose=False):
+        # if file_loader:
+        #     self.loader = file_loader
+        # elif expected_file_type == 'pdf':
+        #     self.loader = LocalFileLoader
+        # elif expected_file_type == 'txt':
+        #     self.loader = TextLoader
+        # else:
+        #     self.loader = TextLoader
+        # raise ValueError(f"Expected a file type or file loader, but recieved file type: {expected_file_type} & file loader: {file_loader}")
+        # match expected_file_type:
+        #     case "pdf":
+        #         self.loader = BytesFilePDFLoader
+        #     case "txt":
+        #         self.loader = TextLoader
+        #     case _:
+        #         raise ValueError(f"")
+        # self.loader = file_loader if file_loader else BytesFilePDFLoader if expected_file_type == "pdf" else TextLoader
         self.loader = file_loader or BytesFilePDFLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
@@ -194,13 +236,17 @@ class URLLoader:
 
         return documents
 
+
 class RAGpipeline:
-    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
+    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False,
+                 tool_data=None):
         default_config = {
-            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
+            # "loader": CustomYoutubeLoader(verbose = verbose, url=tool_data[0].url), # Creates instance on call with verbosity
+            "loader": self.choose_loader(tool_data[0].url, tool_data[0].filename, verbose),
+            # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
-            "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001')
+            "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
         }
         self.loader = loader or default_config["loader"]
         self.splitter = splitter or default_config["splitter"]
@@ -208,79 +254,155 @@ class RAGpipeline:
         self.embedding_model = embedding_model or default_config["embedding_model"]
         self.verbose = verbose
 
+    def choose_loader(self, url, file_name, verbose):
+        '''
+
+        :param url:
+        :param file_name:
+        :return:
+        '''
+        if url.lower().startswith('https://www.youtube.com') and file_name.lower() == 'youtube':
+            return CustomYoutubeLoader(verbose=verbose)
+        elif file_name.lower().strip().replace(' ', '') == 'webpage' and not url.lower().startswith(
+                'https://www.youtube.com'):
+            pass
+            # return WebPageLoader(verbose)
+        else:
+            if file_name.lower().endswith('.txt'):
+                return TextLoader(verbose=verbose)
+            elif file_name.lower().endswith('.ppt'):
+                pass
+                # return PptLoader(verbose=verbose)
+            elif file_name.lower().endswith('.csv'):
+                pass
+                # return CsvLoader(verbose=verbose)
+            elif file_name.lower().endswith('.doc'):
+                pass
+                # return DocLoader(verbose=verbose)
+            elif file_name.lower().endswith('.docx'):
+                pass
+                # return DocxLoader(verbose=verbose)
+            else:
+                raise ValueError(f"Received {file_name}, Unsupported File Type\n"
+                                 f"Supported File Types '.txt','.ppt','.csv','.doc','.docx','Youtube Url'")
+        # pdf_file_urls = [file for file in files if isinstance(file, ToolFile) and file.url.lower().endswith('.pdf')]
+        text_file_urls = [file for file in files if isinstance(file, ToolFile) and file.url.lower().endswith('.txt')]
+        # print(type(files[0]))
+        youtube_urls = [file for file in files if
+                        isinstance(file, ToolFile) and file.url.startswith('https://www.youtube.com')]
+        web_urls = [
+            file for file in files if isinstance(file, ToolFile) and file.url.lower().startswith('http')
+                                      and not (text_file_urls or youtube_urls)
+        ]
+        if text_file_urls:
+            print("Text URLs found:", text_file_urls)
+            try:
+                text_documents = self.txt_url_loader.load(text_file_urls)
+                documents.extend(text_documents)
+                print("Text Documents Found:", text_documents)
+            except Exception as e:
+                logger.error(f"An error occurred while loading text files: {str(e)}")
+                raise LoaderError("Error loading text files") from e
+        if youtube_urls:
+            print("YouTube URLs found:", youtube_urls)
+            try:
+                youtube_loader_instance = self.youtube_loader(youtube_urls)
+                youtube_documents = youtube_loader_instance.load()
+                documents.extend(youtube_documents)
+                print("Loaded documents from YouTube:", youtube_documents)
+            except VideoTranscriptError as e:
+                logger.error(f"VideoTranscriptError: {str(e)}")
+                raise LoaderError("Error loading YouTube transcripts") from e
+            except Exception as e:
+                logger.error(f"An error occurred while loading YouTube transcripts: {str(e)}")
+                raise LoaderError("Unexpected error loading YouTube transcripts") from e
+        if web_urls:
+            print("Web URLs found:", web_urls)
+            try:
+                web_loader_instance = self.web_loader(web_urls)
+                web_documents = web_loader_instance.load()
+                documents.extend(web_documents)
+                print("Loaded documents from web URLs:", web_documents)
+            except Exception as e:
+                logger.error(f"An error occurred while loading web URLs: {str(e)}")
+                raise LoaderError("Error loading web URLs") from e
+        return documents
+        pass
+
     def load_PDFs(self, files) -> List[Document]:
         if self.verbose:
             logger.info(f"Loading {len(files)} files")
             logger.info(f"Loader type used: {type(self.loader)}")
-        
+
         logger.debug(f"Loader is a: {type(self.loader)}")
-        
+
         try:
             total_loaded_files = self.loader.load(files)
         except LoaderError as e:
             logger.error(f"Loader experienced error: {e}")
             raise LoaderError(e)
-            
+
         return total_loaded_files
-    
+
     def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:
         if self.verbose:
             logger.info(f"Splitting {len(loaded_documents)} documents")
             logger.info(f"Splitter type used: {type(self.splitter)}")
-            
+
         total_chunks = []
         chunks = self.splitter.split_documents(loaded_documents)
         total_chunks.extend(chunks)
-        
+
         if self.verbose: logger.info(f"Split {len(loaded_documents)} documents into {len(total_chunks)} chunks")
-        
+
         return total_chunks
-    
+
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
-        
+
         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
 
         if self.verbose: logger.info(f"Vectorstore created")
         return self.vectorstore
-    
+
     def compile(self):
         # Compile the pipeline
         self.load_PDFs = RAGRunnable(self.load_PDFs)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
         if self.verbose: logger.info(f"Completed pipeline compilation")
-    
+
     def __call__(self, documents):
-        # Returns a vectorstore ready for usage 
-        
-        if self.verbose: 
+        # Returns a vectorstore ready for usage
+
+        if self.verbose:
             logger.info(f"Executing pipeline")
             logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
-        
+
         pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
+
 
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
-            "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
+            "model": VertexAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=QuizQuestion),
             "prompt": read_text_file("prompt/quizzify-prompt.txt")
         }
-        
+
         self.prompt = prompt or default_config["prompt"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
-        
+
         self.vectorstore = vectorstore
         self.topic = topic
         self.verbose = verbose
-        
+
         if vectorstore is None: raise ValueError("Vectorstore must be provided")
         if topic is None: raise ValueError("Topic must be provided")
-    
+
     def compile(self):
         # Return the chain
         prompt = PromptTemplate(
@@ -288,17 +410,17 @@ class QuizBuilder:
             input_variables=["topic"],
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )
-        
+
         retriever = self.vectorstore.as_retriever()
-        
+
         runner = RunnableParallel(
             {"context": retriever, "topic": RunnablePassthrough()}
         )
-        
+
         chain = runner | prompt | self.model | self.parser
-        
+
         if self.verbose: logger.info(f"Chain compilation complete")
-        
+
         return chain
 
     def validate_response(self, response: Dict) -> bool:
@@ -320,15 +442,15 @@ class QuizBuilder:
 
     def format_choices(self, choices: Dict[str, str]) -> List[Dict[str, str]]:
         return [{"key": k, "value": v} for k, v in choices.items()]
-    
+
     def create_questions(self, num_questions: int = 5) -> List[Dict]:
         if self.verbose: logger.info(f"Creating {num_questions} questions")
-        
+
         if num_questions > 10:
             return {"message": "error", "data": "Number of questions cannot exceed 10"}
-        
+
         chain = self.compile()
-        
+
         generated_questions = []
         attempts = 0
         max_attempts = num_questions * 5  # Allow for more attempts to generate questions
@@ -338,7 +460,6 @@ class QuizBuilder:
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
 
-            response = transform_json_dict(response)
             # Directly check if the response format is valid
             if self.validate_response(response):
                 response["choices"] = self.format_choices(response["choices"])
@@ -349,45 +470,28 @@ class QuizBuilder:
             else:
                 if self.verbose:
                     logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
-            
+
             # Move to the next attempt regardless of success to ensure progress
             attempts += 1
 
         # Log if fewer questions are generated
         if len(generated_questions) < num_questions:
             logger.warning(f"Only generated {len(generated_questions)} out of {num_questions} requested questions")
-        
+
         if self.verbose: logger.info(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
-        
+
         # Return the list of questions
         return generated_questions[:num_questions]
 
+
 class QuestionChoice(BaseModel):
-    key: str = Field(description="A unique identifier for the choice using letters A, B, C, or D.")
+    key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
     value: str = Field(description="The text content of the choice")
+
+
 class QuizQuestion(BaseModel):
     question: str = Field(description="The question text")
-    choices: List[QuestionChoice] = Field(description="A list of choices for the question, each with a key and a value")
-    answer: str = Field(description="The key of the correct answer from the choices list")
+    choices: List[QuestionChoice] = Field(description="A list of choices")
+    answer: str = Field(description="The correct answer")
     explanation: str = Field(description="An explanation of why the answer is correct")
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": """ 
-                {
-                "question": "What is the capital of France?",
-                "choices": [
-                    {"key": "A", "value": "Berlin"},
-                    {"key": "B", "value": "Madrid"},
-                    {"key": "C", "value": "Paris"},
-                    {"key": "D", "value": "Rome"}
-                ],
-                "answer": "C",
-                "explanation": "Paris is the capital of France."
-              }
-          """
-        }
-
-      }
-
