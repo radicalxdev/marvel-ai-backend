@@ -396,7 +396,7 @@ gfile_loader_map = {
     GFileType.PDF: load_gpdf_documents
 }
 
-llm = ChatGoogleGenerativeAI(model="gemini-pro-vision")
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
 def generate_concepts_from_img(img_url):
     parser = JsonOutputParser(pydantic_object=Flashcard)
