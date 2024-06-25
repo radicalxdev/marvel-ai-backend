@@ -7,6 +7,7 @@ import requests
 import os
 import json
 import time
+import pymupdf
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -16,19 +17,13 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_community.document_loaders import PyMuPDFLoader
+# from langchain_community.document_loaders import PyMuPDFLoader
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
 
 relative_path = "features/quzzify"
-
-models_metadata_path = "app/features/Kaichat/metadata.json"
-
-# Load the metadata from the JSON file
-with open(models_metadata_path, "r") as f:
-  metadata = json.load(f)
 
 logger = setup_logger(__name__)
 
@@ -76,6 +71,7 @@ class UploadPDFLoader:
         return documents
 
 class BytesFilePDFLoader:
+    # Original def __init__(self, files: List[Tuple[BytesIO, str]])
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -84,20 +80,25 @@ class BytesFilePDFLoader:
         
         for file, file_type in self.files:
             logger.debug(file_type)
-            if file_type.lower() == "ppt":
+            if file_type.lower() == "pdf":
                 logger.info(file)
                 # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
-                pdf_reader = PyMuPDFLoader(file)
-                data = pdf_reader.load()
+                pdf_reader = pymupdf.open(stream=file)
+                for pages in range(pdf_reader.page_count):
+                    page = pdf_reader.load_page(page_id=pages)
+                # documents.append(pdf_reader)
+                    metadata = {"source" : file_type, "page_number" : pages + 1}
+                    doc = Document(page_content=page.get_text(), metadata= metadata)
+                    documents.append(doc)
 
                 # for i, page in enumerate(pdf_reader.pages):
-                for page in enumerate(data):
+                # for page in data:
                     # page_content = page.extract_text()
                     # metadata = {"source": file_type, "page_number": i + 1}
 
                     # doc = Document(page_content=page_content, metadata=metadata)
                     # documents.append(doc)
-                    documents.append(page)
+                    # documents.append(page)
                     
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
@@ -105,7 +106,7 @@ class BytesFilePDFLoader:
         return documents
 
 class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="ppt"):
+    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
         self.file_paths = file_paths
         self.expected_file_type = expected_file_type
 
@@ -135,7 +136,7 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="ppt", verbose=False):
+    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
         self.loader = file_loader or BytesFilePDFLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
@@ -157,7 +158,7 @@ class URLLoader:
                     file_content = BytesIO(response.content)
 
                     # Check file type
-                    file_type = path.split(".")[-1]
+                    file_type = path.rsplit(".")[-1]
                     if file_type != self.expected_file_type:
                         raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
 
@@ -191,7 +192,7 @@ class URLLoader:
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            "loader": URLLoader(expected_file_type="ppt",verbose = verbose), # Creates instance on call with verbosity
+            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
@@ -259,7 +260,7 @@ class RAGpipeline:
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
-            "model": VertexAI(model=metadata["models"][0]["latest_model_name"]), 
+            "model": VertexAI(model="gemini-1.0-pro"), 
             "parser": JsonOutputParser(pydantic_object=QuizQuestion),
             "prompt": read_text_file("prompt/quizzify-prompt.txt")
         }
