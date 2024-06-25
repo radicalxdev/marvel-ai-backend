@@ -9,20 +9,20 @@ from fastapi import UploadFile
 
 class TextLoader:
 
-    def __init__(self, files : List[UploadFile]):
-        self.files = files
+    def __init__(self, verbose = None):
+        self.verbose = verbose
 
-    def load(self) -> List[Document]:
+    def load(self, files : List[UploadFile]) -> List[Document]:
         documents = []
 
         # Checking whether it's a list of files or not. If not converting it into list of files
-        self.files = [self.files] if isinstance(self.files, str) else self.files
+        files = [files] if isinstance(files, str) else files
 
         #variable to keep track of current file
         curent_file_pointer = 0
 
         #Iterating through each file
-        for each_file in self.files:
+        for each_file in files:
 
             #Verifying whether the file is a text document or not
             if each_file.lower().endswith('.txt'):
