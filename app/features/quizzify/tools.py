@@ -11,19 +11,37 @@ import time
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
-from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_google_genai import GoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from services.logger import setup_logger
-from services.tool_registry import ToolFile
-from api.error_utilities import LoaderError
+from app.services.logger import setup_logger
+from app.services.tool_registry import ToolFile
+from app.api.error_utilities import LoaderError
 
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
+
+def transform_json_dict(input_data: dict) -> dict:
+    # Validate and parse the input data to ensure it matches the QuizQuestion schema
+    quiz_question = QuizQuestion(**input_data)
+
+    # Transform the choices list into a dictionary
+    transformed_choices = {choice.key: choice.value for choice in quiz_question.choices}
+
+    # Create the transformed structure
+    transformed_data = {
+        "question": quiz_question.question,
+        "choices": transformed_choices,
+        "answer": quiz_question.answer,
+        "explanation": quiz_question.explanation
+    }
+
+    return transformed_data
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -182,7 +200,7 @@ class RAGpipeline:
             "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
-            "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
+            "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001')
         }
         self.loader = loader or default_config["loader"]
         self.splitter = splitter or default_config["splitter"]
@@ -247,7 +265,7 @@ class RAGpipeline:
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
-            "model": VertexAI(model="gemini-1.0-pro"),
+            "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=QuizQuestion),
             "prompt": read_text_file("prompt/quizzify-prompt.txt")
         }
@@ -319,7 +337,8 @@ class QuizBuilder:
             response = chain.invoke(self.topic)
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
-            
+
+            response = transform_json_dict(response)
             # Directly check if the response format is valid
             if self.validate_response(response):
                 response["choices"] = self.format_choices(response["choices"])
@@ -345,10 +364,30 @@ class QuizBuilder:
         return generated_questions[:num_questions]
 
 class QuestionChoice(BaseModel):
-    key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
+    key: str = Field(description="A unique identifier for the choice using letters A, B, C, or D.")
     value: str = Field(description="The text content of the choice")
 class QuizQuestion(BaseModel):
     question: str = Field(description="The question text")
-    choices: List[QuestionChoice] = Field(description="A list of choices")
-    answer: str = Field(description="The correct answer")
+    choices: List[QuestionChoice] = Field(description="A list of choices for the question, each with a key and a value")
+    answer: str = Field(description="The key of the correct answer from the choices list")
     explanation: str = Field(description="An explanation of why the answer is correct")
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": """ 
+                {
+                "question": "What is the capital of France?",
+                "choices": [
+                    {"key": "A", "value": "Berlin"},
+                    {"key": "B", "value": "Madrid"},
+                    {"key": "C", "value": "Paris"},
+                    {"key": "D", "value": "Rome"}
+                ],
+                "answer": "C",
+                "explanation": "Paris is the capital of France."
+              }
+          """
+        }
+
+      }
+
