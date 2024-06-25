@@ -108,7 +108,7 @@ class WebPageLoader:
 class YouTubeLoader(BaseLoader):
     def __init__(
         self,
-            video_id: str,
+            youtube_url: str,
             start_time : float = None,
             end_time : float = None,
             add_video_info: bool = False,
@@ -116,7 +116,7 @@ class YouTubeLoader(BaseLoader):
         
         ):
             """Initialize with YouTube video ID."""
-            self.video_id = video_id
+            self.youtube_url = youtube_url
             self.start_time = start_time
             self.end_time = end_time
             self.add_video_info = add_video_info
@@ -146,7 +146,7 @@ class YouTubeLoader(BaseLoader):
             )
         else:
             return video_id
-
+        
     # Filer transcript text by time stamp
     def filter_dicts_by_time_stamp(self,list_of_dicts, start=None, end=None):
     # Define the filtering function based on the provided min and/or max values
@@ -172,7 +172,9 @@ class YouTubeLoader(BaseLoader):
                 "Could not import youtube_transcript_api python package. "
                 "Please install it with `pip install youtube-transcript-api`."
             )
-        metadata = {"source": self.video_id}
+        
+        video_id = self.extract_video_id(self.youtube_url)
+        metadata = {"source": video_id}
 
         if self.add_video_info:
             # Get more video meta info
@@ -181,7 +183,7 @@ class YouTubeLoader(BaseLoader):
             metadata.update(video_info)
 
         try:
-            transcript_list = YouTubeTranscriptApi.list_transcripts(self.video_id)
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
         except TranscriptsDisabled:
             return []
 
@@ -225,7 +227,8 @@ class YouTubeLoader(BaseLoader):
                 "Could not import pytube python package. "
                 "Please install it with `pip install pytube`."
             )
-        yt = YouTube(f"https://www.youtube.com/watch?v={self.video_id}")
+        video_id = self.extract_video_id(self.youtube_url)
+        yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
         video_info = {
             "title": yt.title or "Unknown",
             "description": yt.description or "Unknown",
@@ -485,6 +488,7 @@ class URLLoader:
 
                 elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
                     #Handle Youtube Transcript Loading
+                    video_id = 
                     youtube_loader = YoutubeLoader(url, self.verbose)
                     youtube_documents = youtube_loader.load()
                     documents.extend(youtube_documents)
