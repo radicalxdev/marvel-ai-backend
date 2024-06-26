@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Any, Union
+from typing import List, Dict, Union
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
@@ -10,16 +10,11 @@ from urllib.parse import urlparse
 import urllib.request
 import requests
 import os
-import json
-import time
-from tqdm import tqdm
-import re
 import logging
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import UnstructuredWordDocumentLoader,\
-    UnstructuredPowerPointLoader, TextLoader, UnstructuredExcelLoader, WebBaseLoader, CSVLoader
+from langchain_community.document_loaders import UnstructuredWordDocumentLoader, UnstructuredPowerPointLoader
 from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
@@ -31,8 +26,6 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
-
-from vertexai.generative_models import GenerativeModel
 
 from youtube_transcript_api import YouTubeTranscriptApi
 
