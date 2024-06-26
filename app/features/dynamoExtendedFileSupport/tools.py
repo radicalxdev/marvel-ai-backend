@@ -34,8 +34,8 @@ splitter = RecursiveCharacterTextSplitter(
     chunk_overlap = 0
 )
 
-def build_chain():
-    prompt_template = read_text_file("prompt/summarize-prompt.txt")
+def build_chain(prompt: str):
+    prompt_template = read_text_file(prompt)
     summarize_prompt = PromptTemplate.from_template(prompt_template)
 
     summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
@@ -43,8 +43,8 @@ def build_chain():
     chain = summarize_prompt | summarize_model 
     return chain
 
-def get_summary(full_content: str):
-    chain = build_chain()
+def get_summary(prompt: str, full_content: str):
+    chain = build_chain(prompt)
     return chain.invoke(full_content)
 
 def read_text_file(file_path):
@@ -107,6 +107,7 @@ def load_pdf_documents(pdf_url: str, verbose=False):
         full_content = " ".join(full_content)
 
         return full_content
+        
 
 def load_csv_documents(csv_url: str, verbose=False):
     csv_loader = FileHandler(CSVLoader, "csv")
@@ -267,8 +268,6 @@ file_loader_map = {
 }
 
 
-
-
 class FileHandlerForGoogleDrive:
     def __init__(self, file_loader, file_extension='docx'):
         self.file_loader = file_loader
@@ -318,7 +317,7 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
         full_content = " ".join(full_content)
         
         return full_content
-
+    
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
     gsheets_loader = FileHandlerForGoogleDrive(UnstructuredExcelLoader, 'xlsx')
     docs = gsheets_loader.load(drive_folder_url)
@@ -367,7 +366,6 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
         
         return full_content
 
-
 gfile_loader_map = {
     GFileType.DOC: load_gdocs_documents,
     GFileType.SHEET: load_gsheets_documents,
@@ -375,7 +373,7 @@ gfile_loader_map = {
     GFileType.PDF: load_gpdf_documents
 }
 
-llm = ChatGoogleGenerativeAI(model="gemini-pro-vision")
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
 def generate_concepts_from_img(img_url):
     parser = JsonOutputParser(pydantic_object=Flashcard)
