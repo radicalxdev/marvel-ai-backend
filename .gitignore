@@ -163,3 +163,4 @@ cython_debug/
 **/key.txt
 **/local-auth.json
 /app/features/quizzify/tools copy.py
+api_key.json
