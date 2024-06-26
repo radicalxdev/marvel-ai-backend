@@ -283,7 +283,7 @@ def test_load_gslides_documents_valid():
     assert isinstance(full_content, str)
     assert len(full_content) > 0
 
-def test_load_gsheets_documents_invalid_permission():
+def test_load_gslides_documents_invalid_permission():
     private_gslides_url = "https://docs.google.com/presentation/d/1GeIRGJF63vyPMCeyqonluj4-8ZF0NF683LEn4J3UnhI/edit"
 
     with pytest.raises(FileHandlerError) as exc_info:
@@ -291,7 +291,7 @@ def test_load_gsheets_documents_invalid_permission():
 
     assert isinstance(exc_info.value, FileHandlerError)
 
-def test_load_gsheets_documents_invalid_url():
+def test_load_gslides_documents_invalid_url():
     dummy_gslides_url = "https://docs.google.com/presentation/d/1GeIRGJF63v683LEn4J3UnhI/edit"
 
     with pytest.raises(FileHandlerError) as exc_info:
@@ -299,7 +299,7 @@ def test_load_gsheets_documents_invalid_url():
 
     assert isinstance(exc_info.value, FileHandlerError)
 
-def test_load_gsheets_documents_invalid_file_type():
+def test_load_gslides_documents_invalid_file_type():
     not_gslides_url = "https://gbihr.org/images/docs/test.pdf"
 
     with pytest.raises(FileHandlerError) as exc_info:

@@ -20,29 +20,34 @@ def executor(file_url: str, app_type: str, verbose=True):
             else:
                 prompt = "prompt/summarize-prompt.txt"
             summary = get_summary(prompt, full_content)
+            return summary
         except Exception as e:
             logger.error(f"Unsupported file type: {file_type}")
             raise FileHandlerError(f"Unsupported file type", file_url) from e
     elif (app_type[0]=="2"):
+        file_type = app_type[4:].lower()
         try:
-            file_loader = file_loader_map[FileType(app_type[4:].lower())]
+            file_loader = file_loader_map[FileType(file_type)]
             full_content = file_loader(file_url, verbose)
             prompt = "prompt/summarize-prompt.txt"
             summary = get_summary(prompt, full_content)
+            return summary
         except Exception as e:
             logger.error(f"Invalid URL: {file_url}")
             raise FileHandlerError(f"Invalid URL", file_url) from e
-    elif(app_type[0]=="3"):        
+    elif(app_type[0]=="3"):  
+        file_type = app_type[4:].lower()      
         try:
-            file_loader = gfile_loader_map[GFileType(app_type[4:].lower())]
+            file_loader = gfile_loader_map[GFileType(file_type)]
             full_content = file_loader(file_url, verbose)
             if file_type == "sheet":
                 prompt = "prompt/summarize-xlsx-csv-prompt.txt"
             else:
                 prompt = "prompt/summarize-prompt.txt"
-            summary = get_summary(full_content)
+            summary = get_summary(prompt, full_content)
+            return summary
         except Exception as e:
-            logger.error(f"Unsupported file type for Google Drive")
+            logger.error(f"Unsupported file type in Google Drive: {file_type}")
             raise FileHandlerError(f"Unsupported file type for Google Drive", file_url) from e
     elif(app_type=="4"):
         return generate_concepts_from_img(file_url)

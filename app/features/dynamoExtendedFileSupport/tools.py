@@ -315,7 +315,6 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
         return full_content
     
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
