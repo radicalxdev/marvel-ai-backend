@@ -9,6 +9,7 @@ import json
 import time
 import docx
 from pptx import Presentation
+from urllib.parse import parse_qs, urlparse
 import pandas as pd
 
 from langchain_core.documents import Document
@@ -20,6 +21,8 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_community.document_transformers import BeautifulSoupTransformer
+from langchain_community.document_loaders.base import BaseLoader
+
 from youtube_transcript_api import YouTubeTranscriptApi
 from langchain_community.document_loaders.base import BaseLoader
 
@@ -423,7 +426,6 @@ class URLLoader:
                         if file_type not in self.expected_file_types:
                             raise LoaderError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
                         queued_files.append((file_content, file_type))
-                        print("Queued files successfully")
                         if self.verbose:
                             logger.info(f"Successfully loaded file from {url}")
                         any_success = True
@@ -431,9 +433,9 @@ class URLLoader:
                         logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
                 elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
-                    #Handle Youtube Transcript Loading                    
-                    youtube_loader = YouTubeLoader(youtube_url = url)                    
-                    youtube_documents = youtube_loader.load()                    
+                    #Handle Youtube Transcript Loading
+                    youtube_loader = YouTubeLoader(youtube_url=url)
+                    youtube_documents = youtube_loader.load()
                     documents.extend(youtube_documents)
                     any_success = True
 
@@ -605,6 +607,10 @@ class QuizBuilder:
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
+            print("response: ",response,type(response))
+            input()
+            response['question'] = response['question'].replace("```json", "").replace("```", "").replace("\n```", "").replace("\n```json", "")
+
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
             
