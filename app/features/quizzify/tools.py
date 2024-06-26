@@ -1,10 +1,17 @@
 from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
 from urllib.parse import parse_qs,urlparse
 import requests
 import os
+import json
+import time
+import docx
+from pptx import Presentation
+from urllib.parse import parse_qs, urlparse
+import pandas as pd
 import json
 import time
 import docx
@@ -33,6 +40,7 @@ from api.error_utilities import LoaderError
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
+
 
 ALLOWED_NETLOCK = {
     "youtu.be",
@@ -243,8 +251,8 @@ class YouTubeLoader(BaseLoader):
         }
         return video_info
     
-
-
+  
+    
 class RAGRunnable:
     def __init__(self, func):
         self.func = func
@@ -493,6 +501,14 @@ class RAGpipeline:
             logger.error(f"Loader experienced error: {e}")
             raise LoaderError(e)
 
+        logger.debug(f"Loader is a: {type(self.loader)}")
+        
+        try:
+            total_loaded_files = self.loader.load(files)
+        except LoaderError as e:
+            logger.error(f"Loader experienced error: {e}")
+            raise LoaderError(e)
+
         return total_loaded_files
     
     def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:
@@ -607,10 +623,6 @@ class QuizBuilder:
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
-            print("response: ",response,type(response))
-            input()
-            response['question'] = response['question'].replace("```json", "").replace("```", "").replace("\n```", "").replace("\n```json", "")
-
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
             
