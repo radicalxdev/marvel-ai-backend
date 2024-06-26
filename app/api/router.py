@@ -45,8 +45,8 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
             content=jsonable_encoder(ErrorResponse(status=e.status_code, message=e.detail))
         )
 
-@router.put("/preview-answers", response_model=Union[ToolResponse, ErrorResponse])
-async def preview_answers(data: QuestionRequest, _ = Depends(key_check)):
+@router.put("/edit-answers", response_model=Union[ToolResponse, ErrorResponse])
+async def edit_answers(data: QuestionRequest, _ = Depends(key_check)):
     try:
         return ToolResponse(data = QuestionResponse(data = data.data))
     except InputValidationError as e:
