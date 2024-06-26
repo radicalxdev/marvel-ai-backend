@@ -43,6 +43,9 @@ def build_chain(prompt: str):
     chain = summarize_prompt | summarize_model 
     return chain
 
+def get_summary(prompt: str, full_content: str):
+    chain = build_chain(prompt)
+    return chain.invoke(full_content)
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -92,8 +95,8 @@ class FileHandler:
 def load_pdf_documents(pdf_url: str, verbose=False):
     pdf_loader = FileHandler(PyPDFLoader, "pdf")
     docs = pdf_loader.load(pdf_url)
-    if docs:
 
+    if docs:
         split_docs = splitter.split_documents(docs)
 
         if verbose:
@@ -103,15 +106,14 @@ def load_pdf_documents(pdf_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
+        
 
 def load_csv_documents(csv_url: str, verbose=False):
     csv_loader = FileHandler(CSVLoader, "csv")
     docs = csv_loader.load(csv_url)
-    if docs:
 
+    if docs:
         if verbose:
             logger.info(f"Found CSV file")
             logger.info(f"Splitting documents into {len(docs)} chunks")
@@ -119,9 +121,7 @@ def load_csv_documents(csv_url: str, verbose=False):
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_txt_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "txt")
@@ -138,9 +138,7 @@ def load_txt_documents(notes_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_md_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "md")
@@ -157,9 +155,7 @@ def load_md_documents(notes_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_url_documents(url: str, verbose=False):
     url_loader = UnstructuredURLLoader(urls=[url])
@@ -175,14 +171,12 @@ def load_url_documents(url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_pptx_documents(pptx_url: str, verbose=False):
     pptx_handler = FileHandler(UnstructuredPowerPointLoader, 'pptx')
-    docs = pptx_handler.load(pptx_url)
 
+    docs = pptx_handler.load(pptx_url)
     if docs: 
 
         split_docs = splitter.split_documents(docs)
@@ -194,9 +188,7 @@ def load_pptx_documents(pptx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
 
-        chain = build_chain("prompt/summarize-prompt.txt") 
-
-        print(chain.invoke(full_content))
+        return full_content
         
 def load_docx_documents(docx_url: str, verbose=False):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
@@ -212,9 +204,7 @@ def load_docx_documents(docx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_xls_documents(xls_url: str, verbose=False):
     xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
@@ -230,9 +220,7 @@ def load_xls_documents(xls_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
     xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
@@ -248,9 +236,7 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_xml_documents(xml_url: str, verbose=False):
     xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
@@ -266,9 +252,7 @@ def load_xml_documents(xml_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
@@ -284,8 +268,6 @@ file_loader_map = {
 }
 
 
-
-
 class FileHandlerForGoogleDrive:
     def __init__(self, file_loader, file_extension='docx'):
         self.file_loader = file_loader
@@ -295,7 +277,11 @@ class FileHandlerForGoogleDrive:
 
         unique_filename = f"{uuid.uuid4()}.{self.file_extension}"
 
-        gdown.download(url=url, output=unique_filename, fuzzy=True)
+        try:
+            gdown.download(url=url, output=unique_filename, fuzzy=True)
+        except Exception as e:
+            logger.error(f"File content might be private or unavailable or the URL is incorrect.")
+            raise FileHandlerError(f"No file content available") from e
 
         try:
             loader = self.file_loader(file_path=unique_filename)
@@ -329,11 +315,8 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
-
+        return full_content
+    
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
     gsheets_loader = FileHandlerForGoogleDrive(UnstructuredExcelLoader, 'xlsx')
     docs = gsheets_loader.load(drive_folder_url)
@@ -348,9 +331,7 @@ def load_gsheets_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-xlsx-csv-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
 
 def load_gslides_documents(drive_folder_url: str, verbose=False):
     gslides_loader = FileHandlerForGoogleDrive(UnstructuredPowerPointLoader, 'pptx')
@@ -366,9 +347,7 @@ def load_gslides_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
+        return full_content
     
 def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
@@ -384,10 +363,7 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
         
-        chain = build_chain("prompt/summarize-prompt.txt")
-
-        print(chain.invoke(full_content))
-
+        return full_content
 
 gfile_loader_map = {
     GFileType.DOC: load_gdocs_documents,

@@ -27,5 +27,8 @@ openpyxl
 gdown
 langchain-google-community[drive]
 langchain-googledrive
+langchain_google_genai
+
+pytest
 PyPDF2
 python-dotenv
