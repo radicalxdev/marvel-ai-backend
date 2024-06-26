@@ -17,6 +17,19 @@ class BaseTool(BaseModel):
     tool_id: int  # Unique identifier for each tool,
     inputs: List[ToolInput]
 
+class Choice(BaseModel):
+    key : str
+    value : str
+    
+class QuestionFile(BaseModel):
+    question : str
+    choices : List[Choice]
+    answer: str
+    explanation : str
+
+class ResultFile(BaseModel):
+    data: List[QuestionFile]
+
 class ToolFile(BaseModel):
     filePath: Optional[str] = None
     url: str

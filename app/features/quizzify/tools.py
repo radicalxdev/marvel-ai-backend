@@ -199,12 +199,13 @@ class BytesFileLoader:
             end_idx = min((i+1) * words_per_page, num_words)
             page_content = ' '.join(words[start_idx:end_idx])
             metadata = {'source': 'txt', 'page_number': i + 1}
-            pages.append((page_content, metadata))
+            doc = Document(page_content=page_content,metadata = metadata)
+            pages.append(doc)
             
         if(specific_list is not None):
-            filtered_pages = [page for page in pages if page[1]['page_number'] in specific_list]
+            filtered_pages = [page for page in pages if page.metadata['page_number'] in specific_list]
         else:
-            filtered_pages = [page for page in pages if section_start <= page[1]['page_number'] <= section_end]
+            filtered_pages = [page for page in pages if section_start <= page.metadata['page_number'] <= section_end]
         
         for page_content, metadata in filtered_pages:
             self.documents.append(Document(page_content=page_content, metadata=metadata))
@@ -236,26 +237,23 @@ class BytesFileLoader:
                 current_page.append(para)
                 if word_count >= words_per_page:
                     page_content = " ".join(current_page)
-                    logger.info(page_content)
-                    pages.append((page_content,{'source':'docx','page_number':page_number})) 
+                    doc = Document(page_content=page_content,metadata = {'source':'docx','page_number':page_number})
+                    pages.append(doc) 
                     current_page = []
                     word_count = 0
                     page_number += 1
             if current_page:
-                pages.append((page_content,{'source':'docx','page_number':page_number})) 
+                doc = Document(page_content=page_content,metadata = {'source':'docx','page_number':page_number})
+                pages.append(doc) 
                 page_number += 1
             
-            filtered_pages = []
-            for page_content, metadata in pages:
-                if(specific_list is not None):
-                    if metadata['page_number'] in specific_list:
-                        filtered_pages.append((page_content,metadata))
-                else:
-                    if section_start <= metadata['page_number'] <= section_end:
-                        filtered_pages.append((page_content,metadata))
-                    
-            for page_content, metadata in filtered_pages:
-                self.documents.append(Document(page_content=page_content,metadata=metadata))
+            
+            if(specific_list is not None):
+                filtered_pages = [doc for doc in pages if doc.metadata['page_number'] in specific_list]
+            else:
+                filtered_pages = [doc for doc in pages if section_start <= doc.metadata['page_number'] <= section_end]
+            
+            self.documents.extend(filtered_pages)
         
     def process_pptx(self, file: BytesIO, file_type:str, specific_list:List[int],section_start:float,section_end:float):
         
@@ -297,42 +295,26 @@ class BytesFileLoader:
         web_text = ' '.join(BeautifulSoup(html, "html.parser").stripped_strings)
         web_segments = []
         
-        split_lines = False
-        
-        if(len(web_text.split("\n\n")) <= 1):
-            logger.warning("Web page does not have paragraphs. Splitting by line")
-            split_lines = True
-            split_web_text = web_text.split("\n")
-        else:
-            split_web_text = web_text.split("\n\n")
-        
-        for i,entry in enumerate(split_web_text):
-            if(split_lines):
-                metadata = {
-                    'source': 'web_url',
-                    'url': file,
-                    'line': i + 1
-                }
-            else:
-                metadata = {
-                    'source': 'web_url',
-                    'url': file,
-                    'paragraph': i + 1
-                }
-            doc = Document(page_content=entry,metadata = metadata)
+        words_per_page = 500
+        words = web_text.split()
+        num_words = len(words)
+        num_pages = (num_words // words_per_page) + (1 if num_words % words_per_page > 0 else 0)
+
+        for i in range(num_pages):
+            start_idx = i * words_per_page
+            end_idx = min((i+1) * words_per_page, num_words)
+            page_content = ' '.join(words[start_idx:end_idx])
+            metadata = {'source': 'web_url', 'page_number': i + 1}
+            doc = Document(page_content=page_content,metadata = metadata)
             web_segments.append(doc)
             
         if(specific_list is not None):
-            if(split_lines):
-                filtered_segments = [doc for doc in web_segments if doc.metadata['line'] in specific_list]
-            else:
-                filtered_segments = [doc for doc in web_segments if doc.metadata['paragraph'] in specific_list]
+            filtered_segments = [doc for doc in web_segments if doc.metadata['page_number'] in specific_list]
         else:
-            filtered_segments = [doc for doc in web_segments if section_start <= doc.metadata['line'] <= section_end]
-            
+            filtered_segments = [doc for doc in web_segments if section_start <= doc.metadata['page_number'] <= section_end]
+        
         self.documents.extend(filtered_segments)
         
-    
     def process_youtube(self, file: str, section_start:float,section_end:float):
         
         video_id = file.split("v=")[1].split("&")[0]
