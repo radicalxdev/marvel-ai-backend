@@ -18,3 +18,4 @@ pytube
 python-docx
 pandas
 python-pptx
+beautifulsoup4

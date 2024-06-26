@@ -85,6 +85,7 @@ class WebPageLoader:
             doc = Document(page_content=html_content, metadata={"source": self.url})
 
             # Initialize the BeautifulSoupTransformer
+
             bs_transformer = BeautifulSoupTransformer()
 
             # Transform the document
