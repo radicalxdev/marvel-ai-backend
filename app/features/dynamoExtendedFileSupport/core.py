@@ -1,8 +1,5 @@
 from services.logger import setup_logger
-from features.dynamoExtendedFileSupport.tools import file_loader_map, generate_concepts_from_img, gfile_loader_map, get_summary
-from utils.allowed_file_extensions import FileType, GFileType
-from utils.extract_url_file_extension import get_file_extension
-from api.error_utilities import FileHandlerError
+from features.dynamoExtendedFileSupport.tools import get_summary, generate_flashcards
 
 logger = setup_logger(__name__)
 
@@ -10,44 +7,17 @@ def executor(file_url: str, app_type: str, verbose=True):
     if (verbose):
         logger.info(f"File URL loaded: {file_url}")
 
-    if(app_type=="1"):
-        file_type = get_file_extension(file_url)
-        try:
-            file_loader = file_loader_map[FileType(file_type.lower())]
-            full_content = file_loader(file_url, verbose)
-            if file_type == "csv" or file_type == "xls" or file_type == "xlsx":
-                prompt = "prompt/summarize-xlsx-csv-prompt.txt"
-            else:
-                prompt = "prompt/summarize-prompt.txt"
-            summary = get_summary(prompt, full_content)
-            return summary
-        except Exception as e:
-            logger.error(f"Unsupported file type: {file_type}")
-            raise FileHandlerError(f"Unsupported file type", file_url) from e
-    elif (app_type[0]=="2"):
-        file_type = app_type[4:].lower()
-        try:
-            file_loader = file_loader_map[FileType(file_type)]
-            full_content = file_loader(file_url, verbose)
-            prompt = "prompt/summarize-prompt.txt"
-            summary = get_summary(prompt, full_content)
-            return summary
-        except Exception as e:
-            logger.error(f"Invalid URL: {file_url}")
-            raise FileHandlerError(f"Invalid URL", file_url) from e
-    elif(app_type[0]=="3"):  
-        file_type = app_type[4:].lower()      
-        try:
-            file_loader = gfile_loader_map[GFileType(file_type)]
-            full_content = file_loader(file_url, verbose)
-            if file_type == "sheet":
-                prompt = "prompt/summarize-xlsx-csv-prompt.txt"
-            else:
-                prompt = "prompt/summarize-prompt.txt"
-            summary = get_summary(prompt, full_content)
-            return summary
-        except Exception as e:
-            logger.error(f"Unsupported file type in Google Drive: {file_type}")
-            raise FileHandlerError(f"Unsupported file type for Google Drive", file_url) from e
-    elif(app_type=="4"):
-        return generate_concepts_from_img(file_url)
+    summary = get_summary(file_url, app_type, verbose=verbose)
+    flashcards = generate_flashcards(summary, verbose)
+
+    sanitized_flashcards = []
+    for flashcard in flashcards:
+        if 'concept' in flashcard and 'definition' in flashcard:
+            sanitized_flashcards.append({
+                "concept": flashcard['concept'],
+                "definition": flashcard['definition']
+            })
+        else:
+            logger.warning(f"Malformed flashcard skipped: {flashcard}")
+
+    return sanitized_flashcards 
