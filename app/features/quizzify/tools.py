@@ -2,7 +2,7 @@ from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
-from urllib.parse import urlparse
+from urllib.parse import parse_qs,urlparse
 import requests
 import os
 import json
@@ -21,6 +21,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_community.document_transformers import BeautifulSoupTransformer
 from youtube_transcript_api import YouTubeTranscriptApi
+from langchain_community.document_loaders.base import BaseLoader
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -29,6 +30,15 @@ from api.error_utilities import LoaderError
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
+
+ALLOWED_NETLOCK = {
+    "youtu.be",
+    "m.youtube.com",
+    "youtube.com",
+    "www.youtube.com",
+    "www.youtube-nocookie.com",
+    "vid.plus",
+}
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -93,63 +103,145 @@ class WebPageLoader:
 
         return documents
     
+class YouTubeLoader(BaseLoader):
+    def __init__(
+        self,
+            youtube_url: str,
+            start_time : float = None,
+            end_time : float = None,
+            add_video_info: bool = False,
+            continue_on_failure: bool = False
+        
+        ):
+            """Initialize with YouTube video ID."""
+            self.youtube_url = youtube_url
+            self.start_time = start_time
+            self.end_time = end_time
+            self.add_video_info = add_video_info
+            self.language = ["en"]
+            self.continue_on_failure = continue_on_failure
 
+    def extract_video_id(self,youtube_url: str) -> str:
+        """Extract video id from common YT urls."""
+        parsed_url = urlparse(youtube_url)
+        path = parsed_url.path
 
-class YoutubeLoader:
-    def __init__(self, url: str, verbose=False):
-        self.url = url
-        self.verbose = verbose
+        if path.endswith("/watch"):
+            query = parsed_url.query
+            parsed_query = parse_qs(query)
+            if "v" in parsed_query:
+                ids = parsed_query["v"]
+                video_id = ids if isinstance(ids, str) else ids[0]
+            else:
+                video_id =  None
+        else:
+            path = parsed_url.path.lstrip("/")
+            video_id = path.split("/")[-1]
+
+        if not video_id and len(video_id) != 11:  # Video IDs are 11 characters long
+            raise ValueError(
+                f"Could not determine the video ID for the URL {youtube_url}"
+            )
+        else:
+            return video_id
+        
+    # Filer transcript text by time stamp
+    def filter_dicts_by_time_stamp(self,list_of_dicts, start=None, end=None):
+    # Define the filtering function based on the provided min and/or max values
+        def is_within_range(d):
+            if start is not None and float(d['start']) < float(start):
+                return False
+            if end is not None and float(d['start']) > float(end):
+                return False
+            return True
+        # Apply the filtering function to the list
+        return [d for d in list_of_dicts if is_within_range(d)]
 
     def load(self) -> List[Document]:
-        documents = []
-        video_id = self.extract_video_id(self.url)
+        """Load documents."""
+        try:
+            from youtube_transcript_api import (
+                NoTranscriptFound,
+                TranscriptsDisabled,
+                YouTubeTranscriptApi,
+            )
+        except ImportError:
+            raise ImportError(
+                "Could not import youtube_transcript_api python package. "
+                "Please install it with `pip install youtube-transcript-api`."
+            )
+        
+        video_id = self.extract_video_id(self.youtube_url)
+        metadata = {"source": video_id}
+
+        if self.add_video_info:
+            # Get more video meta info
+            # Such as title, description, thumbnail url, publish_date
+            video_info = self._get_video_info()
+            metadata.update(video_info)
 
         try:
-            transcript = self.fetch_transcript(video_id)
-            text_content = self.create_text_content(transcript)
-            doc = self.create_document(text_content, self.url)
-            documents.append(doc)
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        except TranscriptsDisabled:
+            return []
 
-            if self.verbose:
-                print(f"Successfully loaded and transformed content from {self.url}")
-        except Exception as e:
-            if self.verbose:
-                print(f"Failed to load content from {self.url}")
-                print(e)
+        try:
+            transcript = transcript_list.find_transcript(self.language)
 
-        if not documents and self.verbose:
-            print("Unable to load any content from the URL")
+        except NoTranscriptFound:
+            transcript = transcript_list.find_transcript(["en"])
 
-        return documents
+        transcript_pieces = transcript.fetch()
+        
+        # Time Stamp Retrieval
+        filetred_transcrpit_peices =[]
+        filetred_transcrpit_peices = self.filter_dicts_by_time_stamp(list_of_dicts=transcript_pieces,start=self.start_time,end=self.end_time)
+        
+        # check if there is any transcripts within the time stamps
+        if not len(filetred_transcrpit_peices) > 0:
+            raise ValueError(f"No video transcripts available for given time stamps")
 
-    def extract_video_id(self, url: str) -> str:
-        # Extract the video ID from the URL
-        if 'v=' in url:
-            return url.split('v=')[1].split('&')[0]
-        else:
-            raise ValueError("Invalid YouTube URL")
+        transcript = " ".join([t["text"].strip(" ") for t in filetred_transcrpit_peices])
 
-    def fetch_transcript(self, video_id: str):
-        # Fetch transcript using YouTubeTranscriptApi
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        return transcript
+        return [Document(page_content=transcript, metadata=metadata)]
 
-    def create_text_content(self, transcript):
-        # Create plain text content from the transcript
-        text_content = "Transcript\n\n"
-        for entry in transcript:
-            start_time = entry['start']
-            minutes = int(start_time // 60)
-            seconds = int(start_time % 60)
-            timestamp = f"{minutes}:{seconds:02d}"
-            text_content += f"{timestamp}\n{entry['text']}\n\n"
-        return text_content
 
-    def create_document(self, text_content, url):
-        # Create a Document object with page content and metadata
-        doc = Document(page_content=text_content, metadata={"source": url})
-        return doc
+    def _get_video_info(self) -> dict:
+        """Get important video information.
+
+        Components are:
+            - title
+            - description
+            - thumbnail url,
+            - publish_date
+            - channel_author
+            - and more.
+        """
+        try:
+            from pytube import YouTube
+
+        except ImportError:
+            raise ImportError(
+                "Could not import pytube python package. "
+                "Please install it with `pip install pytube`."
+            )
+        video_id = self.extract_video_id(self.youtube_url)
+        yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+        video_info = {
+            "title": yt.title or "Unknown",
+            "description": yt.description or "Unknown",
+            "view_count": yt.views or 0,
+            "thumbnail_url": yt.thumbnail_url or "Unknown",
+            "publish_date": yt.publish_date.strftime("%Y-%m-%d %H:%M:%S")
+            if yt.publish_date
+            else "Unknown",
+            "length": yt.length or 0,
+            "author": yt.author or "Unknown",
+        }
+        return video_info
     
+
+
 class RAGRunnable:
     def __init__(self, func):
         self.func = func
@@ -339,9 +431,9 @@ class URLLoader:
                         logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
                 elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
-                    #Handle Youtube Transcript Loading
-                    youtube_loader = YoutubeLoader(url, self.verbose)
-                    youtube_documents = youtube_loader.load()
+                    #Handle Youtube Transcript Loading                    
+                    youtube_loader = YouTubeLoader(youtube_url = url)                    
+                    youtube_documents = youtube_loader.load()                    
                     documents.extend(youtube_documents)
                     any_success = True
 
