@@ -123,7 +123,7 @@ class YouTubeLoader(BaseLoader):
             self.language = ["en"]
             self.continue_on_failure = continue_on_failure
 
-    def extract_video_id(youtube_url: str) -> str:
+    def extract_video_id(self,youtube_url: str) -> str:
         """Extract video id from common YT urls."""
         parsed_url = urlparse(youtube_url)
         path = parsed_url.path
@@ -200,11 +200,11 @@ class YouTubeLoader(BaseLoader):
         filetred_transcrpit_peices = self.filter_dicts_by_time_stamp(list_of_dicts=transcript_pieces,start=self.start_time,end=self.end_time)
         
         # check if there is any transcripts within the time stamps
-        if not len(self.filetred_transcrpit_peices) > 0:
+        if not len(filetred_transcrpit_peices) > 0:
             raise ValueError(f"No video transcripts available for given time stamps")
- 
 
         transcript = " ".join([t["text"].strip(" ") for t in filetred_transcrpit_peices])
+
         return [Document(page_content=transcript, metadata=metadata)]
 
 
@@ -241,62 +241,6 @@ class YouTubeLoader(BaseLoader):
             "author": yt.author or "Unknown",
         }
         return video_info
-
-
-class YoutubeLoader:
-    def __init__(self, url: str, verbose=False):
-        self.url = url
-        self.verbose = verbose
-
-    def load(self) -> List[Document]:
-        documents = []
-        video_id = self.extract_video_id(self.url)
-
-        try:
-            transcript = self.fetch_transcript(video_id)
-            text_content = self.create_text_content(transcript)
-            doc = self.create_document(text_content, self.url)
-            documents.append(doc)
-
-            if self.verbose:
-                print(f"Successfully loaded and transformed content from {self.url}")
-        except Exception as e:
-            if self.verbose:
-                print(f"Failed to load content from {self.url}")
-                print(e)
-
-        if not documents and self.verbose:
-            print("Unable to load any content from the URL")
-
-        return documents
-
-    def extract_video_id(self, url: str) -> str:
-        # Extract the video ID from the URL
-        if 'v=' in url:
-            return url.split('v=')[1].split('&')[0]
-        else:
-            raise ValueError("Invalid YouTube URL")
-
-    def fetch_transcript(self, video_id: str):
-        # Fetch transcript using YouTubeTranscriptApi
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        return transcript
-
-    def create_text_content(self, transcript):
-        # Create plain text content from the transcript
-        text_content = "Transcript\n\n"
-        for entry in transcript:
-            start_time = entry['start']
-            minutes = int(start_time // 60)
-            seconds = int(start_time % 60)
-            timestamp = f"{minutes}:{seconds:02d}"
-            text_content += f"{timestamp}\n{entry['text']}\n\n"
-        return text_content
-
-    def create_document(self, text_content, url):
-        # Create a Document object with page content and metadata
-        doc = Document(page_content=text_content, metadata={"source": url})
-        return doc
     
 class RAGRunnable:
     def __init__(self, func):
@@ -479,7 +423,6 @@ class URLLoader:
                         if file_type not in self.expected_file_types:
                             raise LoaderError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
                         queued_files.append((file_content, file_type))
-                        print("Queued files successfully")
                         if self.verbose:
                             logger.info(f"Successfully loaded file from {url}")
                         any_success = True
@@ -488,8 +431,7 @@ class URLLoader:
 
                 elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
                     #Handle Youtube Transcript Loading
-                    video_id = 
-                    youtube_loader = YoutubeLoader(url, self.verbose)
+                    youtube_loader = YouTubeLoader(youtube_url=url)
                     youtube_documents = youtube_loader.load()
                     documents.extend(youtube_documents)
                     any_success = True
@@ -662,6 +604,10 @@ class QuizBuilder:
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
+            print("response: ",response,type(response))
+            input()
+            response['question'] = response['question'].replace("```json", "").replace("```", "").replace("\n```", "").replace("\n```json", "")
+
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
             
