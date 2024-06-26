@@ -157,7 +157,7 @@ class FitB:
         return question not in question_bank
     
     def fitb_to_string(self, fitb_dict):
-        return f"{fitb_dict['question']}\n"
+        return f"{fitb_dict['question']}\n\nAnswer: {fitb_dict['answer']}\n"
     
     def create_fill_in_blank(self, num_fill_in_blank) -> str:
         prompt = PromptTemplate(
@@ -187,7 +187,7 @@ class FitB:
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
             
-            if isinstance(response, dict) and 'question' in response:
+            if isinstance(response, dict) and 'question' in response and 'answer' in response:
                 generated_questions.append(response)
                 if self.verbose:
                     logger.info(f"Valid question added: {response}")
@@ -328,4 +328,4 @@ class QuizQuestion(BaseModel):
     # explanation: str = Field(description="An explanation of why the answer is correct")
 class FitBQuestion(BaseModel):
     question: str = Field(description="The question text")
-    # answer: str = Field(description="The correct answer")
+    answer: str = Field(description="The correct answer")
