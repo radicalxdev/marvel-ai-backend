@@ -52,7 +52,59 @@ def read_text_file(file_path):
     with open(absolute_file_path, 'r') as file:
         return file.read()
     
-# Add other loaders here   
+def extract_text_from_docx(docx_file):
+    doc = docx.Document(docx_file)
+    return "\n".join([paragraph.text for paragraph in doc.paragraphs])
+
+def extract_text_from_pptx(pptx_file):
+    prs = Presentation(pptx_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
+    return "\n".join(text_runs)
+
+class WebPageLoader:
+    def __init__(self, url: str, verbose=False):
+        self.url = url
+        self.verbose = verbose
+
+    def load(self) -> List[Document]:
+        documents = []
+        tags_to_extract = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "table"]
+
+        try:
+            response = requests.get(self.url)
+            response.raise_for_status()  # Raise an error for bad status codes
+
+            # Decode HTML content
+            html_content = response.content.decode("utf-8")
+
+            # Create a Document object with the HTML content and metadata
+            doc = Document(page_content=html_content, metadata={"source": self.url})
+
+            # Initialize the BeautifulSoupTransformer
+            bs_transformer = BeautifulSoupTransformer()
+
+            # Transform the document
+            transformed_docs = bs_transformer.transform_documents([doc], tags_to_extract=tags_to_extract)
+            
+            # Add transformed documents to the list
+            documents.extend(transformed_docs)
+
+            if self.verbose:
+                print(f"Successfully loaded and transformed content from {self.url}")
+        except Exception as e:
+            if self.verbose:
+                print(f"Failed to load content from {self.url}")
+                print(e)
+
+        if not documents and self.verbose:
+            print("Unable to load any content from the URL")
+
+        return documents
+    
 class YouTubeLoader(BaseLoader):
     def __init__(
         self,
