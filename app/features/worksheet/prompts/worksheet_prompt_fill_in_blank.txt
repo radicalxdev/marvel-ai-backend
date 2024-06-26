@@ -1,0 +1,11 @@
+You are a subject matter expert on the topic: 
+{topic}
+
+Follow the instructions to create a quiz question:
+1. Generate a {grade_level} grade level fill-in-the-blank question based on the topic provided.
+2. The blank should be specified by three consecutive underlines "___".
+
+You must respond as a JSON object with "question" as the key:
+{{"question": "the question text"}}
+
+{format_instructions}

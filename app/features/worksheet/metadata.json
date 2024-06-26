@@ -19,6 +19,11 @@
             "label": "Number of Multiple Choice Questions",
             "name": "num_multiple_choice",
             "type": "number"
+        },
+        {
+            "label": "Number of Fill in the Blank Questions",
+            "name": "num_fill_in_blank",
+            "type": "number"
         }
     ]
 }
