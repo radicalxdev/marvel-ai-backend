@@ -378,7 +378,7 @@ class URLLoader:
                     else:
                         logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
-                elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
+                elif parsed_url.netloc in ALLOWED_NETLOCK:
                     #Handle Youtube Transcript Loading
                     youtube_loader = YouTubeLoader(youtube_url=url)
                     youtube_documents = youtube_loader.load()
@@ -418,7 +418,7 @@ class RAGpipeline:
             "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
-            "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
+            "embedding_model": VertexAIEmbeddings(model_name='textembedding-gecko')
         }
         self.loader = loader or default_config["loader"]
         self.splitter = splitter or default_config["splitter"]
