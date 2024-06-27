@@ -283,7 +283,7 @@ class WorksheetBuilder:
             "prompt_fill_in_blank": read_text_file("prompts/worksheet_prompt_fill_in_blank.txt"),
             "parser_fill_in_blank": JsonOutputParser(pydantic_object=FitBQuestion),
             "prompt_open_ended": read_text_file("prompts/worksheet_prompt_open_ended_question.txt"),
-            "parser_open_ended": JsonOutputParser(pydantic_object=QuizQuestion)
+            "parser_open_ended": JsonOutputParser(pydantic_object=OpenEndedQuestion)
         }
         
         self.prompt_summary = prompt_summary or default_config["prompt_summary"]
@@ -299,7 +299,7 @@ class WorksheetBuilder:
         self.grade_level = grade_level
         self.verbose = verbose
     
-    def create_worksheets(self, num_worksheets: int = 1, num_multiple_choice: int = 1, num_fill_in_blank: int=1) -> List[str]:
+    def create_worksheets(self, num_worksheets: int = 1, num_multiple_choice: int = 1, num_fill_in_blank: int=1, num_open_ended: int=1) -> List[str]:
         if self.verbose: logger.info(f"Creating {num_multiple_choice} questions")
         
         if num_worksheets > 10:
@@ -315,6 +315,11 @@ class WorksheetBuilder:
         for i in range(num_worksheets):
             generated_fitb = fitb.create_fill_in_blank(num_fill_in_blank)
             generated_worksheets.append(generated_fitb)
+
+        oeq = OEQ(self.model, self.topic, self.grade_level, self.prompt_open_ended, self.parser_open_ended, self.verbose)
+        for i in range(num_worksheets):
+            generated_oeq = oeq.create_open_ended(num_open_ended)
+            generated_worksheets.append(generated_oeq)
         # Return the list of worksheets
         return generated_worksheets
 
@@ -329,3 +334,7 @@ class QuizQuestion(BaseModel):
 class FitBQuestion(BaseModel):
     question: str = Field(description="The question text")
     answer: str = Field(description="The correct answer")
+    
+class OpenEndedQuestion(BaseModel):
+    question: str = Field(description="The open-ended question text")
+    suggested_answer: str = Field(description="A sample or suggested answer to the question")
