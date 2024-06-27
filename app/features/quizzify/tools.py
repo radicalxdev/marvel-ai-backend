@@ -345,58 +345,6 @@ class BytesFileLoader:
             
         return documents
 
-class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_types=None):
-        self.file_paths = file_paths
-        self.expected_file_types = expected_file_types or ["pdf"]
-
-    def load(self) -> List[Document]:
-        documents = []
-        
-        # Ensure file paths is a list
-        self.file_paths = [self.file_paths] if isinstance(self.file_paths, str) else self.file_paths
-    
-        for file_path in self.file_paths:
-            
-            file_type = file_path.split(".")[-1].lower()
-            if file_type not in self.expected_file_types:
-                raise ValueError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
-
-            with open(file_path, 'rb') as file:
-                if file_type == "pdf":
-                    pdf_reader = PdfReader(file)
-                    for i, page in enumerate(pdf_reader.pages):
-                        page_content = page.extract_text()
-                        metadata = {"source": file_path, "page_number": i + 1}
-
-                        doc = Document(page_content=page_content, metadata=metadata)
-                        documents.append(doc)
-
-                elif file_type in ["doc", "docx"]:
-                    page_content = extract_text_from_docx(file)
-                    metadata = {"source": file_path}
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-                elif file_type in ["ppt", "pptx"]:
-                    page_content = extract_text_from_pptx(file)
-                    metadata = {"source": file_path}
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-                elif file_type == "csv":
-                    df = pd.read_csv(file)
-                    page_content = df.to_string()
-                    metadata = {"source": file_path}
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-                else:
-                    raise ValueError(f"Unsupported file type: {file_type}")
-
-                
-
-        return documents
 
 class URLLoader:
     def __init__(self, file_loader=None, expected_file_types=None, verbose=False):
