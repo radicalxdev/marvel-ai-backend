@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 langchain
 langchain-core
-langchain-google-vertexai
+langchain-google-genai
 langchain-chroma
 langchain-community
 google-cloud-secret-manager
@@ -15,6 +15,10 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
+<<<<<<< HEAD:app/requirements.txt
 python-docx
 pandas
 python-pptx
+=======
+python-dotenv
+>>>>>>> ebadf0cd91a387d8c4ea7341face486c5ddc1810:requirements.txt
