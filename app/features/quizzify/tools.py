@@ -17,7 +17,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
-# from langchain_community.document_loaders import PyMuPDFLoader
+from docx import Document as docu
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -69,6 +69,33 @@ class UploadPDFLoader:
                     documents.append(doc)
 
         return documents
+    
+class DocLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "docx":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                docs = docu(file)
+                for page_num, page in enumerate(docs.paragraphs):
+                    page_content = ""
+                    for paragraph in page.runs:
+                        page_content += paragraph.text.strip() + "\n"
+                    metadata = {"page_number": page_num + 1, "source": file_type}
+                    doc = Document(page_content=page_content.rstrip(),metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+    
 
 class BytesFilePDFLoader:
     # Original def __init__(self, files: List[Tuple[BytesIO, str]])
@@ -136,8 +163,8 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
+    def __init__(self, file_loader=None, expected_file_type="docx", verbose=False):
+        self.loader = file_loader or DocLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
 
@@ -158,7 +185,8 @@ class URLLoader:
                     file_content = BytesIO(response.content)
 
                     # Check file type
-                    file_type = path.rsplit(".")[-1]
+                    # file_type = path.rsplit(".")[-1]
+                    file_type = url.rsplit('.')[-1]
                     if file_type != self.expected_file_type:
                         raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
 
