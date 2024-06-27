@@ -43,20 +43,6 @@ def transform_json_dict(input_data: dict) -> dict:
 
     return transformed_data
 
-def has_properties_key(dictionary):
-    """
-    Check if the given dictionary has a 'properties' key.
-    
-    Parameters:
-    dictionary (dict): The dictionary to check.
-    
-    Returns:
-    bool: True if the dictionary has a 'properties' key, False otherwise.
-    """
-    if isinstance(dictionary, dict):
-        return 'properties' in dictionary
-    return False
-
 def read_text_file(file_path):
     # Get the directory containing the script file
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -352,9 +338,7 @@ class QuizBuilder:
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
 
-            appropriate_result = has_properties_key(response)
-
-            if(not appropriate_result):
+            if(not 'properties' in response):
                 response = transform_json_dict(response)
                 # Directly check if the response format is valid
                 if self.validate_response(response):
