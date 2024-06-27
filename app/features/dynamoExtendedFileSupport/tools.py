@@ -8,26 +8,29 @@ from langchain_community.document_loaders import UnstructuredPowerPointLoader
 from langchain_community.document_loaders import Docx2txtLoader
 from langchain_community.document_loaders import UnstructuredExcelLoader
 from langchain_community.document_loaders import UnstructuredXMLLoader
-from utils.allowed_file_extensions import FileType, GFileType
-import os
-import tempfile
-import uuid
-import requests
-
+from langchain.prompts import PromptTemplate
+from langchain_google_genai import GoogleGenerativeAI
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.messages import HumanMessage
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.output_parsers import JsonOutputParser
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from utils.allowed_file_extensions import FileType, GFileType
 from api.error_utilities import FileHandlerError, ImageHandlerError
-from langchain.prompts import PromptTemplate
-from langchain_google_genai import GoogleGenerativeAI
+from utils.extract_url_file_extension import get_file_extension
 
+import os
+import tempfile
+import uuid
+import requests
 import gdown
-
+from fastapi import HTTPException
 
 logger = setup_logger(__name__)
+
+# AI Model
+model = GoogleGenerativeAI(model="gemini-1.0-pro")
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size = 1000,
@@ -43,10 +46,90 @@ def build_chain(prompt: str):
     chain = summarize_prompt | summarize_model 
     return chain
 
-def get_summary(prompt: str, full_content: str):
-    chain = build_chain(prompt)
-    return chain.invoke(full_content)
+def get_summary(file_url: str, app_type: str, verbose=True):
 
+    if(app_type=="1"):
+
+        file_type = get_file_extension(file_url)
+        try:
+            file_loader = file_loader_map[FileType(file_type.lower())]
+            full_content = file_loader(file_url, verbose)
+            if file_type == "csv" or file_type == "xls" or file_type == "xlsx":
+                prompt = "prompt/summarize-xlsx-csv-prompt.txt"
+            else:
+                prompt = "prompt/summarize-prompt.txt"
+            
+            chain = build_chain(prompt)
+            return chain.invoke(full_content)
+        
+        except Exception as e:
+            logger.error(f"Unsupported file type: {file_type}")
+            raise FileHandlerError(f"Unsupported file type", file_url) from e
+        
+    elif (app_type[0]=="2"):
+
+        file_type = app_type[4:].lower()
+        try:
+            file_loader = file_loader_map[FileType(file_type)]
+            full_content = file_loader(file_url, verbose)
+            prompt = "prompt/summarize-prompt.txt"
+
+            chain = build_chain(prompt)
+            return chain.invoke(full_content)
+        
+        except Exception as e:
+            logger.error(f"Invalid URL: {file_url}")
+            raise FileHandlerError(f"Invalid URL", file_url) from e
+        
+    elif(app_type[0]=="3"):  
+
+        file_type = app_type[4:].lower()    
+        try:
+            file_loader = gfile_loader_map[GFileType(file_type)]
+            full_content = file_loader(file_url, verbose)
+            if file_type == "sheet":
+                prompt = "prompt/summarize-xlsx-csv-prompt.txt"
+            else:
+                prompt = "prompt/summarize-prompt.txt"
+
+            chain = build_chain(prompt)
+            return chain.invoke(full_content)
+        
+        except Exception as e:
+            logger.error(f"Unsupported file type in Google Drive: {file_type}")
+            raise FileHandlerError(f"Unsupported file type for Google Drive", file_url) from e
+   
+    elif(app_type=="4"):
+        return generate_concepts_from_img(file_url)
+
+
+def generate_flashcards(summary: str, verbose=False) -> list:
+    # Receive the summary from the map reduce chain and generate flashcards
+    parser = JsonOutputParser(pydantic_object=Flashcard)
+
+    if verbose: logger.info(f"Beginning to process flashcards from summary")
+
+    template = read_text_file("prompt/dynamo-prompt.txt")
+    examples = read_text_file("prompt/examples.txt")
+    
+    cards_prompt = PromptTemplate(
+        template=template,
+        input_variables=["summary", "examples"],
+        partial_variables={"format_instructions": parser.get_format_instructions()}
+    )
+    
+    cards_chain = cards_prompt | model | parser
+    
+    try:
+        response = cards_chain.invoke({"summary": summary, "examples": examples})
+    except Exception as e:
+        logger.error(f"Failed to generate flashcards from LLM: {e}")
+        response = []
+        
+    return response
+
+
+# custom document loaders
 def read_text_file(file_path):
     # Get the directory containing the script file
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -394,7 +477,12 @@ def generate_concepts_from_img(img_url):
         logger.error(f"Error processing the request due to Invalid Content or Invalid Image URL")
         raise ImageHandlerError(f"Error processing the request", img_url) from e
     
-    return parser.parse(response)
+    try:
+        response = parser.parse(response)
+    except Exception as e:
+        response = []
+        
+    return response
 
 
 class Flashcard(BaseModel):
