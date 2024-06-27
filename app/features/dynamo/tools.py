@@ -1,13 +1,18 @@
-from langchain_community.document_loaders import YoutubeLoader
+from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.chains.summarize import load_summarize_chain
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.documents import Document
+from app.services.tool_registry import ToolFile
+from app.api.error_utilities import LoaderError
+from typing import List, Tuple, Dict, Any
 from app.api.error_utilities import VideoTranscriptError
 from fastapi import HTTPException
 from app.services.logger import setup_logger
+import requests
 import os
 
 
@@ -26,6 +31,127 @@ def read_text_file(file_path):
     
     with open(absolute_file_path, 'r') as file:
         return file.read()
+
+class PDFSubLoader():
+    def __init__(self, file_url):
+        self.file_url = file_url
+    
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            loader = PyPDFLoader(self.file_url)
+            pages = loader.load_and_split()
+            for i, page in enumerate(pages):
+                page_content = page.page_content
+                metadata = {"page_number": i + 1}
+
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+        
+        except Exception as e:
+                logger.error(f"Failed to load file from PDF sub loader")
+                logger.error(e)
+
+        return documents
+
+class URLLoader:
+    def __init__(self, file_loader=None, verbose=False):
+        self.loader = file_loader
+        self.verbose = verbose
+
+    def load(self, tool_files: List[ToolFile]) -> List[Document]:
+        documents_list = []
+        any_success = False
+
+        for tool_file in tool_files:
+            try:
+                url = tool_file.url
+                response = requests.get(url)
+                file_type = tool_file.filename.split(".")[-1]
+
+                # Check response status
+                if response.status_code == 200:
+                    if file_type == "pdf":
+                        self.loader = PDFSubLoader(url)
+                    elif file_type == "pptx":
+                        pass
+                    else:
+                        logger.error(f"Unsupported file type: {file_type}")
+                        continue
+                    
+                    if self.verbose:
+                        logger.info(f"Successfully loaded file from {url}, type {file_type}")
+
+                    any_success = True  # Mark that at least one file was successfully loaded
+                else:
+                    logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
+
+            except Exception as e:
+                logger.error(f"Failed to load file from {url}")
+                logger.error(e)
+                continue
+        
+        # Load file if reponse successful
+        if any_success:
+            document = self.loader.load()
+            documents_list.extend(document)
+
+            if self.verbose:
+                logger.info(f"Loaded {len(documents_list)} documents")
+
+        if not any_success:
+            raise LoaderError("Unable to load any files from URLs")
+
+        return documents_list
+
+def get_youtube_doc(youtube_url: str, max_video_length=600, verbose=False) -> List[Document]:
+    try:
+        loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
+    except Exception as e:
+        logger.error(f"No such video found at {youtube_url}")
+        raise VideoTranscriptError(f"No video found", youtube_url) from e
+    
+    try:
+        docs = loader.load()
+        length = docs[0].metadata["length"]
+        title = docs[0].metadata["title"]
+        if length > max_video_length:
+            raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
+
+        if verbose:
+            logger.info(f"Found video with title: {title} and length: {length}")
+            logger.info(f"Generate documents from youtube video.")
+        
+        return docs
+    
+    except Exception as e:
+        logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
+        raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
+
+def summarize_docs(documents) -> str:
+    try:
+        summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
+        chain = load_summarize_chain(summarize_model, chain_type="map_reduce")
+        result = chain.invoke(documents)
+    
+    except Exception as e:
+        logger.error(f"Summarize error: {e}")
+    
+    # TODO 
+    # Evaluate Summary Quality
+    
+    return result["output_text"]
+
+def load_documents(youtube_url: str, files: list[ToolFile]):
+    documents = []
+    if youtube_url:
+        documents.extend(get_youtube_doc(youtube_url))
+    if files:
+        loader = URLLoader()
+        docs = loader.load(files)
+        documents.extend(docs)
+    
+    return documents
 
 # Summarize chain
 def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) -> str:
