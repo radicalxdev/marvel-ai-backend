@@ -153,8 +153,11 @@ class FitB:
         self.parser_fill_in_blank = parser_fill_in_blank
         self.verbose = verbose
     
-    def is_unique(self, question, question_bank):
-        return question not in question_bank
+    def validate_fitb_format_and_uniqueness(self, response, question_bank):
+        if isinstance(response, dict) and 'question' in response and 'answer' in response:
+            return response.get('question') not in question_bank
+        else:
+            return False
     
     def fitb_to_string(self, fitb_dict):
         return f"{fitb_dict['question']}\n\nAnswer: {fitb_dict['answer']}\n"
@@ -177,21 +180,17 @@ class FitB:
 
         while len(generated_questions) < num_fill_in_blank and attempts < max_attempts:
             response = chain.invoke({"topic": self.topic, "grade_level": self.grade_level})
-            question = response.get('question')
-            if self.is_unique(question, question_bank):
-                question_bank.add(question)
-            else:
-                attempts += 1
-                continue
 
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
             
-            if isinstance(response, dict) and 'question' in response and 'answer' in response:
+            if self.validate_fitb_format_and_uniqueness(response, question_bank):
+                question = response.get('question')
+                question_bank.add(question)
                 generated_questions.append(response)
                 if self.verbose:
-                    logger.info(f"Valid question added: {response}")
-                    logger.info(f"Total generated questions: {len(generated_questions)}")
+                    logger.info(f"Valid fill in the blank question added: {response}")
+                    logger.info(f"Total generated fill in the blank questions: {len(generated_questions)}")
             else:
                 if self.verbose:
                     logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
