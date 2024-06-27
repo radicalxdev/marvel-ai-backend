@@ -123,9 +123,9 @@ def generate_flashcards(summary: str, verbose=False) -> list:
     try:
         response = cards_chain.invoke({"summary": summary, "examples": examples})
     except Exception as e:
-        logger.error(f"Failed to generate flashcards: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate flashcards from LLM")
-    
+        logger.error(f"Failed to generate flashcards from LLM: {e}")
+        response = []
+        
     return response
 
 
@@ -477,7 +477,12 @@ def generate_concepts_from_img(img_url):
         logger.error(f"Error processing the request due to Invalid Content or Invalid Image URL")
         raise ImageHandlerError(f"Error processing the request", img_url) from e
     
-    return parser.parse(response)
+    try:
+        response = parser.parse(response)
+    except Exception as e:
+        response = []
+        
+    return response
 
 
 class Flashcard(BaseModel):
