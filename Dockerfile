@@ -15,5 +15,7 @@ COPY ./app /code/app
 # When set to production, API Key on endpoint requests are the actual API Key
 
 ENV PYTHONPATH=/code/app
+ENV ENV_TYPE="dev"
+
 
 CMD ["fastapi", "dev", "app/main.py", "--host=0.0.0.0", "--port=8000"]

@@ -15,10 +15,8 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
-<<<<<<< HEAD:app/requirements.txt
 python-docx
 pandas
+beautifulsoup4
 python-pptx
-=======
 python-dotenv
->>>>>>> ebadf0cd91a387d8c4ea7341face486c5ddc1810:requirements.txt

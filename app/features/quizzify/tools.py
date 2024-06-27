@@ -1,22 +1,14 @@
 from typing import List, Tuple, Dict, Any
-from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
-from urllib.parse import parse_qs,urlparse
+from urllib.parse import parse_qs, urlparse
 import requests
 import os
 import json
 import time
 import docx
 from pptx import Presentation
-from urllib.parse import parse_qs, urlparse
-import pandas as pd
-import json
-import time
-import docx
-from pptx import Presentation
-from urllib.parse import parse_qs, urlparse
 import pandas as pd
 
 from langchain_core.documents import Document
@@ -28,6 +20,9 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.document_transformers import BeautifulSoupTransformer
+from langchain_community.document_loaders.base import BaseLoader
+from youtube_transcript_api import YouTubeTranscriptApi
 
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
@@ -36,6 +31,15 @@ from app.api.error_utilities import LoaderError
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
+
+ALLOWED_NETLOCK = {
+    "youtu.be",
+    "m.youtube.com",
+    "youtube.com",
+    "www.youtube.com",
+    "www.youtube-nocookie.com",
+    "vid.plus",
+}
 
 def transform_json_dict(input_data: dict) -> dict:
     # Validate and parse the input data to ensure it matches the QuizQuestion schema
@@ -97,6 +101,7 @@ class WebPageLoader:
             doc = Document(page_content=html_content, metadata={"source": self.url})
 
             # Initialize the BeautifulSoupTransformer
+
             bs_transformer = BeautifulSoupTransformer()
 
             # Transform the document
@@ -253,9 +258,7 @@ class YouTubeLoader(BaseLoader):
             "author": yt.author or "Unknown",
         }
         return video_info
-    
-  
-    
+
 class RAGRunnable:
     def __init__(self, func):
         self.func = func
@@ -358,69 +361,19 @@ class BytesFileLoader:
             
         return documents
 
-class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_types=None):
-        self.file_paths = file_paths
-        self.expected_file_types = expected_file_types or ["pdf"]
-
-    def load(self) -> List[Document]:
-        documents = []
-        
-        # Ensure file paths is a list
-        self.file_paths = [self.file_paths] if isinstance(self.file_paths, str) else self.file_paths
-    
-        for file_path in self.file_paths:
-            
-            file_type = file_path.split(".")[-1].lower()
-            if file_type not in self.expected_file_types:
-                raise ValueError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
-
-            with open(file_path, 'rb') as file:
-                if file_type == "pdf":
-                    pdf_reader = PdfReader(file)
-                    for i, page in enumerate(pdf_reader.pages):
-                        page_content = page.extract_text()
-                        metadata = {"source": file_path, "page_number": i + 1}
-
-                        doc = Document(page_content=page_content, metadata=metadata)
-                        documents.append(doc)
-
-                elif file_type in ["doc", "docx"]:
-                    page_content = extract_text_from_docx(file)
-                    metadata = {"source": file_path}
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-                elif file_type in ["ppt", "pptx"]:
-                    page_content = extract_text_from_pptx(file)
-                    metadata = {"source": file_path}
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-                elif file_type == "csv":
-                    df = pd.read_csv(file)
-                    page_content = df.to_string()
-                    metadata = {"source": file_path}
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-                else:
-                    raise ValueError(f"Unsupported file type: {file_type}")
-
-                
-
-        return documents
 
 class URLLoader:
     def __init__(self, file_loader=None, expected_file_types=None, verbose=False):
         self.loader = file_loader or BytesFileLoader
-        self.expected_file_types = expected_file_types or ["pdf", "doc", "docx", "ppt", "pptx", "csv"]
+        self.expected_file_types = expected_file_types or ["pdf", "doc", "docx", "ppt", "pptx", "csv"]        
         self.verbose = verbose
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
         any_success = False
+
+        expected_file_extensions = tuple(self.expected_file_types)
 
         for tool_file in tool_files:
             try:
@@ -429,7 +382,7 @@ class URLLoader:
                 parsed_url = urlparse(url)                
                 path = parsed_url.path
                                 
-                if path.endswith(('.pdf', '.doc', '.docx', '.ppt', '.pptx', '.csv')):
+                if path.endswith(expected_file_extensions):
                                       
                     if response.status_code == 200:
                         file_content = BytesIO(response.content)
@@ -443,7 +396,7 @@ class URLLoader:
                     else:
                         logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
-                elif parsed_url.netloc in ["youtu.be","m.youtube.com","youtube.com","www.youtube.com","www.youtube-nocookie.com","vid.plus"]:
+                elif parsed_url.netloc in ALLOWED_NETLOCK:
                     #Handle Youtube Transcript Loading
                     youtube_loader = YouTubeLoader(youtube_url=url)
                     youtube_documents = youtube_loader.load()
@@ -476,7 +429,6 @@ class URLLoader:
         return documents
 
 
-
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
@@ -503,15 +455,7 @@ class RAGpipeline:
         except LoaderError as e:
             logger.error(f"Loader experienced error: {e}")
             raise LoaderError(e)
-
-        logger.debug(f"Loader is a: {type(self.loader)}")
-        
-        try:
-            total_loaded_files = self.loader.load(files)
-        except LoaderError as e:
-            logger.error(f"Loader experienced error: {e}")
-            raise LoaderError(e)
-
+            
         return total_loaded_files
     
     def split_loaded_documents(self, loaded_documents: List[Document]) -> List[Document]:
