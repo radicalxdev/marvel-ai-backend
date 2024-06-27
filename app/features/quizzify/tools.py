@@ -357,6 +357,8 @@ class URLLoader:
         documents = []
         any_success = False
 
+        expected_file_extensions = tuple(self.expected_file_types)
+
         for tool_file in tool_files:
             try:
                 url = tool_file.url
@@ -364,7 +366,7 @@ class URLLoader:
                 parsed_url = urlparse(url)                
                 path = parsed_url.path
                                 
-                if path.endswith(('.pdf', '.doc', '.docx', '.ppt', '.pptx', '.csv')):
+                if path.endswith(expected_file_extensions):
                                       
                     if response.status_code == 200:
                         file_content = BytesIO(response.content)

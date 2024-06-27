@@ -230,7 +230,7 @@ Sample JSON requests for each of these loaders are as follows:
         "inputs": [
             {
                 "name": "topic",
-                "value": "stoic philosophy"
+                "value": "Negative thoughts"
             },
             {
                 "name": "num_questions",
