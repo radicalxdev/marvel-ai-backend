@@ -26,12 +26,14 @@ jobs:
           credentials_json: ${{ secrets.PRODUCTION_CREDENTIALS_JSON }}
 
       # Dynamically Update app.yaml
-      - name: Update app.yaml
+      - name: Update app.yaml with env variables
         run: |
-          echo "" >> app/app.yaml
-          echo "env_variables:" >> app/app.yaml
-          echo "  ENV_TYPE: '${{ env.ENV_TYPE }}'" >> app/app.yaml
-          echo "  PROJECT_ID: '${{ env.PROJECT_ID }}'" >> app/app.yaml
+          echo "" >> app.yaml
+          echo "env_variables:" >> app.yaml
+          echo "  ENV_TYPE: '${{ env.ENV_TYPE }}'" >> app.yaml
+          echo "  PROJECT_ID: '${{ env.PROJECT_ID }}'" >> app.yaml
+          echo "  GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'" >> app.yaml
+          echo "  PYTHONPATH: app/" >> app.yaml
 
       - name: "Set up Cloud SDK"
         uses: "google-github-actions/setup-gcloud@v1"
@@ -42,5 +44,5 @@ jobs:
         if: github.ref == 'refs/heads/main'
         uses: "google-github-actions/deploy-appengine@v0.2.0"
         with:
-          deliverables: app/app.yaml
+          deliverables: app.yaml
           version: v1
