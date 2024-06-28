@@ -1,6 +1,8 @@
 import streamlit as st
-from langchain.document_loaders import (
+from langchain_community.document_loaders import (
     PyPDFLoader,
+    UnstructuredWordDocumentLoader,
+    UnstructuredPowerPointLoader,
     TextLoader,
     CSVLoader,
     PyMuPDFLoader,
@@ -22,10 +24,17 @@ class DocumentProcessor:
         self.processed_urls = set()  # Set to store processed URLs
 
     def ingest_documents(self):
+        if 'convertButton' not in st.session_state:
+            st.session_state.convertButton = 0
         st.header("Upload Documents/Media")
 
+        fileTypes = ["pdf", "docx", "doc", "pptx", "ppt", "txt", "csv"]
+        
         # File uploader
-        uploaded_files = st.file_uploader("Choose files", type=["pdf", "docx", "doc", "pptx", "ppt", "txt", "csv"], accept_multiple_files=True)
+        uploaded_files = st.file_uploader("Choose files", type=fileTypes, accept_multiple_files=True)
+
+        for files in uploaded_files:
+            st.write("Specify any specific pages for " + files.name)
 
         # URL input
         urls = st.text_input("Enter URLs separated by comma")
@@ -35,16 +44,20 @@ class DocumentProcessor:
                 url = url.strip()
                 if url and url not in self.processed_urls:  # Check if URL is not empty and already processed
                     self.process_url(url)
-
+        st.write(st.session_state.convertButton)
         if uploaded_files:
             for uploaded_file in uploaded_files:
-                self.process_file(uploaded_file)
+                self.process_file(uploaded_file, st.session_state.convertButton)
+        
+        if st.button("Convert to quiz"):
+            st.session_state.convertButton = 1
 
-        if self.pages:
-            st.write(f"Total pages/content processed: {len(self.pages)}")
-            print(self.pages)
-        else:
-            st.write("No files or URLs processed.")
+
+            if self.pages:
+                st.write(f"Total pages/content processed: {len(self.pages)}")
+                print(self.pages)
+            elif not self.pages:
+                st.write("No files or URLs processed.")
 
     def process_url(self, url):
         try:
@@ -70,7 +83,7 @@ class DocumentProcessor:
         except Exception as e:
             st.error(f"Error processing URL: {e}")
 
-    def process_file(self, uploaded_file):
+    def process_file(self, uploaded_file, isButton):
         file_extension = os.path.splitext(uploaded_file.name)[1].lower()
         unique_id = uuid.uuid4().hex
         original_name, _ = os.path.splitext(uploaded_file.name)
@@ -82,18 +95,52 @@ class DocumentProcessor:
 
         if file_extension == ".pdf":
             loader = PyPDFLoader(temp_file_path)
-        elif file_extension in [".docx", ".doc", ".pptx", ".ppt"]:
-            loader = PyMuPDFLoader(temp_file_path)
+        elif file_extension in [".docx", ".doc"]:
+            loader = UnstructuredWordDocumentLoader(temp_file_path)
+        elif file_extension in [".pptx", ".ppt"]:
+            loader = UnstructuredPowerPointLoader(temp_file_path)
         elif file_extension == ".txt":
             loader = TextLoader(temp_file_path)
         elif file_extension == ".csv":
             loader = CSVLoader(temp_file_path)
         else:
             loader = UnstructuredFileLoader(temp_file_path)
+        
+        
+        pages=[]
+        pages.extend(loader.load())
+        st.write(pages)
+        #self.pages.append(pages[0]) # This page contains the metadata
 
-        self.pages.extend(loader.load())
+        # Asks the user to select a range and accepts the numbers regardless of if there are too many 
+        st.write(f"Total pages/content in {uploaded_file.name}: {len(pages)}")
+        page_numbers = st.text_input(
+            "Specify which pages you'd like to keep from " + uploaded_file.name,
+            placeholder="Ex: 1-4, 7, 9")
+        page_numbers = page_numbers.replace(" ", "")
+        page_numbers_formatted= page_numbers.split(",", maxsplit=-1)
+        page_numbers_formatted.sort()
+        for number in page_numbers_formatted:
+            if number.__contains__("-"):
+                dashed_numbers= number.split("-", maxsplit=-1)
+                dashed_numbers.sort()
+                for num in range(int(dashed_numbers[0]), int(dashed_numbers[1])+1):
+                    if num <= len(pages) and not self.pages.__contains__(pages[num]):
+                        self.pages.append(pages[num])
+            elif number:
+                array_num=int(number)
+                if array_num <= len(pages) and not self.pages.__contains__(pages[array_num]):
+                        self.pages.append(pages[array_num])
+            elif isButton and not page_numbers:
+                # if the button is pressed and there is no input pages it adds all pages
+                self.pages.clear()
+                self.pages.extend(pages)
+
+
+
+        # self.pages.extend(loader.load())
         os.unlink(temp_file_path)
-
+        
     @staticmethod
     def extract_youtube_video_id(url):
         if "youtube.com" in url:
