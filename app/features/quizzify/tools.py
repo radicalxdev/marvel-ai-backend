@@ -96,26 +96,6 @@ class RAGRunnable:
     
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
-
-class UploadPDFLoader:
-    def __init__(self, files: List[UploadFile]):
-        self.files = files
-
-    def load(self) -> List[Document]:
-        documents = []
-
-        for upload_file in self.files:
-            with upload_file.file as pdf_file:
-                pdf_reader = PdfReader(pdf_file)
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": upload_file.filename, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-        return documents
     
 class BytesFileLoader:
     def __init__(self, files):
@@ -212,8 +192,8 @@ class DocumentLoader(BytesFileLoader):
                 
         if(self.file_type in ["doc","ppt"]):
             
-            logger.warning("Specific pages/slides are not implemented for doc/ppt files. \
-                Convert to docx/pptx for specific pages")
+            logger.warning('''Specific pages/slides are not implemented for doc/ppt files. 
+            Convert to docx/pptx for specific pages''')
             temp_name = f"temp.{self.file_type}"
             with open(temp_name, 'wb') as temp_file:
                 temp_file.write(self.file_content.getbuffer())
