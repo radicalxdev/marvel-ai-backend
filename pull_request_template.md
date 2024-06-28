@@ -34,7 +34,7 @@
 
 ### For YoutubeLoader unit testing:
 - Type of Testing: Manual testing (basic functional testing)
-- Purpose: To be able to upload Youtube videos and extract the transcript to get the information from the video.
+- Purpose: To be able to upload Youtube videos and extract the transcript within user specidied time stamps to get the information from the video.
 - Methodology: This involves creating plain text content from the transcript and then creating a Document object with page content and metadata. Executed the load method of the YoutubeLoader.py class with a sample Youtube video.
 - Results: The YoutubeLoader class was able to run given a video. Was able to transform the transcript into a document object with the correct content and metadata.
 
