@@ -23,16 +23,39 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-from services.logger import setup_logger
-from services.tool_registry import ToolFile
-from api.error_utilities import LoaderError
+from app.services.logger import setup_logger
+from app.services.tool_registry import ToolFile
+from app.api.error_utilities import LoaderError
 
-from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api import YouTubeTranscriptApi,NoTranscriptFound,TranscriptsDisabled
 
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+YOUTUBE_URLS = {
+    "youtu.be",
+    "m.youtube.com",
+    "youtube.com",
+    "www.youtube.com",
+    "www.youtube-nocookie.com",
+    "vid.plus",
+}
+
+DOCUMENT_URLS = {
+    "pdf",
+    "doc",
+    "docx",
+    "ppt",
+    "pptx",
+    "txt"
+}
+
+SHEET_URLS = {
+    "xlsx",
+    "csv"
+}
 
 def transform_json_dict(input_data: dict) -> dict:
     # Validate and parse the input data to ensure it matches the QuizQuestion schema
@@ -93,78 +116,44 @@ class UploadPDFLoader:
                     documents.append(doc)
 
         return documents
-
+    
 class BytesFileLoader:
     def __init__(self, files):
         self.files = files
-        self.documents = []
-        
-    def process_pdf(self, file: BytesIO, specific_list:List[int],section_start:float,section_end:float):
-        
-        pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
-        
-        pdf_segments = []
-
-        for i, page in enumerate(pdf_reader.pages):
-            
-            page_content = page.extract_text()
-            metadata = {"source": "pdf", "page_number": i + 1}
-
-            doc = Document(page_content=page_content, metadata=metadata)
-            pdf_segments.append(doc)
-            
-        if(specific_list is not None):
-            filtered_segments = [doc for doc in pdf_segments if doc.metadata['page_number'] in specific_list]
-        else:
-            filtered_segments = [doc for doc in pdf_segments if section_start <= doc.metadata['page_number'] <= section_end]
-            
-        self.documents.extend(filtered_segments)
-        
-    def process_csv(self, file: BytesIO, section_start:Union[float, List[float]],section_end:Union[float, List[float]]):
     
-        df = pd.read_csv(file)
-
-        start_row, start_col = self.parse_section(section_start)
-        end_row, end_col = self.parse_section(section_end)
-
-        row_start = max(0, min(start_row, end_row, len(df) - 1))
-        row_end = min(len(df) - 1, max(start_row, end_row))
-        col_start = max(0, min(start_col, end_col, len(df.columns) - 1))
-        col_end = min(len(df.columns) - 1, max(start_col, end_col))
-
-        filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
-
-        for index, row in filtered_df.iterrows():
-            filtered_text = row.to_string()
-            metadata = {
-                "row": index,
-                "columns": ", ".join(filtered_df.columns)  
-            }
-            self.documents.append(Document(page_content=filtered_text, metadata=metadata))
-                
-            
-    def process_xlsx(self, file: BytesIO, section_start:Union[float, List[float]],section_end:Union[float, List[float]]):
+    def filter_segments(self,segments,specific_list,section_start,section_end):
+        if(specific_list is not None):
+            filtered_segments = [doc for doc in segments if doc.metadata['page_number'] in specific_list]
+        else:
+            filtered_segments = [doc for doc in segments if section_start <= doc.metadata['page_number'] <= section_end]
+        return filtered_segments
+    
+    def add_doc(self,page_content,file_type,number):
+        metadata = {'source': file_type, 'page_number': number}
+        doc = Document(page_content=page_content,metadata = metadata)
+        return doc
         
-        df = pd.read_excel(file)
+    def load(self) -> List[Document]:
+        documents = []
         
-        start_row, start_col = self.parse_section(section_start)
-        end_row, end_col = self.parse_section(section_end)
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "pdf":
+                pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
 
-        row_start = max(0, min(start_row, end_row, len(df) - 1))
-        row_end = min(len(df) - 1, max(start_row, end_row))
-        col_start = max(0, min(start_col, end_col, len(df.columns) - 1))
-        col_end = min(len(df.columns) - 1, max(start_col, end_col))
+                for i, page in enumerate(pdf_reader.pages):
+                    page_content = page.extract_text()
+                    metadata = {"source": file_type, "page_number": i + 1}
 
-        filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
-
-        for index, row in filtered_df.iterrows():
-            filtered_text = row.to_string()
-            metadata = {
-                "row": index,
-                "columns": ", ".join(filtered_df.columns)  
-            }
-            self.documents.append(Document(page_content=filtered_text, metadata=metadata))
-
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+                    
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+    
+class SheetLoader:
+    def __init__(self, file):
+        self.file_content, self.file_type,self.specific_list, self.section_start, self.section_end = file
         
     def parse_section(self, section):
         if isinstance(section, (int, float)):
@@ -174,146 +163,188 @@ class BytesFileLoader:
         else:
             raise ValueError(f"Invalid section format: {section}")
         
-    def process_txt(self, file: BytesIO, specific_list:List[int], section_start:float,section_end:float):
+    def load(self):
         
-        try:
-            txt_content = file.getvalue().decode("utf-8")
-        except UnicodeDecodeError:
-            txt_content = file.getvalue().decode("latin-1")
-
-        pages = []
-        words_per_page = 500
-        words = txt_content.split()
-        num_words = len(words)
-        num_pages = (num_words // words_per_page) + (1 if num_words % words_per_page > 0 else 0)
-
-        for i in range(num_pages):
-            start_idx = i * words_per_page
-            end_idx = min((i+1) * words_per_page, num_words)
-            page_content = ' '.join(words[start_idx:end_idx])
-            metadata = {'source': 'txt', 'page_number': i + 1}
-            doc = Document(page_content=page_content,metadata = metadata)
-            pages.append(doc)
-            
-        if(specific_list is not None):
-            filtered_pages = [page for page in pages if page.metadata['page_number'] in specific_list]
-        else:
-            filtered_pages = [page for page in pages if section_start <= page.metadata['page_number'] <= section_end]
+        documents = []
         
-        for page_content, metadata in filtered_pages:
-            self.documents.append(Document(page_content=page_content, metadata=metadata))
+        if(self.file_type == "xlsx"):
+            df = pd.read_excel(self.file_content)
+        elif(self.file_type == "csv"):
+            df = pd.read_csv(self.file_content)
+
+        start_row, start_col = self.parse_section(self.section_start)
+        end_row, end_col = self.parse_section(self.section_end)
+
+        row_start = max(0, min(start_row, end_row, len(df) - 1))
+        row_end = min(len(df) - 1, max(start_row, end_row))
+        col_start = max(0, min(start_col, end_col, len(df.columns) - 1))
+        col_end = min(len(df.columns) - 1, max(start_col, end_col))
+
+        filtered_df = df.iloc[row_start:row_end + 1, col_start:col_end + 1]
+
+        for index, row in filtered_df.iterrows():
+            filtered_text = row.to_string()
+            metadata = {
+                "row": index,
+                "columns": ", ".join(filtered_df.columns)  
+            }
+            documents.append(Document(page_content=filtered_text, metadata=metadata))
+        
+        return documents
     
+class DocumentLoader(BytesFileLoader):
+    def __init__(self, file):
+        self.file_content, self.file_type,self.specific_list, self.section_start, self.section_end = file
+     
+    def load(self):
         
-    def process_docx(self, file: BytesIO, file_type:str, specific_list:List[int], section_start:float,section_end:float):
+        documents = []
+        segments = []
         
-        if(file_type == "doc"):
-            logger.warning("Specific pages is not implemented for doc files. Convert to docx for specific pages")
-            with open("temp.doc", 'wb') as temp_file:
-                temp_file.write(file.getbuffer())
-            loader = UnstructuredWordDocumentLoader("temp.doc")
-            doc = loader.load()
-            self.documents.extend(doc)
-            os.unlink("temp.doc")
+        if(self.file_type == "pdf"):
+            
+            pdf_reader = PdfReader(self.file_content) #! PyPDF2.PdfReader is deprecated
 
-        else:
-            doc = DocumentFromDocx(file)
+            for i, page in enumerate(pdf_reader.pages):
+                
+                page_content = page.extract_text()
+                segments.append(self.add_doc(page_content,self.file_type,i + 1))
+                
+        if(self.file_type in ["doc","ppt"]):
+            
+            logger.warning("Specific pages/slides are not implemented for doc/ppt files. \
+                Convert to docx/pptx for specific pages")
+            temp_name = f"temp.{self.file_type}"
+            with open(temp_name, 'wb') as temp_file:
+                temp_file.write(self.file_content.getbuffer())
+            if(self.file_type == "doc"):
+                loader = UnstructuredWordDocumentLoader(temp_name)
+            else:
+                loader = UnstructuredPowerPointLoader(temp_name)
+            doc = loader.load()
+            documents.extend(doc)
+            os.unlink(temp_name)
+            
+            return documents
+        
+        elif(self.file_type == "docx"):
+            
+            doc = DocumentFromDocx(self.file_content)
             doc_text = []
             for paragraph in doc.paragraphs:
                 doc_text.append(paragraph.text)
             current_page = []
             word_count = 0 
             words_per_page = 500
-            pages = []
             page_number = 1
             for para in doc_text:
                 word_count += len(para.split())
                 current_page.append(para)
                 if word_count >= words_per_page:
                     page_content = " ".join(current_page)
-                    doc = Document(page_content=page_content,metadata = {'source':'docx','page_number':page_number})
-                    pages.append(doc) 
+                    segments.append(self.add_doc(page_content,self.file_type,page_number))
                     current_page = []
                     word_count = 0
                     page_number += 1
             if current_page:
-                doc = Document(page_content=page_content,metadata = {'source':'docx','page_number':page_number})
-                pages.append(doc) 
+                segments.append(self.add_doc(page_content,self.file_type,page_number))
                 page_number += 1
+                
+        elif(self.file_type == "pptx"):
             
-            
-            if(specific_list is not None):
-                filtered_pages = [doc for doc in pages if doc.metadata['page_number'] in specific_list]
-            else:
-                filtered_pages = [doc for doc in pages if section_start <= doc.metadata['page_number'] <= section_end]
-            
-            self.documents.extend(filtered_pages)
-        
-    def process_pptx(self, file: BytesIO, file_type:str, specific_list:List[int],section_start:float,section_end:float):
-        
-        if(file_type == "ppt"):
-            logger.warning("Specific slides is not implemented for ppt files. Convert to pptx for specific slides")
-            with open("temp.ppt", 'wb') as temp_file:
-                temp_file.write(file.getbuffer())
-            loader = UnstructuredPowerPointLoader("temp.ppt")
-            doc = loader.load()
-            self.documents.extend(doc)
-            os.unlink("temp.ppt")
-         
-        else:   
-            presentation = Presentation(file)
-            
-            presentation_segments = []
-            
+            presentation = Presentation(self.file_content)
+    
             for i, slide in enumerate(presentation.slides):
                 # Extract text from the slide
                 slide_content = '\n'.join(shape.text for shape in slide.shapes if hasattr(shape, "text"))
-                metadata = {"source": "pptx", "slide_number": i + 1}
-                        
-                doc = Document(page_content=slide_content, metadata=metadata)
-                presentation_segments.append(doc)
-            
-            if(specific_list is not None):
-                filtered_segments = [doc for doc in presentation_segments if doc.metadata['slide_number'] in specific_list]
-            else:
-                filtered_segments = [doc for doc in presentation_segments if section_start <= doc.metadata['slide_number'] <= section_end]
-            
-            self.documents.extend(filtered_segments)
+                segments.append(self.add_doc(slide_content,self.file_type,i + 1))
     
-    def process_web(self, file: str, specific_list:List[int],section_start:float,section_end:float):
-
-        user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
-        headers={'User-Agent':user_agent,} 
-        request = urllib.request.Request(file,None,headers)
-        html = urllib.request.urlopen(request).read()
-        web_text = ' '.join(BeautifulSoup(html, "html.parser").stripped_strings)
-        web_segments = []
-        
-        words_per_page = 500
-        words = web_text.split()
-        num_words = len(words)
-        num_pages = (num_words // words_per_page) + (1 if num_words % words_per_page > 0 else 0)
-
-        for i in range(num_pages):
-            start_idx = i * words_per_page
-            end_idx = min((i+1) * words_per_page, num_words)
-            page_content = ' '.join(words[start_idx:end_idx])
-            metadata = {'source': 'web_url', 'page_number': i + 1}
-            doc = Document(page_content=page_content,metadata = metadata)
-            web_segments.append(doc)
+        elif(self.file_type == "txt"):
             
-        if(specific_list is not None):
-            filtered_segments = [doc for doc in web_segments if doc.metadata['page_number'] in specific_list]
-        else:
-            filtered_segments = [doc for doc in web_segments if section_start <= doc.metadata['page_number'] <= section_end]
+            try:
+                txt_content = self.file_content.getvalue().decode("utf-8")
+            except UnicodeDecodeError:
+                txt_content = self.file_content.getvalue().decode("latin-1")
+
+            words_per_page = 500
+            words = txt_content.split()
+            num_words = len(words)
+            num_pages = (num_words // words_per_page) + (1 if num_words % words_per_page > 0 else 0)
+
+            for i in range(num_pages):
+                start_idx = i * words_per_page
+                end_idx = min((i+1) * words_per_page, num_words)
+                page_content = ' '.join(words[start_idx:end_idx])
+                segments.append(self.add_doc(page_content,self.file_type,i + 1))
         
-        self.documents.extend(filtered_segments)
+        filtered_segments = self.filter_segments(segments,self.specific_list,self.section_start,self.section_end)  
+        documents.extend(filtered_segments)
         
-    def process_youtube(self, file: str, section_start:float,section_end:float):
+        return documents
+    
+class WebPageLoader(BytesFileLoader):
+    def __init__(self, file):
+        self.file_content, self.file_type,self.specific_list, self.section_start, self.section_end = file
+
+    def load(self) -> List[Document]:
         
-        video_id = file.split("v=")[1].split("&")[0]
+        documents = []
+        
+        try:
+            user_agent = 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.0.7) Gecko/2009021910 Firefox/3.0.7'
+            headers={'User-Agent':user_agent,} 
+            request = urllib.request.Request(self.file_content,None,headers)
+            html = urllib.request.urlopen(request).read()
+            web_text = ' '.join(BeautifulSoup(html, "html.parser").stripped_strings)
+            segments = []
+            
+            words_per_page = 500
+            words = web_text.split()
+            num_words = len(words)
+            num_pages = (num_words // words_per_page) + (1 if num_words % words_per_page > 0 else 0)
+
+            for i in range(num_pages):
+                start_idx = i * words_per_page
+                end_idx = min((i+1) * words_per_page, num_words)
+                page_content = ' '.join(words[start_idx:end_idx])
+                metadata = {'source': self.file_type, 'page_number': i + 1}
+                doc = Document(page_content=page_content,metadata = metadata)
+                segments.append(doc)
+            
+            filtered_segments = self.filter_segments(segments,self.specific_list,self.section_start,self.section_end)
+            documents.extend(filtered_segments)
+            
+            return documents
+                
+        except Exception as e:
+            logger.error(f"Failed to load content from {self.file_content}")
+            logger.error(e)
+                
+class YouTubeLoader:
+    
+    def __init__(self, file):
+        self.file_content, self.file_type,self.specific_list, self.section_start, self.section_end = file
+    
+    def load(self):
+        
+        documents = []
+        
+        video_id = self.file_content.split("v=")[1].split("&")[0]
         logger.info(f"Processing Youtube Video ID: {video_id}")
+        
+        try:
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        except TranscriptsDisabled:
+            logger.error(f"Transcripts are disabled for video ID: {video_id}")
+
+        try:
+            transcript = transcript_list.find_transcript(["en"])
+
+        except NoTranscriptFound:
+            logger.error(f"No English transcript found for video ID: {video_id}")
+
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        transcript_segments = []
+        segments = []
         for entry in transcript:
             metadata = {
                 'source': 'youtube',
@@ -322,38 +353,12 @@ class BytesFileLoader:
                 'duration': entry['duration']
             }
             doc = Document(page_content=entry['text'],metadata = metadata)
-            transcript_segments.append(doc)
+            segments.append(doc)
         
-        filtered_segments = [doc for doc in transcript_segments if section_start <= doc.metadata['start_time'] <= section_end]
-        self.documents.extend(filtered_segments)
+        filtered_segments = [doc for doc in segments if self.section_start <= doc.metadata['start_time'] <= self.section_end]
+        documents.extend(filtered_segments)
         
-    
-    def load(self) -> List[Document]:
-        
-        for file, file_type,specific_list,section_start,section_end in self.files:
-            logger.debug(file_type)
-            match file_type.lower():
-                case "pdf":
-                    self.process_pdf(file,specific_list,section_start,section_end)
-                case "xlsx":
-                    self.process_xlsx(file,section_start,section_end)
-                case "txt":
-                    self.process_txt(file,specific_list,section_start,section_end)
-                case "csv":
-                    self.process_csv(file,section_start,section_end)
-                case "docx" | "doc":
-                    self.process_docx(file,file_type,specific_list,section_start,section_end)
-                case "pptx" | "ppt":
-                    self.process_pptx(file,file_type,specific_list,section_start,section_end)
-                case "web_url":
-                    self.process_web(file,specific_list,section_start,section_end)
-                case "youtube":
-                    self.process_youtube(file,section_start,section_end)
-                case _:
-                    raise ValueError(f"Unsupported file type: {file_type}")
-            
-        return self.documents
-
+        return documents
 
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], expected_file_type="pdf"):
@@ -392,7 +397,7 @@ class URLLoader:
         self.verbose = verbose
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
-        queued_files = []
+
         documents = []
         any_success = False
 
@@ -412,33 +417,47 @@ class URLLoader:
                     if(section_start < 0):
                         section_start = 0
                 
-
                 if response.status_code == 200:
-                    if(self.expected_file_type not in ["youtube","web_url"]):
+                    
+                    # Check file type
+                    if(parsed_url.netloc in YOUTUBE_URLS):
+                        file_type = "youtube"
+                        file_content = url
+                    elif(path.split(".")[-1] in set.union(SHEET_URLS,DOCUMENT_URLS)):
+                        file_type = path.split(".")[-1]
                         # Read file
                         file_content = BytesIO(response.content)
+                    elif("http" in url):
+                        file_type = "web_url"
+                        file_content = url
+                        
+                    if file_type != self.expected_file_type:
+                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
 
-                        # Check file type
-                        file_type = path.split(".")[-1]
-                        if file_type != self.expected_file_type:
-                            raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-                        # Append to Queue
-                        queued_files.append((file_content, file_type,specific_list,section_start,section_end))
+                    # Append to Queue
+                    file = (file_content, file_type, specific_list, section_start, section_end)
+                    if(file_type in DOCUMENT_URLS):
+                        self.loader = DocumentLoader
+                    elif(file_type in SHEET_URLS):
+                        self.loader = SheetLoader
+                    elif(file_type == "web_url"):
+                        self.loader = WebPageLoader
+                    elif(file_type == "youtube"):
+                        self.loader = YouTubeLoader
                     else:
-                        if("youtube" in url):
-                            if(self.expected_file_type != "youtube"):
-                                raise LoaderError(f"Expected file type: {self.expected_file_type}")
-                            else:
-                                # Append to Queue
-                                queued_files.append((url, "youtube",specific_list,section_start,section_end))
-                        else:
-                            queued_files.append((url, "web_url",specific_list,section_start,section_end))
+                        raise ValueError(f"Unsupported file type: {file_type}")
 
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
 
-                    any_success = True  # Mark that at least one file was successfully loaded
+                    any_success = True
+                    
+                    logger.info(f"Loading file")
+                    file_loader = self.loader(file)
+                    logger.debug(f"File loader is a: {type(file_loader)}")
+                    documents.extend(file_loader.load())
+                    if self.verbose:
+                        logger.info(f"Loaded {len(documents)} documents")
                     
                 else:
                     logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
@@ -447,16 +466,6 @@ class URLLoader:
                 logger.error(f"Failed to load file from {url}")
                 logger.error(e)
                 continue
-
-        # Pass Queue to the file loader if there are any successful loads
-        if any_success:
-            logger.info(f"Loading {len(queued_files)} files")
-            file_loader = self.loader(queued_files)
-            logger.debug(f"File loader is a: {type(file_loader)}")
-            documents = file_loader.load()
-                
-            if self.verbose:
-                logger.info(f"Loaded {len(documents)} documents")
 
         if not any_success:
             raise LoaderError("Unable to load any files from URLs")

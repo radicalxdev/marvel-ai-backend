@@ -1,7 +1,7 @@
 from pydantic import BaseModel,validator
-from services.logger import setup_logger
+from app.services.logger import setup_logger
 from typing import List, Any, Optional, Dict, Union
-from api.error_utilities import InputValidationError
+from app.api.error_utilities import InputValidationError
 
 
 logger = setup_logger(__name__)
@@ -34,7 +34,7 @@ class ToolFile(BaseModel):
     filePath: Optional[str] = None
     url: str
     filename: Optional[str] = None
-    section_start: Union[float, List[float]] = 0
+    section_start: Optional[Union[float, List[float]]] = 0
     section_end: Optional[Union[float, List[float]]] = None
     specific_list: Optional[List[int]] = None
     file_type: str # [pdf, doc, docx, ppt, pptx, txt, xlsx, csv, web_url, youtube]
