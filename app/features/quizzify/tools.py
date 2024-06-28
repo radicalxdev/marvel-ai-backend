@@ -360,36 +360,6 @@ class YouTubeLoader:
         
         return documents
 
-class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
-        self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
-
-    def load(self) -> List[Document]:
-        documents = []
-        
-        # Ensure file paths is a list
-        self.file_paths = [self.file_paths] if isinstance(self.file_paths, str) else self.file_paths
-    
-        for file_path in self.file_paths:
-            
-            file_type = file_path.split(".")[-1]
-
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-            with open(file_path, 'rb') as file:
-                pdf_reader = PdfReader(file)
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_path, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-        return documents
-
 class URLLoader:
     def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
         self.loader = file_loader or BytesFileLoader
