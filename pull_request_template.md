@@ -61,7 +61,7 @@ Additionally, grading of quizzes in Quizzify and personalized responses can be i
 
 ## Screenshots
 
-[Examples] (https://docs.google.com/document/d/12EsMTSSsa--GmEPsp59r9PldBfG0FYcZmohKXRUartw/edit)
+https://docs.google.com/document/d/12EsMTSSsa--GmEPsp59r9PldBfG0FYcZmohKXRUartw/edit
 
 ## How to Test
 
