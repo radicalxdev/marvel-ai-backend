@@ -6,16 +6,16 @@ The specification is further illustrated in the following table:
 
 | Type | `specific_list` | `section_start` + `section_end`| Description|
 | --- | --- | --- | --- |
-| <center> YouTube </center> | <center> ✔ </center>| <center> ✗ </center> | <center> Timestamps </center> |
-| <center> WebPage </center> | <center> ✔ </center>| <center> ✔ </center> | <center> Pages </center> |
+| <center> YouTube </center> | <center> ✓ </center>| <center> ✗ </center> | <center> Timestamps </center> |
+| <center> WebPage </center> | <center> ✓ </center>| <center> ✓ </center> | <center> Pages </center> |
 | <center> DOC </center> | <center> ✗ </center>| <center> ✗ </center> | <center> N/A </center> |
-| <center> DOCX </center> | <center> ✔ </center>| <center> ✔ </center> | <center> Pages </center> |
+| <center> DOCX </center> | <center> ✓ </center>| <center> ✓ </center> | <center> Pages </center> |
 | <center> PPT </center> | <center> ✗ </center>| <center> ✗ </center> | <center> N/A </center> |
-| <center> PPTX </center> | <center> ✔ </center>| <center> ✔ </center> | <center> Slides </center> |
-| <center> PDF </center> | <center> ✔ </center>| <center> ✔ </center> | <center> Pages </center> |
-| <center> CSV </center> | <center> ✔ </center>| <center> ✔ </center> | <center> Rows & Columns </center> |
-| <center> XLSX </center> | <center> ✔ </center>| <center> ✔ </center> | <center> Rows & Columns </center> |
-| <center> TXT </center> | <center> ✔ </center>| <center> ✔ </center> | <center> Pages </center> |
+| <center> PPTX </center> | <center> ✓ </center>| <center> ✓ </center> | <center> Slides </center> |
+| <center> PDF </center> | <center> ✓ </center>| <center> ✓ </center> | <center> Pages </center> |
+| <center> CSV </center> | <center> ✓ </center>| <center> ✓ </center> | <center> Rows & Columns </center> |
+| <center> XLSX </center> | <center> ✓ </center>| <center> ✓ </center> | <center> Rows & Columns </center> |
+| <center> TXT </center> | <center> ✓ </center>| <center> ✓ </center> | <center> Pages </center> |
 
 ### Json Request Examples
 
