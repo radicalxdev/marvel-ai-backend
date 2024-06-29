@@ -34,7 +34,7 @@
 
 ### For YoutubeLoader unit testing:
 - Type of Testing: Manual testing (basic functional testing)
-- Purpose: To be able to upload Youtube videos and extract the transcript to get the information from the video.
+- Purpose: To be able to upload Youtube videos and extract the transcript within user specidied time stamps to get the information from the video.
 - Methodology: This involves creating plain text content from the transcript and then creating a Document object with page content and metadata. Executed the load method of the YoutubeLoader.py class with a sample Youtube video.
 - Results: The YoutubeLoader class was able to run given a video. Was able to transform the transcript into a document object with the correct content and metadata.
 
@@ -61,7 +61,7 @@ Additionally, grading of quizzes in Quizzify and personalized responses can be i
 
 ## Screenshots
 
-[Examples] (https://docs.google.com/document/d/12EsMTSSsa--GmEPsp59r9PldBfG0FYcZmohKXRUartw/edit)
+https://docs.google.com/document/d/12EsMTSSsa--GmEPsp59r9PldBfG0FYcZmohKXRUartw/edit
 
 ## How to Test
 
@@ -69,9 +69,8 @@ Use the Swagger UI to manually input the JSON request to the /submit-tool endpoi
 Sample JSON requests for each of these loaders are as follows:
 
 ### For Docx: 
+- Sample Request:
 ```json
-
-
 {
     "user": {
         "id": "string",
@@ -104,11 +103,40 @@ Sample JSON requests for each of these loaders are as follows:
     }
 }
 ```
+- Sample Response:
+```json
+{
+  "data": [
+    {
+      "question": "What is the focus of macrosystems ecology?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "The study of ecological dynamics across multiple scales"
+        },
+        {
+          "key": "B",
+          "value": "The study of ecosystems at the global level"
+        },
+        {
+          "key": "C",
+          "value": "The study of the interactions between humans and ecosystems"
+        },
+        {
+          "key": "D",
+          "value": "The study of the effects of climate change on ecosystems"
+        }
+      ],
+      "answer": "A",
+      "explanation": "Macrosystems ecology focuses on understanding ecological dynamics at multiple interacting spatial and temporal scales."
+    }
+  ]
+}
+```
 
 ### For pptx:
+- Sample Request:
 ```json
-
-
 {
     "user": {
         "id": "string",
@@ -141,9 +169,38 @@ Sample JSON requests for each of these loaders are as follows:
     }
 }
 ```
-
+- Sample Response:
+```json
+{
+  "data": [
+    {
+      "question": "Which of the following is NOT a capability of Generative AI?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "Creating text, images, or code from scratch"
+        },
+        {
+          "key": "B",
+          "value": "Summarizing and analyzing articles"
+        },
+        {
+          "key": "C",
+          "value": "Translating languages"
+        },
+        {
+          "key": "D",
+          "value": "Providing answers to factual questions"
+        }
+      ],
+      "answer": "D",
+      "explanation": "Generative AI is capable of creating new content, but it is not able to provide answers to factual questions."
+    }
+  ]
+}
+```
 ### For CSV:
-
+- Sample Request:
 ```Json
 
 {
@@ -178,8 +235,39 @@ Sample JSON requests for each of these loaders are as follows:
     }
 }
 ``` 
-### For Webpage:
 
+- Sample Response:
+```json
+{
+  "data": [
+    {
+      "question": "Which customer has the first name 'Sherry'?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "Sheryl"
+        },
+        {
+          "key": "B",
+          "value": "Sherry"
+        },
+        {
+          "key": "C",
+          "value": "Kiara"
+        },
+        {
+          "key": "D",
+          "value": "Colleen"
+        }
+      ],
+      "answer": "B",
+      "explanation": "The customer with the first name 'Sherry' is listed in row 93 with the customer ID '54B5B5Fe9F1B6C5'."
+    }
+  ]
+}
+```
+### For Webpage:
+- Sample Request:
 ```Json
 {
     "user": {
@@ -215,8 +303,39 @@ Sample JSON requests for each of these loaders are as follows:
 
 ```
 
-### For YouTube:
+- Sample Response:
+```json
+{
+  "data": [
+    {
+      "question": "Which of the following is a characteristic of dogs?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "They have sharp claws."
+        },
+        {
+          "key": "B",
+          "value": "They are known for their loyalty."
+        },
+        {
+          "key": "C",
+          "value": "They primarily eat plants."
+        },
+        {
+          "key": "D",
+          "value": "They have poor hearing."
+        }
+      ],
+      "answer": "B",
+      "explanation": "Dogs are known for their loyalty and companionship, which is why they are often referred to as 'man's best friend.'"
+    }
+  ]
+}
+```
 
+### For YouTube:
+- Sample Request:
 ```Json
 {
     "user": {
@@ -250,8 +369,39 @@ Sample JSON requests for each of these loaders are as follows:
     }
 }
 ```
-### For PDF:
+- Sample Response:
+```json
+{
+  "data": [
+    {
+      "question": "What is one of the key principles of Stoicism?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "That our actions are the only things we can control."
+        },
+        {
+          "key": "B",
+          "value": "That our thoughts shape our reality."
+        },
+        {
+          "key": "C",
+          "value": "That we should live in accordance with nature."
+        },
+        {
+          "key": "D",
+          "value": "That we should seek pleasure and avoid pain."
+        }
+      ],
+      "answer": "B",
+      "explanation": "One of the core principles of Stoicism is the idea that our thoughts shape our reality. This is because our thoughts create our perceptions of the world, which in turn influence our emotions and actions."
+    }
+  ]
+}
 
+```
+### For PDF:
+- Sample Request:
 ```Json
 {
     "user": {
@@ -285,9 +435,108 @@ Sample JSON requests for each of these loaders are as follows:
     }
 }
 ```
-
-
-
-
-
-
+- Sample Response:
+```json
+{
+  "data": [
+    {
+      "question": "What type of claims include claims by private individuals seeking refunds for alleged overpayments and unjust fines?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "Affirmative claims"
+        },
+        {
+          "key": "B",
+          "value": "Contract claims"
+        },
+        {
+          "key": "C",
+          "value": "Refund claims"
+        },
+        {
+          "key": "D",
+          "value": "Special education claims"
+        }
+      ],
+      "answer": "C",
+      "explanation": "Refund claims include claims by private individuals seeking refunds for alleged overpayments and unjust fines."
+    }
+  ]
+}
+```
+### For Multiple File Types:
+- Sample Request:
+```Json
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "What are dogs good for?"
+            },
+            {
+                "name": "num_questions",
+                "value": 1
+            },
+            {
+                "name": "files",
+                "value": [
+                    {
+                        "filePath": "uploads/ac7c6ef5-51c4-4a24-b7e4-043e3f6f9fbd-certificate.pdf",
+                        "url": "https://firebasestorage.googleapis.com/v0/b/fahira-quizzify.appspot.com/o/Annual-Claims-Report-FY2022.pdf?alt=media&token=ee07d2f9-1a1c-4682-ac82-b8337b516e7e",
+                        "filename": "certificate.pdf"
+                    },
+                    {
+                        "filePath": " ",
+                        "url": "https://youtu.be/8yRvb07tP0M?si=-Ku4TcwBbbMhLr0K",
+                        "filename": " "
+                    },
+                    {
+                        "filePath": "dummy",
+                        "url": "https://www.toppr.com/guides/essays/essay-on-dog/",
+                        "filename": "dummy"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+- Sample Response:
+```Json
+{
+  "data": [
+    {
+      "question": "What is one of the benefits of having dogs?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "They can help reduce stress"
+        },
+        {
+          "key": "B",
+          "value": "They can help you get exercise"
+        },
+        {
+          "key": "C",
+          "value": "They can help you meet new people"
+        },
+        {
+          "key": "D",
+          "value": "All of the above"
+        }
+      ],
+      "answer": "D",
+      "explanation": "All of the listed choices are benefits of having dogs."
+    }
+  ]
+}
+```
