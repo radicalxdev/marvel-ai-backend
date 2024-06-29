@@ -8,6 +8,7 @@ import os
 import json
 import time
 import pymupdf
+import pandas as pd
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -18,6 +19,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from docx import Document as docu
+
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -68,6 +70,33 @@ class UploadPDFLoader:
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
 
+        return documents
+
+class BytesFileCSVLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "csv":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                file.seek(0)
+                df = pd.read_csv(file)
+                for row in df.itertuples():
+                    content = ""
+                    for column in row[1:]:
+                        content+= (str(column).strip() + "\n")
+                    metadata = {"page_number": row[0] + 1, "source": file_type}
+                    doc = Document(page_content=content, metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
         return documents
     
 class DocLoader:
@@ -163,8 +192,8 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="docx", verbose=False):
-        self.loader = file_loader or DocLoader
+    def __init__(self, file_loader=None, expected_file_type="csv", verbose=False):
+        self.loader = file_loader or BytesFileCSVLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
 
@@ -354,7 +383,7 @@ class QuizBuilder:
         
         generated_questions = []
         attempts = 0
-        max_attempts = num_questions * 5  # Allow for more attempts to generate questions
+        max_attempts = num_questions * 10  # Allow for more attempts to generate questions
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
