@@ -71,7 +71,6 @@ Sample JSON requests for each of these loaders are as follows:
 ### For Docx: 
 - Sample Request:
 ```json
-
 {
     "user": {
         "id": "string",
@@ -138,8 +137,6 @@ Sample JSON requests for each of these loaders are as follows:
 ### For pptx:
 - Sample Request:
 ```json
-
-
 {
     "user": {
         "id": "string",
@@ -464,6 +461,81 @@ Sample JSON requests for each of these loaders are as follows:
       ],
       "answer": "C",
       "explanation": "Refund claims include claims by private individuals seeking refunds for alleged overpayments and unjust fines."
+    }
+  ]
+}
+```
+### For Multiple File Types:
+- Sample Request:
+```Json
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "What are dogs good for?"
+            },
+            {
+                "name": "num_questions",
+                "value": 1
+            },
+            {
+                "name": "files",
+                "value": [
+                    {
+                        "filePath": "uploads/ac7c6ef5-51c4-4a24-b7e4-043e3f6f9fbd-certificate.pdf",
+                        "url": "https://firebasestorage.googleapis.com/v0/b/fahira-quizzify.appspot.com/o/Annual-Claims-Report-FY2022.pdf?alt=media&token=ee07d2f9-1a1c-4682-ac82-b8337b516e7e",
+                        "filename": "certificate.pdf"
+                    },
+                    {
+                        "filePath": " ",
+                        "url": "https://youtu.be/8yRvb07tP0M?si=-Ku4TcwBbbMhLr0K",
+                        "filename": " "
+                    },
+                    {
+                        "filePath": "dummy",
+                        "url": "https://www.toppr.com/guides/essays/essay-on-dog/",
+                        "filename": "dummy"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+- Sample Response:
+```Json
+{
+  "data": [
+    {
+      "question": "What is one of the benefits of having dogs?",
+      "choices": [
+        {
+          "key": "A",
+          "value": "They can help reduce stress"
+        },
+        {
+          "key": "B",
+          "value": "They can help you get exercise"
+        },
+        {
+          "key": "C",
+          "value": "They can help you meet new people"
+        },
+        {
+          "key": "D",
+          "value": "All of the above"
+        }
+      ],
+      "answer": "D",
+      "explanation": "All of the listed choices are benefits of having dogs."
     }
   ]
 }
