@@ -17,3 +17,4 @@ youtube-transcript-api
 pytube
 pymupdf
 python-docx
+pandas
