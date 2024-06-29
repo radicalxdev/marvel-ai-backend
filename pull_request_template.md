@@ -134,7 +134,7 @@ Sample JSON requests for each of these loaders are as follows:
 }
 ```
 
-### For pptx:
+### For PPTx:
 - Sample Request:
 ```json
 {
