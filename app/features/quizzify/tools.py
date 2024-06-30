@@ -23,6 +23,27 @@ from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
 
+
+#PowerPoint Loader imports
+from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
+import os
+
+import google.generativeai as genai
+from google.generativeai import GenerativeModel
+import PIL
+from io import BytesIO
+from langchain_core.documents import Document
+from typing import List
+#Setting up the model for the AI
+api_key = os.environ.get('API_KEY')
+
+genai.configure(api_key=api_key)
+multimodal_model = GenerativeModel('gemini-1.5-flash',)
+
+#Extraction of all text from slides in presentation
+
+
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
@@ -189,6 +210,91 @@ class URLLoader:
 
         return documents
 
+def get_slide_text(slides):
+    text_concepts = []
+
+    
+    # Iterate over each shape in the slides collection
+    for shape in slides.shapes:
+
+        # Get the title of the slide
+        title = ""
+        if slides.shapes.title:
+            title = slides.shapes.title.text
+
+        texts = []
+        if shape.has_text_frame:
+            
+
+            # Extract text from each paragraph in the text frame
+            for paragraph in shape.text_frame.paragraphs:
+                # Extract text from each run in the paragraph
+                for run in paragraph.runs:
+                    texts.append(run.text)
+          
+        elif shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+            
+    
+            image = shape.image
+            image_blob = image.blob
+            
+            image_file = PIL.Image.open(BytesIO(image_blob))
+            
+            print("Writing image in AI")
+            
+            response = multimodal_model.generate_content(['Describe the picture', image_file])
+            
+            print(response.text)
+            texts.append(response.text)
+
+
+        text_concepts.append(texts)
+
+    return title, text_concepts
+
+
+class PowerPointLoader:
+    def __init__(self, verbose=False):
+        self.file_path = file_path
+        self.expected_file_type = expected_file_type
+    def load(self,files: List[ToolFile]) -> List[Document]:
+        self.files = files
+        
+        documents: List[Document] = []
+        for tool_file in self.files:
+            try:
+                url = tool_file.url
+                path = urlparse(url).path
+                file_type = url.split(".")[-1]
+                if file_type not in ('pptx', 'ppt'):
+                    raise LoaderError(f"Expected ppt/pptx file but got {file_type}")
+                page_content = ""
+                response = requests.get(url, stream=True)
+                content = BytesIO(response.content)
+                prs = Presentation(content)
+                page_content = ""
+                
+                for slide_num, slide in enumerate(prs.slides, start = 1):
+                    title, text_concepts = get_slide_text(slide)
+                    
+                    page_content += (title + text_concepts)
+                
+            
+                metadata = {"source": path, "number of slides": slide_num}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+                if self.verbose: logger.info(f"Succesfully loaded file from {url}")
+            except Exception as e:
+                logger.error(f"Failed to load file from {url}")
+                logger.error(e)
+                continue
+
+        if len(documents) == 0:
+            raise LoaderError("Unable to load any files")
+        if self.verbose:
+            logger.info(f"Loaded {len(documents)} documents")
+        return documents
+    
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
