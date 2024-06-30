@@ -98,7 +98,34 @@ class BytesFileCSVLoader:
                 raise ValueError(f"Unsupported file type: {file_type}")
             
         return documents
+
+class BytesFileXLSXLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
     
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "xlsx":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                file.seek(0)
+                df = pd.read_excel(file)
+                for row in df.itertuples():
+                    content = ""
+                    for column in row[1:]:
+                        content+= (str(column).strip() + "\n")
+                    metadata = {"page_number": row[0] + 1, "source": file_type}
+                    doc = Document(page_content=content, metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+     
 class DocLoader:
 
     def __init__(self, files: List[Tuple[BytesIO, str]]):
@@ -192,8 +219,8 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="csv", verbose=False):
-        self.loader = file_loader or BytesFileCSVLoader
+    def __init__(self, file_loader=None, expected_file_type="xlsx", verbose=False):
+        self.loader = file_loader or BytesFileXLSXLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
 
