@@ -196,11 +196,11 @@ class CustomYoutubeLoader:
                     
                     # Filter transcript based on start_time and end_time
                     if start_timestamp is not None and end_timestamp is not None:
-                        filtered_transcript = [entry for entry in transcript_data if start_time <= entry['start'] <= end_time]
+                        filtered_transcript = [entry for entry in transcript_data if start_timestamp <= entry['start'] <= end_timestamp]
                     elif start_timestamp is not None:
-                        filtered_transcript = [entry for entry in transcript_data if entry['start'] >= start_time]
+                        filtered_transcript = [entry for entry in transcript_data if entry['start'] >= start_timestamp]
                     elif end_timestamp is not None:
-                        filtered_transcript = [entry for entry in transcript_data if entry['start'] <= end_time]
+                        filtered_transcript = [entry for entry in transcript_data if entry['start'] <= end_timestamp]
                     else:
                         filtered_transcript = transcript_data
                     
