@@ -11,8 +11,11 @@ from app.api.error_utilities import LoaderError
 from typing import List, Tuple, Dict, Any
 from app.api.error_utilities import VideoTranscriptError
 from fastapi import HTTPException
+from pypdf import PdfReader
+from pptx import Presentation
 from app.services.logger import setup_logger
 import requests
+from io import BytesIO
 import os
 
 
@@ -33,17 +36,18 @@ def read_text_file(file_path):
         return file.read()
 
 class PDFSubLoader():
-    def __init__(self, file_url):
-        self.file_url = file_url
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
     
     def load(self) -> List[Document]:
         documents = []
         try:
-            loader = PyPDFLoader(self.file_url)
-            pages = loader.load_and_split()
-            for i, page in enumerate(pages):
-                page_content = page.page_content
-                metadata = {"page_number": i + 1}
+            pdf_reader = PdfReader(self.file_content) #! PyPDF2.PdfReader is deprecated
+
+            for i, page in enumerate(pdf_reader.pages):
+                page_content = page.extract_text()
+                metadata = {"source": self.file_type, "page_number": i + 1}
 
                 doc = Document(page_content=page_content, metadata=metadata)
                 documents.append(doc)
@@ -54,12 +58,40 @@ class PDFSubLoader():
 
         return documents
 
+class PptxSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+    
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            presentation = Presentation(self.file_content)
+            for i, slide in enumerate(presentation.slides):
+                slide_text = []
+                for shape in slide.shapes:
+                    if hasattr(shape, "text"):
+                        slide_text.append(shape.text)
+                
+                page_content = "\n".join(slide_text)
+                metadata = {"source": self.file_type, "slide_number": i + 1}
+                
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+        
+        except Exception as e:
+            logger.error("Failed to load file from PPTX sub loader")
+            logger.error(e)
+
+        return documents
+
 class URLLoader:
     def __init__(self, file_loader=None, verbose=False):
         self.loader = file_loader
         self.verbose = verbose
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
+        queued_files = []
         documents_list = []
         any_success = False
 
@@ -71,16 +103,13 @@ class URLLoader:
 
                 # Check response status
                 if response.status_code == 200:
-                    if file_type == "pdf":
-                        self.loader = PDFSubLoader(url)
-                    elif file_type == "pptx":
-                        pass
-                    else:
-                        logger.error(f"Unsupported file type: {file_type}")
-                        continue
-                    
+                    # Read file
+                    file_content = BytesIO(response.content)
+
+                    # Append to Queue
+                    queued_files.append((file_content, file_type))
                     if self.verbose:
-                        logger.info(f"Successfully loaded file from {url}, type {file_type}")
+                        logger.info(f"Successfully loaded file from {url}")
 
                     any_success = True  # Mark that at least one file was successfully loaded
                 else:
@@ -93,8 +122,15 @@ class URLLoader:
         
         # Load file if reponse successful
         if any_success:
-            document = self.loader.load()
-            documents_list.extend(document)
+            for cur_file_content, cur_file_type in queued_files:
+                if cur_file_type == "pdf":
+                    self.loader = PDFSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type == "pptx":
+                    self.loader = PptxSubLoader(cur_file_content, cur_file_type)
+                else:
+                    raise LoaderError(f"Unsupported file type: {file_type}")
+                document = self.loader.load()
+                documents_list.extend(document)
 
             if self.verbose:
                 logger.info(f"Loaded {len(documents_list)} documents")
