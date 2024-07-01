@@ -8,6 +8,7 @@ import os
 import json
 import time
 import pymupdf
+import re
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -167,18 +168,49 @@ class URLLoader:
         self.loader = file_loader or DocLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
+   
+    def download_from_drive(self,file_id : str):
+        download_url = "https://docs.google.com/uc?export=download&id=" + file_id
+
+        response = requests.get(download_url, stream=True)
+
+        # Check for confirmation prompt
+        if response.status_code == 302:  # Found a redirect, likely confirmation needed
+            logger.info("Google Drive requires confirmation to download the file.")
+            logger.info("Please visit the provided URL in your browser and allow access.")
+            logger.info(response.headers['Location'])  # Print the redirection URL
+            return None  # Indicate download not completed
+        
+        # Download logic (assuming confirmation was successful)
+        file_type = ''
+        content_disposition = response.headers.get('Content-Disposition')
+        if content_disposition:
+            filename_part = content_disposition.split('=')[-1]
+            if '.' in filename_part:
+                file_type = filename_part.split('.')[-1].lower()[:len(filename_part.split('.')[-1]) - 1]
+
+        return (response,file_type)
+
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
         any_success = False
+        response = None
 
         for tool_file in tool_files:
             try:
                 url = tool_file.url
-                response = requests.get(url)
-                parsed_url = urlparse(url)
-                path = parsed_url.path
+
+                regex = r"/d/([^?]+)/"
+                match = re.search(regex,url)
+                if match:
+                    file_id = match.group(1)
+                    response,file_type = self.download_from_drive(file_id)
+                else:
+                    response = requests.get(url)
+                    parsed_url = urlparse(url)
+                    path = parsed_url.path
 
                 if response.status_code == 200:
                     # Read file
@@ -186,7 +218,8 @@ class URLLoader:
 
                     # Check file type
                     # file_type = path.rsplit(".")[-1]
-                    file_type = url.rsplit('.')[-1]
+                    if not file_type:
+                        file_type = url.rsplit('.')[-1]
                     if file_type != self.expected_file_type:
                         raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
 
