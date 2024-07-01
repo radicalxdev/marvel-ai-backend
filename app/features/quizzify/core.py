@@ -7,12 +7,12 @@ from app.api.error_utilities import LoaderError, ToolExecutorError
 logger = setup_logger()
 
 
-def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=False):
+def executor(files, topic: str, num_questions: int, verbose=False):
     try:
         if verbose: logger.debug(f"Files: {files}")
 
         # Instantiate RAG pipeline with default values
-        pipeline = RAGpipeline(verbose=verbose, tool_data=files)
+        pipeline = RAGpipeline(verbose=verbose)
 
         pipeline.compile()
 

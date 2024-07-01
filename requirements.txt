@@ -16,3 +16,7 @@ fpdf
 youtube-transcript-api
 pytube
 python-dotenv
+pandas
+python-pptx
+python-docx
+beautifulsoup4

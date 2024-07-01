@@ -1,7 +1,6 @@
 from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
-from pypdf import PdfReader
 from urllib.parse import urlparse
 import requests
 import os
@@ -21,9 +20,8 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
 from app.api.error_utilities import LoaderError
+from app.features.quizzify.loaders import BytesFileLoader, WebPageLoader, CustomYoutubeLoader
 
-from .YoutubeLoader import CustomYoutubeLoader
-from .TextLoader import TextLoader
 
 relative_path = "features/quzzify"
 
@@ -74,97 +72,20 @@ class RAGRunnable:
         return self.func(*args, **kwargs)
 
 
-class UploadPDFLoader:
-    def __init__(self, files: List[UploadFile]):
-        self.files = files
-
-    def load(self) -> List[Document]:
-        documents = []
-
-        for upload_file in self.files:
-            with upload_file.file as pdf_file:
-                pdf_reader = PdfReader(pdf_file)
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": upload_file.filename, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-        return documents
-
-
-class BytesFilePDFLoader:
-    def __init__(self, files: List[Tuple[BytesIO, str]]):
-        self.files = files
-
-    def load(self) -> List[Document]:
-        documents = []
-
-        for file, file_type in self.files:
-            logger.debug(file_type)
-            if file_type.lower() == "pdf":
-                pdf_reader = PdfReader(file)  # ! PyPDF2.PdfReader is deprecated
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_type, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-            else:
-                raise ValueError(f"Unsupported file type: {file_type}")
-
-        return documents
-
-
-class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
-        self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
-
-    def load(self) -> List[Document]:
-        documents = []
-
-        # Ensure file paths is a list
-        self.file_paths = [self.file_paths] if isinstance(self.file_paths, str) else self.file_paths
-
-        for file_path in self.file_paths:
-
-            file_type = file_path.split(".")[-1]
-
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-            with open(file_path, 'rb') as file:
-                pdf_reader = PdfReader(file)
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_path, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-        return documents
-
-
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
-        self.expected_file_type = expected_file_type
+    def __init__(self, file_loader=None, verbose=False):
+        self.loader = file_loader or BytesFileLoader
         self.verbose = verbose
 
-    def load(self, tool_files: List[ToolFile]) -> List[Document]:
+    def load(self, files) -> List[Document]:
         queued_files = []
         documents = []
         any_success = False
+        files_list = []
 
-        for tool_file in tool_files:
+        for file in files:
             try:
-                url = tool_file.url
+                url = file.url
                 response = requests.get(url)
                 parsed_url = urlparse(url)
                 path = parsed_url.path
@@ -175,11 +96,10 @@ class URLLoader:
 
                     # Check file type
                     file_type = path.split(".")[-1]
-                    if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
 
                     # Append to Queue
                     queued_files.append((file_content, file_type))
+                    files_list.append(file)
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
 
@@ -194,23 +114,56 @@ class URLLoader:
 
         # Pass Queue to the file loader if there are any successful loads
         if any_success:
-            file_loader = self.loader(queued_files)
+            file_loader = self.loader(queued_files, files_list)
             documents = file_loader.load()
 
             if self.verbose:
                 logger.info(f"Loaded {len(documents)} documents")
 
-        if not any_success:
-            raise LoaderError("Unable to load any files from URLs")
 
+        return documents
+
+class BaseLoader:
+
+    def __init__(self, verbose = False):
+        self.verbose = verbose
+
+    def load(self, files):
+        
+        documents = []
+        file_type_list = ['csv','pptx','docx','pdf','txt']
+        youtube_files = []
+        webpage_files = []
+        other_files = []
+
+        for file in files:
+            url = file.url
+            file_type = file.filetype
+            
+            if url.lower().startswith('https://www.youtube.com'):
+                youtube_files.append(file)
+            elif file_type in file_type_list:
+                other_files.append(file)
+            elif url.lower().startswith('http://') or url.lower().startswith('https://'):
+                webpage_files.append(file)
+            else:
+                raise ValueError(f"Received {file_type}, Unsupported File Type\n"
+                                    f"Supported File Types 'pdf, txt','web page url','pptx','csv','docx','Youtube Url'")
+
+
+        docs = CustomYoutubeLoader(verbose = self.verbose).load(youtube_files)
+        documents.extend(docs)
+        docs = WebPageLoader(verbose = self.verbose).load(webpage_files)
+        documents.extend(docs)
+        docs = URLLoader(verbose = self.verbose).load(other_files)
+        documents.extend(docs)
         return documents
 
 
 class RAGpipeline:
-    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False, tool_data = None):
+    def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            # "loader": URLLoader(verbose=verbose),  # Creates instance on call with verbosity
-            "loader": self.choose_loader(tool_data[0].url, tool_data[0].filename, verbose),
+            "loader": BaseLoader(verbose = verbose),
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001')
@@ -221,60 +174,8 @@ class RAGpipeline:
         self.embedding_model = embedding_model or default_config["embedding_model"]
         self.verbose = verbose
 
-    def choose_loader(self, url, file_name, verbose):
-        """
-            Selects and returns an appropriate loader instance based on the provided URL and file name.
 
-            Parameters:
-            - url (str): The URL of the resource. If it starts with 'https://www.youtube.com' and
-                         file_name is 'youtube', returns a CustomYoutubeLoader instance.
-            - file_name (str): The name or type of the file/resource. Determines the type of loader
-                               to be selected.
-            - verbose (bool): Flag indicating whether to enable verbose output for the loader.
-
-            Returns:
-            - CustomYoutubeLoader, TextLoader, or None: Returns an instance of CustomYoutubeLoader if
-              the URL is a YouTube video and file_name is 'youtube'. Returns a TextLoader instance if
-              file_name ends with '.txt'. Returns None for other file types unless implemented otherwise.
-
-            Raises:
-            - ValueError: If file_name does not match any supported file types ('.txt', '.ppt', '.csv',
-              '.doc', '.docx', 'youtube'), or if the URL is unrecognized and file_name is 'webpage'.
-
-            Notes:
-            - The function checks specific conditions to determine the appropriate loader instance:
-              - For YouTube URLs and 'youtube' file_name, it returns CustomYoutubeLoader.
-              - For '.txt' files, it returns TextLoader.
-              - Other file types are currently not implemented and will raise a ValueError.
-              - 'webpage' loader functionality is planned but not yet implemented.
-            """
-
-        if url.lower().startswith('https://www.youtube.com') and file_name.lower() == 'youtube':
-            return CustomYoutubeLoader(verbose=verbose)
-        elif file_name.lower().strip().replace(' ', '') == 'webpage' and not url.lower().startswith(
-                'https://www.youtube.com'):
-            pass
-            # return WebPageLoader(verbose)
-        else:
-            if file_name.lower().endswith('.txt'):
-                return TextLoader(verbose=verbose)
-            elif file_name.lower().endswith('.ppt'):
-                pass
-                # return PptLoader(verbose=verbose)
-            elif file_name.lower().endswith('.csv'):
-                pass
-                # return CsvLoader(verbose=verbose)
-            elif file_name.lower().endswith('.doc'):
-                pass
-                # return DocLoader(verbose=verbose)
-            elif file_name.lower().endswith('.docx'):
-                pass
-                # return DocxLoader(verbose=verbose)
-            else:
-                raise ValueError(f"Received {file_name}, Unsupported File Type\n"
-                                 f"Supported File Types '.txt','.ppt','.csv','.doc','.docx','Youtube Url'")
-
-    def load_PDFs(self, files) -> List[Document]:
+    def load_data(self, files) -> List[Document]:
         if self.verbose:
             logger.info(f"Loading {len(files)} files")
             logger.info(f"Loader type used: {type(self.loader)}")
@@ -313,7 +214,7 @@ class RAGpipeline:
 
     def compile(self):
         # Compile the pipeline
-        self.load_PDFs = RAGRunnable(self.load_PDFs)
+        self.load_data = RAGRunnable(self.load_data)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
         if self.verbose: logger.info(f"Completed pipeline compilation")
@@ -325,7 +226,7 @@ class RAGpipeline:
             logger.info(f"Executing pipeline")
             logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
 
-        pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
+        pipeline = self.load_data | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
 
 
