@@ -18,3 +18,4 @@ pytube
 pymupdf
 python-docx
 pandas
+openpyxl
