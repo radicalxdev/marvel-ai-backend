@@ -189,9 +189,10 @@ class BytesFilePDFLoader:
         return documents
 
 class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
+    def __init__(self, file_paths: list[str], file_loader=None):
         self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx",]
+        self.loader = file_loader or BytesFileXLSXLoader or BytesFilePDFLoader or BytesFileCSVLoader or DocLoader
 
     def load(self) -> List[Document]:
         documents = []
@@ -203,8 +204,9 @@ class LocalFileLoader:
             
             file_type = file_path.split(".")[-1]
 
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+            if file_type not in self.expected_file_types:
+                string = self.expected_file_types.join(", ")
+                raise ValueError(f"Expected file types: {string}, but got: {file_type}")
 
             with open(file_path, 'rb') as file:
                 pdf_reader = PdfReader(file)
@@ -219,15 +221,14 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="xlsx", verbose=False):
-        self.loader = file_loader or BytesFileXLSXLoader
-        self.expected_file_type = expected_file_type
+    def __init__(self, verbose=False):
+        self.loaders = [BytesFileXLSXLoader,BytesFilePDFLoader,BytesFileCSVLoader,DocLoader]
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx",]
         self.verbose = verbose
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
-        any_success = False
 
         for tool_file in tool_files:
             try:
@@ -243,15 +244,14 @@ class URLLoader:
                     # Check file type
                     # file_type = path.rsplit(".")[-1]
                     file_type = url.rsplit('.')[-1]
-                    if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+                    if file_type not in self.expected_file_types:
+                        string = self.expected_file_types.join(", ")
+                        raise LoaderError(f"Expected file types: {string}, but got: {file_type}")
 
                     # Append to Queue
                     queued_files.append((file_content, file_type))
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
-
-                    any_success = True  # Mark that at least one file was successfully loaded
                 else:
                     logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
@@ -261,14 +261,20 @@ class URLLoader:
                 continue
 
         # Pass Queue to the file loader if there are any successful loads
-        if any_success:
-            file_loader = self.loader(queued_files)
-            documents = file_loader.load()
+        if len(queued_files) > 0:
+            documents = []
+            for file in queued_files: # run each file one by one
+                for loader in self.loaders: # cycle loaders until correct loader
+                    try:
+                        file_loader = loader([file])
+                        documents.extend(file_loader.load())
+                        if self.verbose:
+                            logger.info(f"Loaded {len(documents)} documents")
+                    except ValueError: # wrong loader, try next
+                        pass
+            
 
-            if self.verbose:
-                logger.info(f"Loaded {len(documents)} documents")
-
-        if not any_success:
+        else:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
