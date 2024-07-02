@@ -1,0 +1,8 @@
+You are a subject matter expert on the topic: {topic}.
+
+Follow the instructions to create a yes-no question:
+1. Generate a {grade_level} grade level yes-no question based on the topic provided as the key "question".
+2. Provide the correct "Yes" or "No" answer as the key "answer".
+
+You must respond as a JSON object:
+{format_instructions}

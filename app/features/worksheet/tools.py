@@ -182,9 +182,25 @@ class OpenEndedQuestion(QuestionBase):
                 logger.error(f"TypeError during {self.section_name} response validation: {e}")
             return False
 
+class YesNoQuestion(QuestionBase):
+    def set_names(self):
+        self.section_name = 'Yes-No question'
+        self.main_field = 'question'
+    
+    def validate_response(self) -> bool:
+        try:
+            if isinstance(self.response, dict):
+                if 'question' in self.response and 'answer' in self.response:
+                    return True
+            return False
+        except TypeError as e:
+            if self.verbose:
+                logger.error(f"TypeError during {self.section_name} response validation: {e}")
+            return False
+
 # Create worksheets
 class WorksheetBuilder:
-    def __init__(self, topic, grade_level, model=None, prompt_summary=None, parser_summary = None, prompt_fill_in_blank=None, parser_fill_in_blank=None, prompt_multiple_choice=None, parser_multiple_choice=None, prompt_open_ended = None, parser_open_ended = None, verbose=False):
+    def __init__(self, topic, grade_level, model=None, prompt_summary=None, parser_summary = None, prompt_fill_in_blank=None, parser_fill_in_blank=None, prompt_multiple_choice=None, parser_multiple_choice=None, prompt_open_ended = None, parser_open_ended = None, prompt_yes_no = None, parser_yes_no = None, verbose=False):
         if topic is None or grade_level is None:
             raise ValueError("Topic and Grade level must be provided")
         
@@ -197,7 +213,9 @@ class WorksheetBuilder:
             "prompt_multiple_choice": read_text_file("prompts/worksheet_prompt_multiple_choice.txt"),
             "parser_multiple_choice": JsonOutputParser(pydantic_object = QuizQuestionFormat),
             "prompt_open_ended": read_text_file("prompts/worksheet_prompt_open_ended.txt"),
-            "parser_open_ended": JsonOutputParser(pydantic_object = OpenEndedQuestionFormat)
+            "parser_open_ended": JsonOutputParser(pydantic_object = OpenEndedQuestionFormat),
+            "prompt_yes_no": read_text_file("prompts/worksheet_prompt_yes_no.txt"),
+            "parser_yes_no": JsonOutputParser(pydantic_object = YesNoQuestionFormat)
         }
         
         self.model = model or default_config["model"]
@@ -209,12 +227,14 @@ class WorksheetBuilder:
         self.parser_multiple_choice = parser_multiple_choice or default_config["parser_multiple_choice"]
         self.prompt_open_ended = prompt_open_ended or default_config["prompt_open_ended"]
         self.parser_open_ended = parser_open_ended or default_config["parser_open_ended"]
+        self.prompt_yes_no = prompt_yes_no or default_config["prompt_yes_no"]
+        self.parser_yes_no = parser_yes_no or default_config["parser_yes_no"]
         
         self.topic = topic
         self.grade_level = grade_level
         self.verbose = verbose
     
-    def create_worksheets(self, num_worksheets: int = 1, num_fill_in_blank: int = 3, num_multiple_choice: int = 1, num_open_ended: int = 1) -> List[str]:
+    def create_worksheets(self, num_worksheets: int = 1, num_fill_in_blank: int = 3, num_multiple_choice: int = 1, num_open_ended: int = 1, num_yes_no: int = 1) -> List[str]:
         ### Limit just for testing
         if num_worksheets > 10:
             return {"message": "error", "data": "Number of Worksheets cannot exceed 10"}
@@ -223,6 +243,7 @@ class WorksheetBuilder:
         fill_in_the_blank_obj = FillInTheBlankQuestion(self.model, self.topic, self.grade_level, self.prompt_fill_in_blank, self.parser_fill_in_blank, self.verbose)
         multiple_choice_obj = MultipleChoiceQuestion(self.model, self.topic, self.grade_level, self.prompt_multiple_choice, self.parser_multiple_choice, self.verbose)
         open_ended_obj = OpenEndedQuestion(self.model, self.topic, self.grade_level, self.prompt_open_ended, self.parser_open_ended, self.verbose)
+        yes_no_obj = YesNoQuestion(self.model, self.topic, self.grade_level, self.prompt_yes_no, self.parser_yes_no, self.verbose)
         generated_worksheets = []
         if self.verbose: logger.info(f"Creating Summary")
         generated_summary = summary_obj.create_questions()
@@ -238,6 +259,10 @@ class WorksheetBuilder:
             if self.verbose: logger.info(f"Creating {num_open_ended} Open-ended questions")
             generated_open_ended = open_ended_obj.create_questions(num_open_ended)
             worksheet["open_ended"] = generated_open_ended
+            if self.verbose: logger.info(f"Creating {num_yes_no} Yes-No questions")
+            generated_yes_no = yes_no_obj.create_questions(num_yes_no)
+            worksheet["yes_no"] = generated_yes_no
+
 
             generated_worksheets.append(worksheet)
         # Return the list of worksheets
@@ -256,11 +281,13 @@ class FillinblankQuestionFormat(BaseModel):
 #     answer: str = Field(description = "Key word or concept removed from the generated statement")
     question: str = Field(description="The question text")
     answer: str = Field(description="The correct answer")
-    
-class OpenEndedQuestion(BaseModel):
-    question: str = Field(description="The open-ended question text")
-    suggested_answer: str = Field(description="A sample or suggested answer to the question")
+class YesNoQuestionFormat(BaseModel):
+    question: str = Field(description="The question text")
+    answer: str = Field(description="The correct answer")
+# class OpenEndedQuestion(BaseModel):
+#     question: str = Field(description="The open-ended question text")
+#     suggested_answer: str = Field(description="A sample or suggested answer to the question")
 class OpenEndedQuestionFormat(BaseModel):
-    question: str = Field(description = "Open-ended question")
+    question: str = Field(description = "Open-ended question text")
 class SummaryFormat(BaseModel):
     description: str = Field(description = "Description of the topic")

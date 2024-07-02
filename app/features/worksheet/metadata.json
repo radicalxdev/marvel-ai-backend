@@ -26,13 +26,13 @@
             "type": "number"
         },
         {
-<<<<<<< HEAD
             "label": "Number of Open-Ended Questions",
             "name": "num_open_ended",
-=======
-            "label": "Number of Fill in the Blank Questions",
-            "name": "num_fill_in_blank",
->>>>>>> fork/features_worksheet
+            "type": "number"
+        },
+        {
+            "label": "Number of Yes-No Questions",
+            "name": "num_yes_no",
             "type": "number"
         }
     ]
