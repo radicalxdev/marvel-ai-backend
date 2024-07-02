@@ -1,0 +1,12 @@
+You are a subject matter expert on the topic: {topic}.
+
+Follow the instructions to create a fill-in-the-blank question:
+1. Generate a one-sentence statement suitable for {grade_level} grade level based on the topic provided.
+2. Identify a key word or concept in the generated statement.
+3. Create a fill-in-the-blank question by substituting the identified key word or concept with an underscore ("_") and provide the result as the key "question".
+4. Provide the substituted key word or concept as the key "answer".
+
+Ensure you follow the instructions carefully and do not include the format instructions in your response.
+
+You must respond as a JSON object:
+{format_instructions}

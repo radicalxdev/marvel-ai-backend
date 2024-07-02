@@ -1,6 +1,6 @@
 from typing import List, Tuple, Dict, Any
-from io import BytesIO
-from fastapi import UploadFile
+#from io import BytesIO
+#from fastapi import UploadFile
 #from pypdf import PdfReader
 from urllib.parse import urlparse
 import requests
@@ -31,7 +31,7 @@ from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
 
-relative_path = "features/quzzify"
+#relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
 
@@ -58,9 +58,13 @@ class RAGRunnable:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-class LangChainPDFLoader:
+# Base Loader class
+class LangChainBaseLoader:
     def __init__(self, files: List[str]):
         self.files = files
+    
+    def create_loader(self, file_path):
+        return None
     
     def clean_text(self, text: str) -> str:
         # Replace line breaks with spaces, but ensure sentence integrity
@@ -72,7 +76,7 @@ class LangChainPDFLoader:
         documents = []
         for file_path in self.files:
             try:
-                loader = PyPDFLoader(file_path)
+                loader = self.create_loader(file_path)
                 loaded_documents = loader.load()
                 # Clean the content of each document
                 for doc in loaded_documents:
@@ -82,130 +86,173 @@ class LangChainPDFLoader:
                 logger.error(f"Error processing file {file_path}: {e}")
         return documents
 
-class LangChainDocxLoader:
-    def __init__(self, files: List[str], mode: str = "single"):
-        self.files = files
-        self.mode = mode
+class LangChainPDFLoader(LangChainBaseLoader):
+    def create_loader(self, file_path):
+        return PyPDFLoader(file_path)
+class LangChainDocxLoader(LangChainBaseLoader):
+    def create_loader(self, file_path):
+        return UnstructuredWordDocumentLoader(file_path, mode = 'single')
+class LangChainPPTLoader(LangChainBaseLoader):
+    def create_loader(self, file_path):
+        return UnstructuredPowerPointLoader(file_path, mode = 'single')
+class LangChainCSVLoader(LangChainBaseLoader):
+    def create_loader(self, file_path):
+        return UnstructuredCSVLoader(file_path, mode = 'elements')
+class LangChainURLLoader(LangChainBaseLoader):
+    def create_loader(self, file_path):
+        return UnstructuredURLLoader([file_path], mode = 'single')
+class LangChainYouTubeLoader(LangChainBaseLoader):
+    def create_loader(self, file_path):
+        return YoutubeLoader.from_youtube_url(file_path)
 
-    def clean_text(self, text: str) -> str:
-        # Replace line breaks with spaces, but ensure sentence integrity
-        lines = text.split('\n')
-        cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
-        return cleaned_text
-
-    def load(self) -> List[Document]:
-        documents = []
-        for file_path in self.files:
-            try:
-                loader = UnstructuredWordDocumentLoader(file_path, mode=self.mode)
-                loaded_documents = loader.load()
-                # Clean the content of each document
-                for doc in loaded_documents:
-                    doc.page_content = self.clean_text(doc.page_content)
-                    documents.append(doc)
-            except Exception as e:
-                logger.error(f"Error processing file {file_path}: {e}")
-        return documents
-
-class LangChainPPTLoader:
-    def __init__(self, files: List[str], mode: str = "single"):
-        self.files = files
-        self.mode = mode
-
-    def clean_text(self, text: str) -> str:
-        # Replace line breaks with spaces, but ensure sentence integrity
-        lines = text.split('\n')
-        cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
-        return cleaned_text
-
-    def load(self) -> List[Document]:
-        documents = []
-        for file_path in self.files:
-            try:
-                loader = UnstructuredPowerPointLoader(file_path, mode=self.mode)
-                loaded_documents = loader.load()
-                # Clean the content of each document
-                for doc in loaded_documents:
-                    doc.page_content = self.clean_text(doc.page_content)
-                    documents.append(doc)
-            except Exception as e:
-                logger.error(f"Error processing file {file_path}: {e}")
-        return documents
-
-class LangChainCSVLoader:
-    def __init__(self, files: List[str], mode: str = "single"):
-        self.files = files
-        self.mode = mode
-
-    def clean_text(self, text: str) -> str:
-        # Replace line breaks with spaces, but ensure sentence integrity
-        lines = text.split('\n')
-        cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
-        return cleaned_text
-
-    def load(self) -> List[Document]:
-        documents = []
-        for file_path in self.files:
-            try:
-                loader = UnstructuredCSVLoader(file_path, mode=self.mode)
-                loaded_documents = loader.load()
-                # Clean the content of each document
-                for doc in loaded_documents:
-                    doc.page_content = self.clean_text(doc.page_content)
-                    documents.append(doc)
-            except Exception as e:
-                logger.error(f"Error processing file {file_path}: {e}")
-        return documents
-
-class LangChainURLLoader:
-    def __init__(self, files: List[str], mode: str = "single"):
-        self.files = files
-        self.mode = mode
-
-    def clean_text(self, text: str) -> str:
-        # Replace line breaks with spaces, but ensure sentence integrity
-        lines = text.split('\n')
-        cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
-        return cleaned_text
-
-    def load(self) -> List[Document]:
-        documents = []
-        for file_path in self.files:
-            try:
-                loader = UnstructuredURLLoader([file_path], mode=self.mode)
-                loaded_documents = loader.load()
-                # Clean the content of each document
-                for doc in loaded_documents:
-                    doc.page_content = self.clean_text(doc.page_content)
-                    documents.append(doc)
-            except Exception as e:
-                logger.error(f"Error processing url {file_path}: {e}")
-        return documents
+# ### Old loaders
+# class LangChainPDFLoader:
+#     def __init__(self, files: List[str]):
+#         self.files = files
     
-class LangChainYouTubeLoader:
-    def __init__(self, files: List[str]):
-        self.files = files
+#     def clean_text(self, text: str) -> str:
+#         # Replace line breaks with spaces, but ensure sentence integrity
+#         lines = text.split('\n')
+#         cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+#         return cleaned_text
 
-    def clean_text(self, text: str) -> str:
-        # Replace line breaks with spaces, but ensure sentence integrity
-        lines = text.split('\n')
-        cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
-        return cleaned_text
+#     def load(self) -> List[Document]:
+#         documents = []
+#         for file_path in self.files:
+#             try:
+#                 loader = PyPDFLoader(file_path)
+#                 loaded_documents = loader.load()
+#                 # Clean the content of each document
+#                 for doc in loaded_documents:
+#                     doc.page_content = self.clean_text(doc.page_content)
+#                     documents.append(doc)
+#             except Exception as e:
+#                 logger.error(f"Error processing file {file_path}: {e}")
+#         return documents
 
-    def load(self) -> List[Document]:
-        documents = []
-        for file_path in self.files:
-            try:
-                loader = YoutubeLoader.from_youtube_url(file_path)
-                loaded_documents = loader.load()
-                # Clean the content of each document
-                for doc in loaded_documents:
-                    doc.page_content = self.clean_text(doc.page_content)
-                    documents.append(doc)
-            except Exception as e:
-                logger.error(f"Error processing youtube link {file_path}: {e}")
-        return documents
+# class LangChainDocxLoader:
+#     def __init__(self, files: List[str], mode: str = "single"):
+#         self.files = files
+#         self.mode = mode
 
+#     def clean_text(self, text: str) -> str:
+#         # Replace line breaks with spaces, but ensure sentence integrity
+#         lines = text.split('\n')
+#         cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+#         return cleaned_text
+
+#     def load(self) -> List[Document]:
+#         documents = []
+#         for file_path in self.files:
+#             try:
+#                 loader = UnstructuredWordDocumentLoader(file_path, mode=self.mode)
+#                 loaded_documents = loader.load()
+#                 # Clean the content of each document
+#                 for doc in loaded_documents:
+#                     doc.page_content = self.clean_text(doc.page_content)
+#                     documents.append(doc)
+#             except Exception as e:
+#                 logger.error(f"Error processing file {file_path}: {e}")
+#         return documents
+
+# class LangChainPPTLoader:
+#     def __init__(self, files: List[str], mode: str = "single"):
+#         self.files = files
+#         self.mode = mode
+
+#     def clean_text(self, text: str) -> str:
+#         # Replace line breaks with spaces, but ensure sentence integrity
+#         lines = text.split('\n')
+#         cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+#         return cleaned_text
+
+#     def load(self) -> List[Document]:
+#         documents = []
+#         for file_path in self.files:
+#             try:
+#                 loader = UnstructuredPowerPointLoader(file_path, mode=self.mode)
+#                 loaded_documents = loader.load()
+#                 # Clean the content of each document
+#                 for doc in loaded_documents:
+#                     doc.page_content = self.clean_text(doc.page_content)
+#                     documents.append(doc)
+#             except Exception as e:
+#                 logger.error(f"Error processing file {file_path}: {e}")
+#         return documents
+
+# class LangChainCSVLoader:
+#     def __init__(self, files: List[str], mode: str = "single"):
+#         self.files = files
+#         self.mode = mode
+
+#     def clean_text(self, text: str) -> str:
+#         # Replace line breaks with spaces, but ensure sentence integrity
+#         lines = text.split('\n')
+#         cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+#         return cleaned_text
+
+#     def load(self) -> List[Document]:
+#         documents = []
+#         for file_path in self.files:
+#             try:
+#                 loader = UnstructuredCSVLoader(file_path, mode=self.mode)
+#                 loaded_documents = loader.load()
+#                 # Clean the content of each document
+#                 for doc in loaded_documents:
+#                     doc.page_content = self.clean_text(doc.page_content)
+#                     documents.append(doc)
+#             except Exception as e:
+#                 logger.error(f"Error processing file {file_path}: {e}")
+#         return documents
+
+# class LangChainURLLoader:
+#     def __init__(self, files: List[str], mode: str = "single"):
+#         self.files = files
+#         self.mode = mode
+
+#     def clean_text(self, text: str) -> str:
+#         # Replace line breaks with spaces, but ensure sentence integrity
+#         lines = text.split('\n')
+#         cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+#         return cleaned_text
+
+#     def load(self) -> List[Document]:
+#         documents = []
+#         for file_path in self.files:
+#             try:
+#                 loader = UnstructuredURLLoader([file_path], mode=self.mode)
+#                 loaded_documents = loader.load()
+#                 # Clean the content of each document
+#                 for doc in loaded_documents:
+#                     doc.page_content = self.clean_text(doc.page_content)
+#                     documents.append(doc)
+#             except Exception as e:
+#                 logger.error(f"Error processing url {file_path}: {e}")
+#         return documents
+    
+# class LangChainYouTubeLoader:
+#     def __init__(self, files: List[str]):
+#         self.files = files
+
+#     def clean_text(self, text: str) -> str:
+#         # Replace line breaks with spaces, but ensure sentence integrity
+#         lines = text.split('\n')
+#         cleaned_text = ' '.join(line.strip() for line in lines if line.strip())
+#         return cleaned_text
+
+#     def load(self) -> List[Document]:
+#         documents = []
+#         for file_path in self.files:
+#             try:
+#                 loader = YoutubeLoader.from_youtube_url(file_path)
+#                 loaded_documents = loader.load()
+#                 # Clean the content of each document
+#                 for doc in loaded_documents:
+#                     doc.page_content = self.clean_text(doc.page_content)
+#                     documents.append(doc)
+#             except Exception as e:
+#                 logger.error(f"Error processing youtube link {file_path}: {e}")
+#         return documents
 
 
 # Dmitri's URLLoader
@@ -376,23 +423,6 @@ class QuizBuilder:
         if self.verbose: logger.info(f"Chain compilation complete")
         
         return chain
-
-    # def validate_response(self, response: Dict) -> bool:
-    #     try:
-    #         # Assuming the response is already a dictionary
-    #         if isinstance(response, dict):
-    #             if 'question' in response and 'choices' in response and 'answer' in response and 'explanation' in response:
-    #                 choices = response['choices']
-    #                 if isinstance(choices, dict):
-    #                     for key, value in choices.items():
-    #                         if not isinstance(key, str) or not isinstance(value, str):
-    #                             return False
-    #                     return True
-    #         return False
-    #     except TypeError as e:
-    #         if self.verbose:
-    #             logger.error(f"TypeError during response validation: {e}")
-    #         return False
     
     def validate_and_format_response(self) -> bool:
         try:
@@ -438,15 +468,6 @@ class QuizBuilder:
                 logger.info(f"Generated response attempt {attempts + 1}: {self.response}")
             
             # Directly check if the response format is valid
-            # if self.validate_response(response):
-            #     response["choices"] = self.format_choices(response["choices"])
-            #     generated_questions.append(response)
-            #     if self.verbose:
-            #         logger.info(f"Valid question added: {response}")
-            #         logger.info(f"Total generated questions: {len(generated_questions)}")
-            # else:
-            #     if self.verbose:
-            #         logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
             if self.validate_and_format_response():
                 generated_questions.append(self.response)
                 if self.verbose:

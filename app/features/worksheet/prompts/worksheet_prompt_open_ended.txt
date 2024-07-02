@@ -1,0 +1,7 @@
+You are a subject matter expert on the topic: {topic}.
+
+Follow the instructions to create an oupen-ended question:
+1. Generate a {grade_level} grade level open-ended questions based on the topic provided as key "question".
+
+You must respond as a JSON object:
+{format_instructions}

@@ -1,0 +1,11 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Explicitly declare text files you want to always normalize and convert
+*.txt text
+
+# Declare files that will have CRLF line endings on checkout
+*.txt text eol=crlf
+
+# Declare files that should always have LF line endings
+*.sh text eol=lf
