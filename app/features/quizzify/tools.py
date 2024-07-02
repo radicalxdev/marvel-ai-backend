@@ -253,7 +253,7 @@ class URLLoader:
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
-        any_success = False
+        # any_success = False
         response = None
 
         for tool_file in tool_files:
@@ -278,7 +278,7 @@ class URLLoader:
                     # file_type = path.rsplit(".")[-1]
                     if not file_type:
                         file_type = url.rsplit('.')[-1]
-                    if file_type != self.expected_file_type:
+                    if file_type not in  self.expected_file_types:
                         string = self.expected_file_types.join(", ")
                         raise LoaderError(f"Expected file type: {string}, but got: {file_type}")
 
