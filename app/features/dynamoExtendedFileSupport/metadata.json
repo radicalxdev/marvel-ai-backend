@@ -6,8 +6,8 @@
             "type": "string"
         },
         {
-            "label": "App Type",
-            "name": "app_type",
+            "label": "File Type",
+            "name": "file_type",
             "type": "string"
         }
     ]

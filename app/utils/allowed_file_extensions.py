@@ -12,8 +12,7 @@ class FileType(Enum):
     XLSX = "xlsx"
     XML = 'xml'
 
-class GFileType(Enum):
-    DOC = 'doc'
-    SHEET = "sheet"
-    SLIDE = "slide"
-    PDF = 'pdf'
+    GDOC = 'gdoc'
+    GSHEET = "gsheet"
+    GSLIDE = "gslide"
+    GPDF = 'gpdf'

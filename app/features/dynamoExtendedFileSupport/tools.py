@@ -16,7 +16,7 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.output_parsers import JsonOutputParser
 
-from utils.allowed_file_extensions import FileType, GFileType
+from utils.allowed_file_extensions import FileType
 from api.error_utilities import FileHandlerError, ImageHandlerError
 from utils.extract_url_file_extension import get_file_extension
 
@@ -46,15 +46,16 @@ def build_chain(prompt: str):
     chain = summarize_prompt | summarize_model 
     return chain
 
-def get_summary(file_url: str, app_type: str, verbose=True):
+def get_summary(file_url: str, file_type: str, verbose=True):
+    file_type = file_type.lower()
 
-    if(app_type=="1"):
-
-        file_type = get_file_extension(file_url)
+    if (file_type == "img"):
+        return generate_concepts_from_img(file_url)
+    else:
         try:
-            file_loader = file_loader_map[FileType(file_type.lower())]
+            file_loader = file_loader_map[FileType(file_type)]
             full_content = file_loader(file_url, verbose)
-            if file_type == "csv" or file_type == "xls" or file_type == "xlsx":
+            if file_type == "csv" or file_type == "xls" or file_type == "xlsx" or file_type == "gsheet":
                 prompt = "prompt/summarize-xlsx-csv-prompt.txt"
             else:
                 prompt = "prompt/summarize-prompt.txt"
@@ -65,42 +66,7 @@ def get_summary(file_url: str, app_type: str, verbose=True):
         except Exception as e:
             logger.error(f"Unsupported file type: {file_type}")
             raise FileHandlerError(f"Unsupported file type", file_url) from e
-        
-    elif (app_type[0]=="2"):
 
-        file_type = app_type[4:].lower()
-        try:
-            file_loader = file_loader_map[FileType(file_type)]
-            full_content = file_loader(file_url, verbose)
-            prompt = "prompt/summarize-prompt.txt"
-
-            chain = build_chain(prompt)
-            return chain.invoke(full_content)
-        
-        except Exception as e:
-            logger.error(f"Invalid URL: {file_url}")
-            raise FileHandlerError(f"Invalid URL", file_url) from e
-        
-    elif(app_type[0]=="3"):  
-
-        file_type = app_type[4:].lower()    
-        try:
-            file_loader = gfile_loader_map[GFileType(file_type)]
-            full_content = file_loader(file_url, verbose)
-            if file_type == "sheet":
-                prompt = "prompt/summarize-xlsx-csv-prompt.txt"
-            else:
-                prompt = "prompt/summarize-prompt.txt"
-
-            chain = build_chain(prompt)
-            return chain.invoke(full_content)
-        
-        except Exception as e:
-            logger.error(f"Unsupported file type in Google Drive: {file_type}")
-            raise FileHandlerError(f"Unsupported file type for Google Drive", file_url) from e
-   
-    elif(app_type=="4"):
-        return generate_concepts_from_img(file_url)
 
 
 def generate_flashcards(summary: str, verbose=False) -> list:
@@ -337,19 +303,6 @@ def load_xml_documents(xml_url: str, verbose=False):
         
         return full_content
 
-file_loader_map = {
-    FileType.PDF: load_pdf_documents,
-    FileType.CSV: load_csv_documents,
-    FileType.TXT: load_txt_documents,
-    FileType.MD: load_md_documents,
-    FileType.URL: load_url_documents,
-    FileType.PPTX: load_pptx_documents,
-    FileType.DOCX: load_docx_documents,
-    FileType.XLS: load_xls_documents,
-    FileType.XLSX: load_xlsx_documents,
-    FileType.XML: load_xml_documents
-}
-
 
 class FileHandlerForGoogleDrive:
     def __init__(self, file_loader, file_extension='docx'):
@@ -448,11 +401,22 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
         
         return full_content
 
-gfile_loader_map = {
-    GFileType.DOC: load_gdocs_documents,
-    GFileType.SHEET: load_gsheets_documents,
-    GFileType.SLIDE: load_gslides_documents,
-    GFileType.PDF: load_gpdf_documents
+
+file_loader_map = {
+    FileType.PDF: load_pdf_documents,
+    FileType.CSV: load_csv_documents,
+    FileType.TXT: load_txt_documents,
+    FileType.MD: load_md_documents,
+    FileType.URL: load_url_documents,
+    FileType.PPTX: load_pptx_documents,
+    FileType.DOCX: load_docx_documents,
+    FileType.XLS: load_xls_documents,
+    FileType.XLSX: load_xlsx_documents,
+    FileType.XML: load_xml_documents,
+    FileType.GDOC: load_gdocs_documents,
+    FileType.GSHEET: load_gsheets_documents,
+    FileType.GSLIDE: load_gslides_documents,
+    FileType.GPDF: load_gpdf_documents
 }
 
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")

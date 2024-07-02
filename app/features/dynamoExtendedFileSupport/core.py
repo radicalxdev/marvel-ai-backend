@@ -3,15 +3,15 @@ from features.dynamoExtendedFileSupport.tools import get_summary, generate_flash
 
 logger = setup_logger(__name__)
 
-def executor(file_url: str, app_type: str, verbose=True):
+def executor(file_url: str, file_type: str, verbose=True):
     if (verbose):
         logger.info(f"File URL loaded: {file_url}")
     flashcards = []
 
-    if app_type == "4":
+    if file_type == "img":
         flashcards = generate_concepts_from_img(file_url)
     else:
-        summary = get_summary(file_url, app_type, verbose=verbose)
+        summary = get_summary(file_url, file_type, verbose=verbose)
         flashcards = generate_flashcards(summary, verbose)
         
 
