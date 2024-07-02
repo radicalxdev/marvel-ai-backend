@@ -9,6 +9,7 @@ import json
 import time
 import pymupdf
 import re
+import pandas as pd
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -19,6 +20,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from docx import Document as docu
+
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -70,7 +72,61 @@ class UploadPDFLoader:
                     documents.append(doc)
 
         return documents
+
+class BytesFileCSVLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
     
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "csv":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                file.seek(0)
+                df = pd.read_csv(file)
+                for row in df.itertuples():
+                    content = ""
+                    for column in row[1:]:
+                        content+= (str(column).strip() + "\n")
+                    metadata = {"page_number": row[0] + 1, "source": file_type}
+                    doc = Document(page_content=content, metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+
+class BytesFileXLSXLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "xlsx":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                file.seek(0)
+                df = pd.read_excel(file)
+                for row in df.itertuples():
+                    content = ""
+                    for column in row[1:]:
+                        content+= (str(column).strip() + "\n")
+                    metadata = {"page_number": row[0] + 1, "source": file_type}
+                    doc = Document(page_content=content, metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+     
 class DocLoader:
 
     def __init__(self, files: List[Tuple[BytesIO, str]]):
@@ -134,9 +190,10 @@ class BytesFilePDFLoader:
         return documents
 
 class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
+    def __init__(self, file_paths: list[str], file_loader=None):
         self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx",]
+        self.loader = file_loader or BytesFileXLSXLoader or BytesFilePDFLoader or BytesFileCSVLoader or DocLoader
 
     def load(self) -> List[Document]:
         documents = []
@@ -148,8 +205,9 @@ class LocalFileLoader:
             
             file_type = file_path.split(".")[-1]
 
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+            if file_type not in self.expected_file_types:
+                exp_file_type = self.expected_file_types.join(", ")
+                raise ValueError(f"Expected file types: {exp_file_type}, but got: {file_type}")
 
             with open(file_path, 'rb') as file:
                 pdf_reader = PdfReader(file)
@@ -164,9 +222,9 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="docx", verbose=False):
-        self.loader = file_loader or DocLoader
-        self.expected_file_type = expected_file_type
+    def __init__(self, verbose=False):
+        self.loaders = [BytesFileXLSXLoader,BytesFilePDFLoader,BytesFileCSVLoader,DocLoader]
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx",]
         self.verbose = verbose
    
     def download_from_drive(self,file_id : str):
@@ -221,14 +279,14 @@ class URLLoader:
                     if not file_type:
                         file_type = url.rsplit('.')[-1]
                     if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+                        string = self.expected_file_types.join(", ")
+                        raise LoaderError(f"Expected file type: {string}, but got: {file_type}")
 
                     # Append to Queue
                     queued_files.append((file_content, file_type))
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
-
-                    any_success = True  # Mark that at least one file was successfully loaded
+                    
                 else:
                     logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
@@ -238,14 +296,20 @@ class URLLoader:
                 continue
 
         # Pass Queue to the file loader if there are any successful loads
-        if any_success:
-            file_loader = self.loader(queued_files)
-            documents = file_loader.load()
+        if len(queued_files) > 0:
+            documents = []
+            for file in queued_files: # run each file one by one
+                for loader in self.loaders: # cycle loaders until correct loader
+                    try:
+                        file_loader = loader([file])
+                        documents.extend(file_loader.load())
+                        if self.verbose:
+                            logger.info(f"Loaded {len(documents)} documents")
+                    except ValueError: # wrong loader, try next
+                        pass
+            
 
-            if self.verbose:
-                logger.info(f"Loaded {len(documents)} documents")
-
-        if not any_success:
+        else:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
@@ -387,7 +451,7 @@ class QuizBuilder:
         
         generated_questions = []
         attempts = 0
-        max_attempts = num_questions * 5  # Allow for more attempts to generate questions
+        max_attempts = num_questions * 10  # Allow for more attempts to generate questions
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
