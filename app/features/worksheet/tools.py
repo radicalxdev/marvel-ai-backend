@@ -252,8 +252,14 @@ class QuizQuestionFormat(BaseModel):
     choices: List[QuestionChoiceFormat] = Field(description="A list of choices")
     answer: str = Field(description="The correct answer")
 class FillinblankQuestionFormat(BaseModel):
-    question: str = Field(description = "The generated statement with removed key word or concept")
-    answer: str = Field(description = "Key word or concept removed from the generated statement")
+#     question: str = Field(description = "The generated statement with removed key word or concept")
+#     answer: str = Field(description = "Key word or concept removed from the generated statement")
+    question: str = Field(description="The question text")
+    answer: str = Field(description="The correct answer")
+    
+class OpenEndedQuestion(BaseModel):
+    question: str = Field(description="The open-ended question text")
+    suggested_answer: str = Field(description="A sample or suggested answer to the question")
 class OpenEndedQuestionFormat(BaseModel):
     question: str = Field(description = "Open-ended question")
 class SummaryFormat(BaseModel):
