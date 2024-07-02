@@ -1,9 +1,4 @@
-<<<<<<< HEAD
 You are a subject matter expert on the topic: {topic}.
-=======
-You are a subject matter expert on the topic: 
-{topic}
->>>>>>> fork/features_worksheet
 
 Follow the instructions to create a quiz question:
 1. Generate a {grade_level} grade level fill-in-the-blank question based on the topic provided and its answer.
