@@ -55,8 +55,8 @@ def get_summary(file_url: str, file_type: str, verbose=True):
         try:
             file_loader = file_loader_map[FileType(file_type)]
             full_content = file_loader(file_url, verbose)
-            if file_type == "csv" or file_type == "xls" or file_type == "xlsx" or file_type == "gsheet":
-                prompt = "prompt/summarize-xlsx-csv-prompt.txt"
+            if file_type == "csv" or file_type == "xls" or file_type == "xlsx" or file_type == "gsheet" or file_type == "xml":
+                prompt = "prompt/summarize-structured-tabular-data-prompt.txt"
             else:
                 prompt = "prompt/summarize-prompt.txt"
             
