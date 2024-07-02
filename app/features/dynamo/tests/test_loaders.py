@@ -1,7 +1,7 @@
 import pytest
 import requests
 from unittest.mock import patch, MagicMock
-from features.dynamoExtendedFileSupport.tools import load_pdf_documents, load_csv_documents, load_txt_documents, load_md_documents, load_url_documents, load_pptx_documents, load_docx_documents, load_xls_documents, load_xlsx_documents, load_xml_documents, load_gdocs_documents, load_gsheets_documents, load_gslides_documents, load_gpdf_documents
+from features.dynamo.tools import load_pdf_documents, load_csv_documents, load_txt_documents, load_md_documents, load_url_documents, load_pptx_documents, load_docx_documents, load_xls_documents, load_xlsx_documents, load_xml_documents, load_gdocs_documents, load_gsheets_documents, load_gslides_documents, load_gpdf_documents
 from api.error_utilities import FileHandlerError
 
 def test_load_pdf_documents_valid():

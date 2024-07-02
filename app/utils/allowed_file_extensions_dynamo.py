@@ -16,3 +16,5 @@ class FileType(Enum):
     GSHEET = "gsheet"
     GSLIDE = "gslide"
     GPDF = 'gpdf'
+
+    YOUTUBE_URL = 'youtube_url' 

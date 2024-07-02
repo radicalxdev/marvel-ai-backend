@@ -6,9 +6,5 @@
     "1": {
         "path": "features.dynamo.core",
         "metadata_file": "metadata.json"
-    },
-    "2": {
-        "path": "features.dynamoExtendedFileSupport.core",
-        "metadata_file": "metadata.json"
     }
 }
