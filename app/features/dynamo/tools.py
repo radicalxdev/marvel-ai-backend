@@ -1,4 +1,4 @@
-from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader
+from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader, TextLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
@@ -15,9 +15,11 @@ from pypdf import PdfReader
 from pptx import Presentation
 from app.services.logger import setup_logger
 import requests
-from io import BytesIO
 import os
-
+import json
+from io import BytesIO
+from pypdf import PdfReader
+from pptx import Presentation
 
 logger = setup_logger(__name__)
 
@@ -39,11 +41,11 @@ class PDFSubLoader():
     def __init__(self, file_content: BytesIO, file_type: str):
         self.file_content = file_content
         self.file_type = file_type
-    
+
     def load(self) -> List[Document]:
         documents = []
         try:
-            pdf_reader = PdfReader(self.file_content) #! PyPDF2.PdfReader is deprecated
+            pdf_reader = PdfReader(self.file_content)
 
             for i, page in enumerate(pdf_reader.pages):
                 page_content = page.extract_text()
@@ -51,9 +53,9 @@ class PDFSubLoader():
 
                 doc = Document(page_content=page_content, metadata=metadata)
                 documents.append(doc)
-        
+
         except Exception as e:
-                logger.error(f"Failed to load file from PDF sub loader")
+                logger.error(f"Failed to load file from {self.file_type} sub loader")
                 logger.error(e)
 
         return documents
@@ -62,7 +64,7 @@ class PptxSubLoader:
     def __init__(self, file_content: BytesIO, file_type: str):
         self.file_content = file_content
         self.file_type = file_type
-    
+
     def load(self) -> List[Document]:
         documents = []
         try:
@@ -72,16 +74,110 @@ class PptxSubLoader:
                 for shape in slide.shapes:
                     if hasattr(shape, "text"):
                         slide_text.append(shape.text)
-                
+
                 page_content = "\n".join(slide_text)
                 metadata = {"source": self.file_type, "slide_number": i + 1}
-                
+
                 doc = Document(page_content=page_content, metadata=metadata)
                 documents.append(doc)
-        
+
         except Exception as e:
             logger.error("Failed to load file from PPTX sub loader")
             logger.error(e)
+
+        return documents
+    
+class TextSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+
+    def load(self) -> List[Document]:
+        try:
+            text = self.file_content.read().decode('utf-8')
+            doc = Document(page_content=text, metadata={"source": self.file_type})
+            return [doc]
+        except Exception as e:
+            logger.error(f"Failed to load file from {self.file_type} sub loader")
+            logger.error(e)
+            return []
+
+class JsonSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+
+    def load(self) -> List[Document]:
+        try:
+            data = json.load(self.file_content)
+            content = json.dumps(data, indent=2)
+            doc = Document(page_content=content, metadata={"source": self.file_type})
+            return [doc]
+        except Exception as e:
+            logger.error(f"Failed to load JSON file from {self.file_type}")
+            logger.error(e)
+            return []
+
+class MarkdownSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+
+    def load(self) -> List[Document]:
+        try:
+            content = self.file_content.read().decode('utf-8')
+            doc = Document(page_content=content, metadata={"source": self.file_type})
+            return [doc]
+        except Exception as e:
+            logger.error(f"Failed to load Markdown file from {self.file_type}")
+            logger.error(e)
+            return []
+
+class DocxSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            pass
+
+        except Exception as e:
+                logger.error(f"Failed to load file from {self.file_type} sub loader")
+                logger.error(e)
+
+        return documents
+
+class CsvSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            pass
+
+        except Exception as e:
+                logger.error(f"Failed to load file from {self.file_type} sub loader")
+                logger.error(e)
+
+        return documents
+
+class HtmlSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            pass
+
+        except Exception as e:
+                logger.error(f"Failed to load file from {self.file_type} sub loader")
+                logger.error(e)
 
         return documents
 
@@ -119,7 +215,7 @@ class URLLoader:
                 logger.error(f"Failed to load file from {url}")
                 logger.error(e)
                 continue
-        
+
         # Load file if reponse successful
         if any_success:
             for cur_file_content, cur_file_type in queued_files:
@@ -127,6 +223,18 @@ class URLLoader:
                     self.loader = PDFSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "pptx":
                     self.loader = PptxSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type == "txt":
+                    self.loader = TextSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type == "json":
+                    self.loader = JsonSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type == "md":
+                    self.loader = MarkdownSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type in ["doc", 'docx']:
+                    self.loader = DocxSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type == "csv":
+                    self.loader = CsvSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type == "html":
+                    self.loader = HtmlSubLoader(cur_file_content, cur_file_type)
                 else:
                     raise LoaderError(f"Unsupported file type: {file_type}")
                 document = self.loader.load()
@@ -179,6 +287,7 @@ def summarize_docs(documents) -> str:
     return result["output_text"]
 
 def load_documents(youtube_url: str, files: list[ToolFile]):
+    logger.info(f'Files: {files}')
     documents = []
     if youtube_url:
         documents.extend(get_youtube_doc(youtube_url))
@@ -263,4 +372,3 @@ def generate_flashcards(summary: str, verbose=False) -> list:
 class Flashcard(BaseModel):
     concept: str = Field(description="The concept of the flashcard") 
     definition: str = Field(description="The definition of the flashcard")
-    
