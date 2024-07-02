@@ -18,14 +18,17 @@ tools_config = load_config()
 
 def get_executor_by_name(module_path):
     try:
-        try:
-            module = __import__(module_path, fromlist=['executor'])
-        except Exception as e:
-            module = __import__('app.'+module_path, fromlist=['executor'])
+        module = __import__(module_path, fromlist=['executor'])
+    except ImportError:
+        module = __import__('app.' + module_path, fromlist=['executor'])
+    
+    try:
         return getattr(module, 'executor')
+   
     except Exception as e:
         logger.error(f"Failed to import executor from {module_path}: {str(e)}")
         raise ImportError(f"Failed to import module from {module_path}: {str(e)}")
+
 
 def load_tool_metadata(tool_id):
     logger.debug(f"Loading tool metadata for tool_id: {tool_id}")
