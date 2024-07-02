@@ -12,9 +12,9 @@ def executor(topic: str, grade_level: str, num_worksheets: int, num_fill_in_blan
         output = WorksheetBuilder(topic = topic, grade_level = grade_level, verbose=verbose).create_worksheets(num_worksheets = num_worksheets, num_fill_in_blank = num_fill_in_blank, num_multiple_choice = num_multiple_choice, num_open_ended = num_open_ended)
         
         ## DEBUG print (remove later)
-        for i, w in enumerate(output):
-            print("Worksheet:", i + 1)
-            print(w)
+        # for i, w in enumerate(output):
+        #     print("Worksheet:", i + 1)
+        #     print(w)
 
     except LoaderError as e:
         error_message = e

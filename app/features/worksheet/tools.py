@@ -257,4 +257,4 @@ class FillinblankQuestionFormat(BaseModel):
 class OpenEndedQuestionFormat(BaseModel):
     question: str = Field(description = "Open-ended question")
 class SummaryFormat(BaseModel):
-    description: str = Field(description = "Description of the topic") 
+    description: str = Field(description = "Description of the topic")
