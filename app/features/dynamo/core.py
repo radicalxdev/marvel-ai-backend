@@ -5,7 +5,7 @@ from app.api.error_utilities import VideoTranscriptError
 logger = setup_logger(__name__)
 
 def executor(youtube_url: str, verbose=False):
-    summary = summarize_transcript(youtube_url, verbose=verbose)
+    summary, title = summarize_transcript(youtube_url, verbose=verbose)
     flashcards = generate_flashcards(summary)
 
     sanitized_flashcards = []
@@ -18,4 +18,9 @@ def executor(youtube_url: str, verbose=False):
         else:
             logger.warning(f"Malformed flashcard skipped: {flashcard}")
 
-    return sanitized_flashcards 
+    final_result = {
+        "title": title,
+        "concepts": sanitized_flashcards
+    } 
+
+    return final_result

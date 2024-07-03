@@ -71,7 +71,7 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     
     chain = summarize_prompt | summarize_model 
     
-    return chain.invoke(full_transcript)
+    return chain.invoke(full_transcript), title
 
 def generate_flashcards(summary: str, verbose=False) -> list:
     # Receive the summary from the map reduce chain and generate flashcards

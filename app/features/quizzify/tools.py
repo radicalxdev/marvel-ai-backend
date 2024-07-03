@@ -300,12 +300,33 @@ class QuizBuilder:
         if self.verbose: logger.info(f"Chain compilation complete")
         
         return chain
+    
+    def compile_for_title(self):
+        # Return the chain
+        prompt = PromptTemplate(
+            template=self.prompt,
+            input_variables=["topic"],
+            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+        )
+        
+        retriever = self.vectorstore.as_retriever()
+        
+        runner = RunnableParallel(
+            {"context": retriever, "topic": RunnablePassthrough()}
+        )
+        
+        chain = runner | prompt | self.model | self.parser
+        
+        if self.verbose: logger.info(f"Chain compilation complete")
+        
+        return chain
 
     def validate_response(self, response: Dict) -> bool:
+        required_keys = ['question', 'choices', 'answer', 'explanation']
         try:
             # Assuming the response is already a dictionary
             if isinstance(response, dict):
-                if 'question' in response and 'choices' in response and 'answer' in response and 'explanation' in response:
+                if all(key in response for key in required_keys):
                     choices = response['choices']
                     if isinstance(choices, dict):
                         for key, value in choices.items():
