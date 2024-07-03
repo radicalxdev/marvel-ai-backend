@@ -247,9 +247,14 @@ class WorksheetBuilder:
         generated_worksheets = []
         if self.verbose: logger.info(f"Creating Summary")
         generated_summary = summary_obj.create_questions()
+        if generated_summary:
+            generated_summary = generated_summary[0]
+        else:
+            generated_summary = {'description': ''}
         for i in range(num_worksheets):
             worksheet = {}
-            worksheet["summary"] = generated_summary[0]
+            #worksheet["summary"] = generated_summary
+            worksheet.update(generated_summary)
             if self.verbose: logger.info(f"Creating {num_fill_in_blank} Fill-in-the-blank questions")
             generated_fill_in_blank = fill_in_the_blank_obj.create_questions(num_fill_in_blank)
             worksheet["fill_in_blank"] = generated_fill_in_blank
