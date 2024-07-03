@@ -301,12 +301,15 @@ class QuizBuilder:
         
         return chain
     
-    def compile_for_title(self):
+    def compile_for_details(self):
+
+        details_parser = JsonOutputParser(pydantic_object=Details)
+
         # Return the chain
         prompt = PromptTemplate(
-            template=self.prompt,
+            template=read_text_file("prompt/quizzify-details-prompt.txt"),
             input_variables=["topic"],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+            partial_variables={"format_instructions": details_parser.get_format_instructions()}
         )
         
         retriever = self.vectorstore.as_retriever()
@@ -315,9 +318,9 @@ class QuizBuilder:
             {"context": retriever, "topic": RunnablePassthrough()}
         )
         
-        chain = runner | prompt | self.model | self.parser
+        chain = runner | prompt | self.model | details_parser
         
-        if self.verbose: logger.info(f"Chain compilation complete")
+        if self.verbose: logger.info(f"Chain for Details - Compilation complete")
         
         return chain
 
@@ -348,11 +351,15 @@ class QuizBuilder:
         if num_questions > 10:
             return {"message": "error", "data": "Number of questions cannot exceed 10"}
         
+        chain_for_details = self.compile_for_details()
         chain = self.compile()
+        
         
         generated_questions = []
         attempts = 0
         max_attempts = num_questions * 5  # Allow for more attempts to generate questions
+
+        details = chain_for_details.invoke(self.topic)
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)
@@ -382,8 +389,12 @@ class QuizBuilder:
         self.vectorstore.delete_collection()
         
         # Return the list of questions
-        return generated_questions[:num_questions]
+        return details,generated_questions[:num_questions]
+    
 
+class Details(BaseModel):
+    title: str = Field(description="The context title")
+    description: str = Field(description="The context description")
 class QuestionChoice(BaseModel):
     key: str = Field(description="A unique identifier for the choice using letters A, B, C, or D.")
     value: str = Field(description="The text content of the choice")

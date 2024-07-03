@@ -81,7 +81,7 @@ def generate_flashcards(summary: str, verbose=False) -> list:
     
     template = read_text_file("prompt/dynamo-prompt.txt")
     examples = read_text_file("prompt/examples.txt")
-    
+
     cards_prompt = PromptTemplate(
         template=template,
         input_variables=["summary", "examples"],

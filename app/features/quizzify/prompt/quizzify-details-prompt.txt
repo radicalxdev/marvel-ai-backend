@@ -1,0 +1,9 @@
+You are a subject matter expert on the topic: {topic}.
+
+Using the provided context, generate the main title and an appropriate description.
+
+Respond with a JSON object formatted as follows:
+{format_instructions}
+
+Context:
+{context}

@@ -19,7 +19,10 @@ def executor(youtube_url: str, verbose=False):
             logger.warning(f"Malformed flashcard skipped: {flashcard}")
 
     final_result = {
-        "title": title,
+        "details": {
+            "title": title,
+            "description": summary,
+        },
         "concepts": sanitized_flashcards
     } 
 
