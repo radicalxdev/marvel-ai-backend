@@ -34,9 +34,10 @@
 
 ### For YoutubeLoader unit testing:
 - Type of Testing: Manual testing (basic functional testing)
-- Purpose: To be able to upload Youtube videos and extract the transcript within user specidied time stamps to get the information from the video.
-- Methodology: This involves creating plain text content from the transcript and then creating a Document object with page content and metadata. Executed the load method of the YoutubeLoader.py class with a sample Youtube video.
-- Results: The YoutubeLoader class was able to run given a video. Was able to transform the transcript into a document object with the correct content and metadata.
+- Purpose: To be able to upload YouTube videos and extract the transcript within user specidied time stamps to get the information from the video.
+- Methodology: This involves creating plain text content from the transcript and then creating a Document object with page content and metadata. The orignal YoutubeLoader class from Langchain is modified to allow filtering of transcripts based on user provided timestamps.
+- Results: The YouTubeLoader class was able to extract transcripts from URLs of YouTube videos and return Langchain Documents. Was able to filter transcripts based on user provided timestamps.
+- Documentation: https://docs.google.com/document/d/1FKm6iA2i0hF_s8SH_0-mBmWkk7LugkHEM-FLahf-uR4/edit?usp=sharing
 
 #### In terms of unit testing, the same testing type, purpose, methodology and results were used for csv, doc, pptx, and pdf, as seen above for docx.
 
@@ -59,9 +60,9 @@ Added detailed error handling in file loaders to provide informative error messa
 In the future, the ability to generate quizzes for specific sections of various document types will be added. This includes generating quizzes from specific pages of PDF files, specific paragraphs from web pages and DOCX files, specific slides from PPTX presentations, specific rows or columns from CSV files, and specific timestamps from YouTube videos. The updated code supports extracting specific contents from each of them for such implication.
 Additionally, grading of quizzes in Quizzify and personalized responses can be implemented to further improve upon Kai’s assisting skills.
 
-## Screenshots
+## Screenshots of Testing with FastAPI
 
-https://docs.google.com/document/d/12EsMTSSsa--GmEPsp59r9PldBfG0FYcZmohKXRUartw/edit
+https://docs.google.com/document/d/1dUdm5cWXuLCoXY1ZFyWL6QQQTx8dkxKsqW3_l_nuwTo/edit?usp=sharing
 
 ## How to Test
 
