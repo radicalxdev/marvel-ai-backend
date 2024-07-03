@@ -226,7 +226,7 @@ class URLLoader:
         self.loaders = [BytesFileXLSXLoader,BytesFilePDFLoader,BytesFileCSVLoader,DocLoader]
         self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx",]
         self.verbose = verbose
-   
+    
     def download_from_drive(self,file_id : str):
         download_url = "https://docs.google.com/uc?export=download&id=" + file_id
 
@@ -248,7 +248,6 @@ class URLLoader:
                 file_type = filename_part.split('.')[-1].lower()[:len(filename_part.split('.')[-1]) - 1]
 
         return (response,file_type)
-
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
@@ -313,6 +312,7 @@ class URLLoader:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
+
 
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
