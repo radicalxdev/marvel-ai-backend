@@ -174,7 +174,7 @@ class OpenEndedQuestion(QuestionBase):
     def validate_response(self) -> bool:
         try:
             if isinstance(self.response, dict):
-                if 'question' in self.response:
+                if 'question' in self.response and 'answer' in self.response:
                     return True
             return False
         except TypeError as e:
@@ -288,6 +288,7 @@ class YesNoQuestionFormat(BaseModel):
 #     question: str = Field(description="The open-ended question text")
 #     suggested_answer: str = Field(description="A sample or suggested answer to the question")
 class OpenEndedQuestionFormat(BaseModel):
-    question: str = Field(description = "Open-ended question text")
+    question: str = Field(description = "The question text")
+    answer: str = Field(description = "The correct answer")
 class SummaryFormat(BaseModel):
     description: str = Field(description = "Description of the topic")
