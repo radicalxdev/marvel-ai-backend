@@ -141,7 +141,7 @@ generate_concepts_from_img(img_url: str)
 # Request Templates
 
 ## Youtube URL
-
+```json
 {
   "user": {
     "id": "string",
@@ -163,9 +163,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## PDF File
-
+```json
 {
   "user": {
     "id": "string",
@@ -187,9 +187,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## CSV File
-
+```json
 {
   "user": {
     "id": "string",
@@ -211,9 +211,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## TXT File
-
+```json
 {
   "user": {
     "id": "string",
@@ -235,9 +235,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## MD File
-
+```json
 {
   "user": {
     "id": "string",
@@ -259,9 +259,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## URL File
-
+```json
 {
   "user": {
     "id": "string",
@@ -283,9 +283,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## PPTX File
-
+```json
 {
   "user": {
     "id": "string",
@@ -307,9 +307,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## DOCX File
-
+```json
 {
   "user": {
     "id": "string",
@@ -331,9 +331,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## XLS File
-
+```json
 {
   "user": {
     "id": "string",
@@ -355,9 +355,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## XLSX File
-
+```json
 {
   "user": {
     "id": "string",
@@ -379,9 +379,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## XML File
-
+```json
 {
   "user": {
     "id": "string",
@@ -403,9 +403,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## Google Docs File
-
+```json
 {
   "user": {
     "id": "string",
@@ -427,9 +427,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## Google Sheet File
-
+```json
 {
   "user": {
     "id": "string",
@@ -451,9 +451,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## Google Slide File
-
+```json
 {
   "user": {
     "id": "string",
@@ -475,9 +475,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## Google PDF File
-
+```json
 {
   "user": {
     "id": "string",
@@ -499,9 +499,9 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
-
+```
 ## Image File (PNG, JPG, JPEG)
-
+```json
 {
   "user": {
     "id": "string",
@@ -523,3 +523,4 @@ generate_concepts_from_img(img_url: str)
     ]
   }
 }
+```
