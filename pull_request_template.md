@@ -12,11 +12,10 @@
 - New helper functions were added for extracting text from DOCX and PPTX files.
 - Additional class “WebPageLoader”  was added for loading contents from web pages 
 - Additional class “YouTubeLoader” was added for loading transcripts, and timestamps from YouTube.
-- Updates were made to the BytesFileLoader, LocalFileLoader, and UploadFileLoader classes for handling different file types including PDFs, DOC/DOCX, PPT/PPTX, and  CSV. Each file type is handled specifically to extract text content properly.
+- Updates were made to the BytesFileLoader, and UploadFileLoader classes for handling different file types including PDFs, DOC/DOCX, PPT/PPTX, and  CSV. Each file type is handled specifically to extract text content properly.
+- LocalFileLoader Class has been removed since its deprecated.
 - The URLLoader class has been updated to enhance its capability to load and handle different types of files from URLs. The class can now differentiate between different types of URLs and handle YouTube links and web pages separately, using the YouTubeLoader and WebPageLoader classes, respectively. The class also includes detailed error handling and logging to track the status and issues encountered while loading files.
-- Created new classes for each loaders to test locally in kai-ai-backend/app/features/quizzify/tests
 - Updated requirements.txt with python-docx, pandas, python-pptx, and beautifulsoup4 for handling the new file types.
-- Added missing error_utilities.py
 
 ## Unit Testing & Results
 
