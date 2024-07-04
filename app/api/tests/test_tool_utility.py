@@ -81,7 +81,7 @@ def test_prepare_input_data():
     assert result['files'][0]['url'] == "http://example.com"
 
 
-@patch('api.tool_utilities.get_executor_by_name')
+@patch('app.api.tool_utilities.get_executor_by_name')
 def test_execute_tool_success(mock_get_executor):
     tool_id = "0"
     request_inputs_dict = {"verbose": True}
@@ -93,7 +93,7 @@ def test_execute_tool_success(mock_get_executor):
     assert result == "execution result"
     mock_function.assert_called_once_with(**request_inputs_dict)
 
-@patch('api.tool_utilities.get_executor_by_name', side_effect=ImportError("Function not found"))
+@patch('app.api.tool_utilities.get_executor_by_name', side_effect=ImportError("Function not found"))
 def test_execute_tool_failure(mock_get_executor):
     tool_id = "0"
     request_inputs_dict = {"verbose": True}
