@@ -1,5 +1,4 @@
 from fastapi.testclient import TestClient
-from main import app  
 from app.api.tool_utilities import validate_inputs
 from app.api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
 import pytest
@@ -101,4 +100,3 @@ def test_validate_inputs_input_not_found():
     request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
     with pytest.raises(InputValidationError):
         validate_inputs(request_inputs_dict, firestore_data)
-
