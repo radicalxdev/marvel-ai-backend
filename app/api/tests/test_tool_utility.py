@@ -74,11 +74,11 @@ def test_prepare_input_data():
         "files": [ToolFile(filePath="path/to/file", filename="file.pdf", url="http://example.com")]
     }
 
-    result = prepare_input_data(request_data)
+    result = prepare_input_data(request_data.inputs)
     assert result['topic'] == expected['topic']
     assert result['num_questions'] == expected['num_questions']
-    assert isinstance(result['files'][0], ToolFile)
-    assert result['files'][0].url == "http://example.com"
+    assert ToolFile.model_validate(result['files'][0], from_attributes=True)
+    assert result['files'][0]['url'] == "http://example.com"
 
 
 @patch('api.tool_utilities.get_executor_by_name')
