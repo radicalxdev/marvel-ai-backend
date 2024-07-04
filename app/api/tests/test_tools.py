@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from main import app  
-from services.tool_registry import validate_inputs
+from app.api.tool_utilities import validate_inputs
+from app.api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
 import pytest
 import os
 
@@ -60,7 +61,8 @@ def test_validate_inputs_missing_input():
         {"label": "Number of Questions", "type": "number", "name": "num_questions"}
     ]
     request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
-    assert validate_inputs(request_inputs_dict, firestore_data) == False
+    with pytest.raises(InputValidationError):
+        validate_inputs(request_inputs_dict, firestore_data)
 
 def test_validate_inputs_invalid_type():
     request_inputs = [
@@ -72,7 +74,8 @@ def test_validate_inputs_invalid_type():
         {"label": "Number of Questions", "type": "number", "name": "num_questions"}
     ]
     request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
-    assert validate_inputs(request_inputs_dict, firestore_data) == False
+    with pytest.raises(InputValidationError):
+        validate_inputs(request_inputs_dict, firestore_data)
 
 def test_validate_inputs_extra_undefined_input():
     request_inputs = [
@@ -96,5 +99,6 @@ def test_validate_inputs_input_not_found():
         {"label": "Number of Questions", "type": "number", "name": "num_questions"}
     ]
     request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
-    assert validate_inputs(request_inputs_dict, firestore_data) == False
+    with pytest.raises(InputValidationError):
+        validate_inputs(request_inputs_dict, firestore_data)
 

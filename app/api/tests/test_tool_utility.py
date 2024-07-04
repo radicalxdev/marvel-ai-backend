@@ -1,9 +1,9 @@
 import json
 import pytest
 from unittest.mock import patch, MagicMock, mock_open
-from services.tool_registry import BaseTool, ToolInput, ToolFile
+from app.services.tool_registry import BaseTool, ToolInput, ToolFile
 from fastapi import HTTPException
-from api.tool_utilities import get_executor_by_name, load_tool_metadata, prepare_input_data, execute_tool
+from app.api.tool_utilities import get_executor_by_name, load_tool_metadata, prepare_input_data, execute_tool
 
 # Sample configuration for tools_config
 tools_config = {
@@ -74,14 +74,14 @@ def test_prepare_input_data():
         "files": [ToolFile(filePath="path/to/file", filename="file.pdf", url="http://example.com")]
     }
 
-    result = prepare_input_data(request_data)
+    result = prepare_input_data(request_data.inputs)
     assert result['topic'] == expected['topic']
     assert result['num_questions'] == expected['num_questions']
-    assert isinstance(result['files'][0], ToolFile)
-    assert result['files'][0].url == "http://example.com"
+    assert ToolFile.model_validate(result['files'][0], from_attributes=True)
+    assert result['files'][0]['url'] == "http://example.com"
 
 
-@patch('api.tool_utilities.get_executor_by_name')
+@patch('app.api.tool_utilities.get_executor_by_name')
 def test_execute_tool_success(mock_get_executor):
     tool_id = "0"
     request_inputs_dict = {"verbose": True}
@@ -93,7 +93,7 @@ def test_execute_tool_success(mock_get_executor):
     assert result == "execution result"
     mock_function.assert_called_once_with(**request_inputs_dict)
 
-@patch('api.tool_utilities.get_executor_by_name', side_effect=ImportError("Function not found"))
+@patch('app.api.tool_utilities.get_executor_by_name', side_effect=ImportError("Function not found"))
 def test_execute_tool_failure(mock_get_executor):
     tool_id = "0"
     request_inputs_dict = {"verbose": True}
