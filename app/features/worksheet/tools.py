@@ -108,15 +108,19 @@ class MultipleChoiceQuestion(QuestionBase):
                     choices = self.response['choices']
                     if isinstance(choices, dict):
                         # Format choices if they are in dict format
-                        self.response['choices'] = self.format_choices(choices)
-                    elif isinstance(choices, list):
+                        choices = self.format_choices(choices)
+                        self.response['choices'] = choices
+                    
+                    if isinstance(choices, list):
                         # Check if choices are already formatted correctly
                         for choice in choices:
                             if not isinstance(choice, dict) or 'key' not in choice or 'value' not in choice:
                                 return False
+                            if not isinstance(choice['key'], str) or not isinstance(choice['value'], str):
+                                return False
+                        return True
                     else:
                         return False
-                    return True
             return False
         except TypeError as e:
             if self.verbose:
@@ -151,11 +155,11 @@ class FillInTheBlankQuestion(QuestionBase):
     
     def validate_response(self) -> bool:
         try:
-            if 'properties' in self.response:
-                if self.verbose:
-                    logger.warning(f"{self.section_name} received format instructions instead of a valid response.")
-                return False
             if isinstance(self.response, dict):
+                if 'properties' in self.response:
+                    if self.verbose:
+                        logger.warning(f"{self.section_name} received format instructions instead of a valid response.")
+                    return False
                 if 'question' in self.response and 'answer' in self.response:
                     if '_' in self.response['question']:
                         return True

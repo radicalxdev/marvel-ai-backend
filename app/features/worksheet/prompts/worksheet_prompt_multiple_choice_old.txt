@@ -2,7 +2,7 @@ You are a subject matter expert on the topic: {topic}.
 
 Follow the instructions to create a quiz question:
 1. Generate a {grade_level} grade level question based on the topic provided as key "question".
-2. Generate a list of 4 multiple-choice answers as key "choices"
+2. Provide 4 multiple choice answers to the question as a list of key-value pairs "choices".
 
 You must respond as a JSON object:
 {format_instructions}
