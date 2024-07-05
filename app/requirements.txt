@@ -19,3 +19,5 @@ pymupdf
 python-docx
 pandas
 openpyxl
+pytesseract
+pillow

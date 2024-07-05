@@ -3,6 +3,7 @@ from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
 from urllib.parse import urlparse
+from PIL import Image
 import requests
 import os
 import json
@@ -10,6 +11,7 @@ import time
 import pymupdf
 import re
 import pandas as pd
+import pytesseract
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,8 +19,9 @@ from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.output_parsers import JsonOutputParser,StrOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain.chains import LLMChain
 from docx import Document as docu
 
 
@@ -153,6 +156,37 @@ class DocLoader:
             
         return documents
     
+class ImageLoader:
+    def __init__(self,files: List[Tuple[BytesIO,str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        text_completion_model = VertexAI(model='gemini-1.5-flash-001')
+        prompt= PromptTemplate.from_template("I want you to check if there is any missing words in {text}. If there are any, I want to to autocomplete them with the most relevant word possible and make the whole thing grammatically correct. The output should be a string.")
+        text_chain = (
+                {"text": RunnablePassthrough()} 
+                | prompt 
+                | text_completion_model 
+                | StrOutputParser()
+            )
+
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() in ['jpeg', 'jpg', 'png']:
+                logger.info(file)
+                image = Image.open(file)
+                text = pytesseract.image_to_string(image)
+                result = text_chain.invoke({"text" : text})
+                metadata = {"source":file_type,"page_number":1}
+                document = Document(page_content=result,metadata=metadata)
+                documents.append(document)
+                    
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+    
 
 class BytesFilePDFLoader:
     # Original def __init__(self, files: List[Tuple[BytesIO, str]])
@@ -192,8 +226,8 @@ class BytesFilePDFLoader:
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], file_loader=None):
         self.file_paths = file_paths
-        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx",]
-        self.loader = file_loader or BytesFileXLSXLoader or BytesFilePDFLoader or BytesFileCSVLoader or DocLoader
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx", "jpeg", 'jpg', "png"]
+        self.loader = file_loader or BytesFileXLSXLoader or BytesFilePDFLoader or BytesFileCSVLoader or DocLoader or ImageLoader
 
     def load(self) -> List[Document]:
         documents = []
@@ -223,8 +257,8 @@ class LocalFileLoader:
 
 class URLLoader:
     def __init__(self, verbose=False):
-        self.loaders = [BytesFileXLSXLoader,BytesFilePDFLoader,BytesFileCSVLoader,DocLoader]
-        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx",]
+        self.loaders = [BytesFileXLSXLoader,BytesFilePDFLoader,BytesFileCSVLoader,DocLoader,ImageLoader]
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png"]
         self.verbose = verbose
     
     def download_from_drive(self,file_id : str):
@@ -279,7 +313,7 @@ class URLLoader:
                         file_type = url.rsplit('.')[-1]
                     if file_type not in  self.expected_file_types:
                         string = self.expected_file_types.join(", ")
-                        raise LoaderError(f"Expected file type: {string}, but got: {file_type}")
+                        raise LoaderError(f"Expected file types: {string}, but got: {file_type}")
 
                     # Append to Queue
                     queued_files.append((file_content, file_type))
