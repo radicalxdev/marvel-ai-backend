@@ -14,7 +14,7 @@ import os
 logger = setup_logger(__name__)
 
 # AI Model
-model = VertexAI(model="gemini-1.0-pro")
+model = VertexAI(model="gemini-1.0-pro", project="dynamo-425102")
 
 
 def read_text_file(file_path):
@@ -28,7 +28,7 @@ def read_text_file(file_path):
         return file.read()
 
 # Summarize chain
-def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) -> str:
+def summarize_transcript(youtube_url: str, verbose=False) -> str:
     try:
         loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
     except Exception as e:
@@ -50,14 +50,16 @@ def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) 
     
     split_docs = splitter.split_documents(docs)
 
-    if length > max_video_length:
-        raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
-
     if verbose:
         logger.info(f"Found video with title: {title} and length: {length}")
         logger.info(f"Splitting documents into {len(split_docs)} chunks")
+        
+    if len(split_docs) > 10:
+        chain_type='map_reduce'
+    else:
+        chain_type='stuff'
     
-    chain = load_summarize_chain(model, chain_type='map_reduce')
+    chain = load_summarize_chain(model, chain_type=chain_type)
     response = chain.invoke(split_docs)
     
     if response and verbose: logger.info("Successfully completed generating summary")

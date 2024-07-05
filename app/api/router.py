@@ -7,6 +7,7 @@ from utils.auth import key_check
 from services.logger import setup_logger
 from api.error_utilities import InputValidationError, ErrorResponse
 from api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from features.dynamo.tools import summarize_transcript, generate_flashcards
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -14,6 +15,15 @@ router = APIRouter()
 @router.get("/")
 def read_root():
     return {"Hello": "World"}
+
+@router.post("/process_youtube")
+async def process_youtube(request: str):
+    
+    summary = summarize_transcript(request)
+    
+    parsed_sum = generate_flashcards(summary=summary)
+    
+    return (summary, parsed_sum)
 
 @router.post("/submit-tool", response_model=Union[ToolResponse, ErrorResponse])
 async def submit_tool( data: ToolRequest, _ = Depends(key_check)):     
