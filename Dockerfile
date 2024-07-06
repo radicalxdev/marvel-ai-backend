@@ -22,7 +22,6 @@ COPY ./app /app
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json 
 ENV ENV_TYPE="dev"
 ENV PROJECT_ID="kai-ai-backend-427803"
-ENV API_KEY="AIzaSyBVo3VbGdMNI_rDrwtsWn4zxZvo1UWA9M0"
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
