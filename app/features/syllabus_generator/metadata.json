@@ -1,0 +1,20 @@
+{
+    "_comment": "THIS IS ONLY A TEMPLATE. IT MUST MATCH INPUTS OF EXECUTOR FUNCTION IN CORE.PY",
+    "inputs": [
+        {
+            "label": "Topic",
+            "name": "topic",
+            "type": "text"
+        },
+        {
+            "label": "Number of Questions",
+            "name": "num_questions",
+            "type": "number"
+        },
+        {
+            "label": "Upload PDF files",
+            "name": "files",
+            "type": "file"
+        }
+    ]
+}
