@@ -3,12 +3,16 @@ from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
 from urllib.parse import urlparse
+from PIL import Image
 import urllib.request
 import requests
 import os
 import json
 import time
 import pymupdf
+import re
+import pandas as pd
+import pytesseract
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -16,9 +20,11 @@ from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
-from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.output_parsers import JsonOutputParser,StrOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
-# from langchain_community.document_loaders import PyMuPDFLoader
+from langchain.chains import LLMChain
+from docx import Document as docu
+
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
@@ -95,6 +101,118 @@ class UploadPDFLoader:
 
         return documents
 
+class BytesFileCSVLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "csv":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                file.seek(0)
+                df = pd.read_csv(file)
+                for row in df.itertuples():
+                    content = ""
+                    for column in row[1:]:
+                        content+= (str(column).strip() + "\n")
+                    metadata = {"page_number": row[0] + 1, "source": file_type}
+                    doc = Document(page_content=content, metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+
+class BytesFileXLSXLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "xlsx":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                file.seek(0)
+                df = pd.read_excel(file)
+                for row in df.itertuples():
+                    content = ""
+                    for column in row[1:]:
+                        content+= (str(column).strip() + "\n")
+                    metadata = {"page_number": row[0] + 1, "source": file_type}
+                    doc = Document(page_content=content, metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+     
+class DocLoader:
+
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() == "docx":
+                logger.info(file)
+                # pdf_reader = PdfReader(file) #! PyPDF2.PdfReader is deprecated
+                docs = docu(file)
+                for page_num, page in enumerate(docs.paragraphs):
+                    page_content = ""
+                    for paragraph in page.runs:
+                        page_content += paragraph.text.strip() + "\n"
+                    metadata = {"page_number": page_num + 1, "source": file_type}
+                    doc = Document(page_content=page_content.rstrip(),metadata=metadata)
+                    documents.append(doc)               
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+    
+class ImageLoader:
+    def __init__(self,files: List[Tuple[BytesIO,str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        text_completion_model = VertexAI(model='gemini-1.5-flash-001')
+        prompt= PromptTemplate.from_template("I want you to check if there is any missing words in {text}. If there are any, I want to to autocomplete them with the most relevant word possible and make the whole thing grammatically correct. The output should be a string.")
+        text_chain = (
+                {"text": RunnablePassthrough()} 
+                | prompt 
+                | text_completion_model 
+                | StrOutputParser()
+            )
+
+        for file, file_type in self.files:
+            logger.debug(file_type)
+            if file_type.lower() in ['jpeg', 'jpg', 'png']:
+                logger.info(file)
+                image = Image.open(file)
+                text = pytesseract.image_to_string(image)
+                result = text_chain.invoke({"text" : text})
+                metadata = {"source":file_type,"page_number":1}
+                document = Document(page_content=result,metadata=metadata)
+                documents.append(document)
+                    
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+            
+        return documents
+    
+
 class BytesFilePDFLoader:
     # Original def __init__(self, files: List[Tuple[BytesIO, str]])
     def __init__(self, files: List[Tuple[BytesIO, str]]):
@@ -131,9 +249,10 @@ class BytesFilePDFLoader:
         return documents
 
 class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
+    def __init__(self, file_paths: list[str], file_loader=None):
         self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx", "jpeg", 'jpg', "png"]
+        self.loader = file_loader or BytesFileXLSXLoader or BytesFilePDFLoader or BytesFileCSVLoader or DocLoader or ImageLoader
 
     def load(self) -> List[Document]:
         documents = []
@@ -145,8 +264,9 @@ class LocalFileLoader:
             
             file_type = file_path.split(".")[-1]
 
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+            if file_type not in self.expected_file_types:
+                exp_file_type = self.expected_file_types.join(", ")
+                raise ValueError(f"Expected file types: {exp_file_type}, but got: {file_type}")
 
             with open(file_path, 'rb') as file:
                 pdf_reader = PdfReader(file)
@@ -161,38 +281,70 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
-        self.expected_file_type = expected_file_type
+    def __init__(self, verbose=False):
+        self.loaders = [BytesFileXLSXLoader,BytesFilePDFLoader,BytesFileCSVLoader,DocLoader,ImageLoader]
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png"]
         self.verbose = verbose
+    
+    def download_from_drive(self,file_id : str):
+        download_url = "https://docs.google.com/uc?export=download&id=" + file_id
+
+        response = requests.get(download_url, stream=True)
+
+        # Check for confirmation prompt
+        if response.status_code == 302:  # Found a redirect, likely confirmation needed
+            logger.info("Google Drive requires confirmation to download the file.")
+            logger.info("Please visit the provided URL in your browser and allow access.")
+            logger.info(response.headers['Location'])  # Print the redirection URL
+            return None  # Indicate download not completed
+        
+        # Download logic (assuming confirmation was successful)
+        file_type = ''
+        content_disposition = response.headers.get('Content-Disposition')
+        if content_disposition:
+            filename_part = content_disposition.split('=')[-1]
+            if '.' in filename_part:
+                file_type = filename_part.split('.')[-1].lower()[:len(filename_part.split('.')[-1]) - 1]
+
+        return (response,file_type)
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
-        any_success = False
+        # any_success = False
+        response = None
 
         for tool_file in tool_files:
             try:
                 url = tool_file.url
-                response = requests.get(url)
-                parsed_url = urlparse(url)
-                path = parsed_url.path
+
+                regex = r"/d/([^?]+)/"
+                match = re.search(regex,url)
+                if match:
+                    file_id = match.group(1)
+                    response,file_type = self.download_from_drive(file_id)
+                else:
+                    response = requests.get(url)
+                    parsed_url = urlparse(url)
+                    path = parsed_url.path
 
                 if response.status_code == 200:
                     # Read file
                     file_content = BytesIO(response.content)
 
                     # Check file type
-                    file_type = path.rsplit(".")[-1]
-                    if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+                    # file_type = path.rsplit(".")[-1]
+                    if not file_type:
+                        file_type = url.rsplit('.')[-1]
+                    if file_type not in  self.expected_file_types:
+                        string = self.expected_file_types.join(", ")
+                        raise LoaderError(f"Expected file types: {string}, but got: {file_type}")
 
                     # Append to Queue
                     queued_files.append((file_content, file_type))
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
-
-                    any_success = True  # Mark that at least one file was successfully loaded
+                    
                 else:
                     logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
@@ -202,17 +354,25 @@ class URLLoader:
                 continue
 
         # Pass Queue to the file loader if there are any successful loads
-        if any_success:
-            file_loader = self.loader(queued_files)
-            documents = file_loader.load()
+        if len(queued_files) > 0:
+            documents = []
+            for file in queued_files: # run each file one by one
+                for loader in self.loaders: # cycle loaders until correct loader
+                    try:
+                        file_loader = loader([file])
+                        documents.extend(file_loader.load())
+                        if self.verbose:
+                            logger.info(f"Loaded {len(documents)} documents")
+                    except ValueError: # wrong loader, try next
+                        pass
+            
 
-            if self.verbose:
-                logger.info(f"Loaded {len(documents)} documents")
-
-        if not any_success:
+        else:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
+
+
 
 
 
@@ -459,7 +619,7 @@ class QuizBuilder:
         
         generated_questions = []
         attempts = 0
-        max_attempts = num_questions * 5  # Allow for more attempts to generate questions
+        max_attempts = num_questions * 10  # Allow for more attempts to generate questions
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = chain.invoke(self.topic)

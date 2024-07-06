@@ -22,3 +22,8 @@ python-dotenv
 unstructured
 python-magic
 beautifulsoup4
+python-docx
+pandas
+openpyxl
+pytesseract
+pillow

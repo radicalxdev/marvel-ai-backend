@@ -1,6 +1,11 @@
 # backend/Dockerfile
 FROM python:3.10.12
 
+# Install Tesseract and its dependencies
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    libtesseract-dev
+
 WORKDIR /app
 
 COPY app/ /app
@@ -20,3 +25,5 @@ ENV PROJECT_ID="kai-ai-backend-427803"
 ENV API_KEY="AIzaSyBVo3VbGdMNI_rDrwtsWn4zxZvo1UWA9M0"
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
