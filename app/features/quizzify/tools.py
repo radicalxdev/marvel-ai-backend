@@ -3,6 +3,7 @@ from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
 from urllib.parse import urlparse
+import urllib.request
 import requests
 import os
 import json
@@ -38,8 +39,11 @@ from typing import List
 #Setting up the model for the AI
 api_key = os.environ.get('API_KEY')
 
-genai.configure(api_key=api_key)
-multimodal_model = GenerativeModel('gemini-1.5-flash',)
+genai.configure(api_key="AIzaSyBNivUHbaVVNg8KtQOjy6ARrWfSUXa_Hh8")
+multimodal_model = GenerativeModel('gemini-1.5-flash')
+
+#HTML and XML loaders
+from bs4 import BeautifulSoup
 
 #Extraction of all text from slides in presentation
 
@@ -210,31 +214,6 @@ class URLLoader:
 
         return documents
 
-def get_slide_text(slides):
-    text_concepts = ""
-    # Iterate over each shape in the slides collection
-    for shape in slides.shapes:
-        # Get the title of the slide
-        title = ""
-        if slides.shapes.title:
-            title = slides.shapes.title.text
-        texts = ""
-        if shape.has_text_frame:
-            # Extract text from each paragraph in the text frame
-            for paragraph in shape.text_frame.paragraphs:
-                # Extract text from each run in the paragraph
-                for run in paragraph.runs:
-                    texts += run.text
-        elif shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
-            image = shape.image
-            image_blob = image.blob
-            image_file = PIL.Image.open(BytesIO(image_blob))
-            print("Writing image in AI")
-            response = multimodal_model.generate_content(['Describe the picture', image_file])
-            print(response.text)
-            texts += response.text
-        text_concepts += texts
-    return title, text_concepts
 
 
 class PowerPointLoader:
@@ -242,6 +221,32 @@ class PowerPointLoader:
         self.loader = loader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
+    def get_slide_text(slides):
+        text_concepts = ""
+        # Iterate over each shape in the slides collection
+        for shape in slides.shapes:
+            # Get the title of the slide
+            title = ""
+            if slides.shapes.title:
+                title = slides.shapes.title.text
+            texts = ""
+            if shape.has_text_frame:
+                # Extract text from each paragraph in the text frame
+                for paragraph in shape.text_frame.paragraphs:
+                    # Extract text from each run in the paragraph
+                    for run in paragraph.runs:
+                        texts += run.text
+            '''elif shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                image = shape.image
+                image_blob = image.blob
+                image_file = PIL.Image.open(BytesIO(image_blob))
+                logger.info("Writing image in AI")
+                response = multimodal_model.generate_content(['Describe the picture', image_file])
+                logger.info(response.text)
+                texts += response.text'''
+            text_concepts += texts
+        return title, text_concepts
+
     def load(self,files: List[ToolFile]) -> List[Document]:
         self.files = files
         
@@ -260,10 +265,9 @@ class PowerPointLoader:
                 page_content = ""
                 
                 for slide_num, slide in enumerate(prs.slides, start = 1):
-                    title, text_concepts = get_slide_text(slide)
+                    title, text_concepts = PowerPointLoader.get_slide_text(slide)
                     
-                    text_concepts_str = "\n".join(text_concepts)
-                    page_content += (title + text_concepts_str)
+                    page_content += (title + text_concepts)
                 
             
                     metadata = {"source": path, "number of slides": slide_num}
@@ -281,10 +285,37 @@ class PowerPointLoader:
             logger.info(f"Loaded {len(documents)} documents")
         return documents
     
+class HTMLLoader:
+    def __init__(self, expected_file_type="html", verbose=False):
+        self.verbose = verbose
+        self.expected_file_type = expected_file_type
+
+    def load(self, files: List[Document]) -> List[Document]:
+        self.files = files
+        
+        documents = []
+        
+        # Ensure file paths is a list
+        for tool_file in self.files:
+            url = tool_file.url
+            response = requests.get(url, stream=True, verify=False)
+            if response.status_code != 200:
+                raise ValueError(f"Request failed to load file from {url} and got status code {response.status_code}")
+            
+            html_content = response.content.decode("utf-8")
+            soup = BeautifulSoup(html_content, "html.parser")
+            text = soup.get_text()
+            
+            documents.append(Document(page_content=text, metadata={"source": url}))
+            logger.info(text)
+
+        return documents
+
+  
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            "loader": PowerPointLoader(verbose = verbose), # Creates instance on call with verbosity
+            "loader": HTMLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
@@ -326,7 +357,8 @@ class RAGpipeline:
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
-        
+            for document in documents:
+                logger.info(document)
         try:
             self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
             logger.info(f"Vectorstore created")

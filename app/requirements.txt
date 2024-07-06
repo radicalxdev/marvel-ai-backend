@@ -21,3 +21,4 @@ google-generativeai
 python-dotenv
 unstructured
 python-magic
+beautifulsoup4
