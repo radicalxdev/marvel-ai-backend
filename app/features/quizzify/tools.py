@@ -45,7 +45,7 @@ from typing import List
 #Setting up the model for the AI
 api_key = os.environ.get('API_KEY')
 
-genai.configure(api_key="AIzaSyBNivUHbaVVNg8KtQOjy6ARrWfSUXa_Hh8")
+genai.configure(api_key=api_key)
 multimodal_model = GenerativeModel('gemini-1.5-flash')
 
 #HTML and XML loaders
