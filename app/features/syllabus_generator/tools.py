@@ -2,10 +2,10 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from typing import List
 from app.services.logger import setup_logger
 
-import os
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from app.features.syllabus_generator.document_loaders import read_text_file
 
 
 logger = setup_logger(__name__)
@@ -20,7 +20,8 @@ class SyllabusRequestArgs:
                  unit_time_value: int,
                  start_date: str, 
                  assessment_methods: str, 
-                 grading_scale: str):
+                 grading_scale: str,
+                 summary: str):
         
         self._grade_level = grade_level
         self._course = course
@@ -31,6 +32,7 @@ class SyllabusRequestArgs:
         self._start_date = start_date
         self._assessment_methods = assessment_methods
         self._grading_scale = grading_scale
+        self._summary = summary
 
     @property
     def grade_level(self) -> str:
@@ -68,6 +70,10 @@ class SyllabusRequestArgs:
     def grading_scale(self) -> str:
         return self._grading_scale
     
+    @property
+    def summary(self) -> str:
+        return self._summary
+    
     def to_dict(self) -> dict:
         return {
             "grade_level": self.grade_level,
@@ -78,18 +84,10 @@ class SyllabusRequestArgs:
             "unit_time_value": self.unit_time_value,
             "start_date": self.start_date,
             "assessment_methods": self.assessment_methods,
-            "grading_scale": self.grading_scale
+            "grading_scale": self.grading_scale,
+            "summary": self.summary
         }
-
-def read_text_file(file_path):
-    # Get the directory containing the script file
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Combine the script directory with the relative file path
-    absolute_file_path = os.path.join(script_dir, file_path)
     
-    with open(absolute_file_path, 'r') as file:
-        return file.read()
 
 class SyllabusGeneratorPipeline:
     def __init__(self, prompt=None, parser=None, model=None, verbose=False):
@@ -115,7 +113,8 @@ class SyllabusGeneratorPipeline:
                 "unit_time_value",
                 "start_date",
                 "assessment_methods",
-                "grading_scale"
+                "grading_scale",
+                "summary"
                 ],
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )

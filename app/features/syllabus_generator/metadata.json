@@ -44,6 +44,16 @@
             "label": "Grading Scale",
             "name": "grading_scale",
             "type": "text"
+        },
+        {
+            "label": "File Url",
+            "name": "file_url",
+            "type": "string"
+        },
+        {
+            "label": "File Type",
+            "name": "file_type",
+            "type": "string"
         }
     ]
 }
