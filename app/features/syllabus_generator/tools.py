@@ -104,26 +104,31 @@ class SyllabusGeneratorPipeline:
         self.verbose = verbose
 
     def compile(self):
-        prompt = PromptTemplate(
-            template=self.prompt,
-            input_variables=[
-                "grade_level", 
-                "course",
-                "instructor_name",
-                "instructor_title",
-                "unit_time",
-                "unit_time_value",
-                "start_date",
-                "assessment_methods",
-                "grading_scale",
-                "summary"
-                ],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()}
-        )
+        try:
+            prompt = PromptTemplate(
+                template=self.prompt,
+                input_variables=[
+                    "grade_level", 
+                    "course",
+                    "instructor_name",
+                    "instructor_title",
+                    "unit_time",
+                    "unit_time_value",
+                    "start_date",
+                    "assessment_methods",
+                    "grading_scale",
+                    "summary"
+                    ],
+                partial_variables={"format_instructions": self.parser.get_format_instructions()}
+            )
 
-        chain = prompt | self.model | self.parser
+            chain = prompt | self.model | self.parser
 
-        if self.verbose: logger.info(f"Chain compilation complete")
+            if self.verbose: logger.info(f"Chain compilation complete")
+
+        except Exception as e:
+            logger.error(f"Failed to compile LLM chain : {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to compile LLM chain")
         
         return chain
 
