@@ -1,6 +1,6 @@
 from app.services.logger import setup_logger
 from app.features.syllabus_generator.tools import SyllabusRequestArgs
-from app.features.syllabus_generator.tools import SyllabusGeneratorPipeline
+from app.features.syllabus_generator.tools import generate_syllabus
 from app.features.syllabus_generator.document_loaders import generate_summary_from_img, summarize_transcript_youtube_url, get_summary
 
 logger = setup_logger()
@@ -40,7 +40,6 @@ def executor(grade_level: str,
                             grading_scale,
                             summary)
     
-    pipeline = SyllabusGeneratorPipeline(verbose=verbose)
-    chain = pipeline.compile()
-    output = chain.invoke(request_args.to_dict())
-    return output
+    syllabus = generate_syllabus(request_args, verbose= verbose)
+
+    return syllabus
