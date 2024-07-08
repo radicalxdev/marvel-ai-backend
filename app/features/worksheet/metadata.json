@@ -31,8 +31,8 @@
             "type": "number"
         },
         {
-            "label": "Number of Yes-No Questions",
-            "name": "num_yes_no",
+            "label": "Number of True or False Questions",
+            "name": "num_true_false",
             "type": "number"
         }
     ]

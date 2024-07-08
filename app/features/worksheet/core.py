@@ -5,11 +5,11 @@ from api.error_utilities import LoaderError, ToolExecutorError
 
 logger = setup_logger()
 
-def executor(topic: str, grade_level: str, num_worksheets: int, num_fill_in_blank: int, num_multiple_choice: int, num_open_ended: int, num_yes_no: int, verbose=False):
+def executor(topic: str, grade_level: str, num_worksheets: int, num_fill_in_blank: int, num_multiple_choice: int, num_open_ended: int, num_true_false: int, verbose=False):
     try:
         
         # Create and return the worksheets
-        output = WorksheetBuilder(topic = topic, grade_level = grade_level, verbose=verbose).create_worksheets(num_worksheets = num_worksheets, num_fill_in_blank = num_fill_in_blank, num_multiple_choice = num_multiple_choice, num_open_ended = num_open_ended, num_yes_no = num_yes_no)
+        output = WorksheetBuilder(topic = topic, grade_level = grade_level, verbose=verbose).create_worksheets(num_worksheets = num_worksheets, num_fill_in_blank = num_fill_in_blank, num_multiple_choice = num_multiple_choice, num_open_ended = num_open_ended, num_true_false = num_true_false)
         
         ## DEBUG print (remove later)
         for i, w in enumerate(output):
