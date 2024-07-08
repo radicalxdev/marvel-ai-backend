@@ -1,4 +1,7 @@
 import pytest
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 from app.features.worksheet_generator.core import executor
 from app.api.error_utilities import ToolExecutorError
 from app.features.worksheet_generator.tools import LoaderError

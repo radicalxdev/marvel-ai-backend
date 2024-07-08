@@ -1,12 +1,13 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
-
 import pytest
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 from unittest.mock import MagicMock, patch
 from app.features.worksheet_generator.tools import QuizBuilder
 from langchain_chroma import Chroma
-from langchain_google_vertexai import VertexAI
+from langchain_google_genai import GoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 class TestQuizBuilder:
     @pytest.fixture
@@ -15,7 +16,7 @@ class TestQuizBuilder:
 
     @pytest.fixture
     def mock_vertexai(self):
-        return MagicMock(spec=VertexAI)
+        return MagicMock(spec=GoogleGenerativeAI)
 
     @pytest.fixture
     def quiz_builder(self, mock_vectorstore, mock_vertexai):

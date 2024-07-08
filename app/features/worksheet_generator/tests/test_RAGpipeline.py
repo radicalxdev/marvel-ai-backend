@@ -1,12 +1,13 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
-
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from app.features.worksheet_generator.tools import read_text_file, RAGRunnable, UploadPDFLoader, BytesFilePDFLoader, LocalFileLoader, URLLoader, RAGpipeline, QuizBuilder, TextOrPDFLoader, QuestionGenerator, QuizQuestion, QuestionChoice, Document, LoaderError
+from app.features.worksheet_generator.tools import UploadPDFLoader, RAGpipeline
 
 from langchain_core.documents import Document
+
 
 @pytest.fixture
 def mock_dependencies():
@@ -102,6 +103,10 @@ def test_compile(mock_dependencies):
         rag_pipeline.compile()
     except Exception as e:
         pytest.fail(f"compile() raised Exception unexpectedly: {e}")
+
+###############
+# In-Progress #
+###############
 
 def test_call(mock_dependencies):
     rag_pipeline = mock_dependencies["rag_pipeline"]

@@ -11,7 +11,8 @@ import time
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
-from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
+from langchain_google_genai import GoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
@@ -183,7 +184,7 @@ class RAGpipeline:
             "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
-            "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
+            "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001')
         }
         self.loader = loader or default_config["loader"]
         self.splitter = splitter or default_config["splitter"]
@@ -252,7 +253,7 @@ class RAGpipeline:
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
-            "model": VertexAI(model="gemini-1.0-pro"),
+            "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=QuizQuestion),
             "prompt": read_text_file("prompt/quizzify-prompt.txt")
         }
@@ -375,7 +376,7 @@ class TextOrPDFLoader:
             raise ValueError("No text or file provided for question generation")
 
 class QuestionGenerator:
-    def __init__(self, model: VertexAI = VertexAI(model="gemini-1.0-pro"), verbose=False):
+    def __init__(self, model: GoogleGenerativeAI = GoogleGenerativeAI(model="gemini-1.0-pro"), verbose=False):
         self.model = model
         self.verbose = verbose
 
