@@ -201,6 +201,7 @@ The specification is further illustrated in the following table:
 ```
 
 #### PDF
+We use PdfReader to process PDF files, extracting text from each page individually and creating a Document object for each page. For filtering, you can either provide a list of specific page numbers that are necessary for quiz questions (Specific_list) or specify a range by including the first page number (section_start) and the last page number (section_end), both inclusive.
 ```
 {
     "user": {
