@@ -28,7 +28,7 @@ class QuestionBase:
     def __init__(self, model, embedding_model, topic, grade_level, prompt_template, parser, verbose):
         self.model = model
         self.embedding_model = embedding_model
-        self.similarity_threshold = 0.9  # Adjust threshold as needed
+        self.similarity_threshold = 0.8  # Adjust threshold as needed
         self.topic = topic
         self.grade_level = grade_level
         self.prompt_template = prompt_template
@@ -86,7 +86,7 @@ class QuestionBase:
             flag = self.validate_response()
             if flag:
                 # check if question is unique
-                if num_questions > 1 and self.not_unique():
+                if self.section_name != 'Summary' and self.not_unique():
                     logger.warning(f"Not unique {self.section_name}. Attempt {attempts} of {max_attempts}")
                     continue
                 generated_questions.append(self.response)
