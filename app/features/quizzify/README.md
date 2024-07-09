@@ -204,6 +204,7 @@ To handle Excel files, our method leverages pandas for efficient Excel file proc
 ```
 
 #### Text
+Here, we read an entire text file and divide its content into "pages," each containing approximately 500 words. Each of these pages is then transformed into a Document object, facilitating further processing or analysis. For filtering, the method provides flexibility through specific_list, allowing inclusion of specific page numbers deemed relevant. Alternatively, we can provide a range option where section_start specifies the first page number (inclusive), while section_end defines the last page number (inclusive) to be included in the processing.
 ```
 {
     "user": {
@@ -230,6 +231,40 @@ To handle Excel files, our method leverages pandas for efficient Excel file proc
                         "url": "https://github.com/jasongrout/linear-algebra/blob/master/linear-algebra-book-changes.txt",
                         "file_type":"txt",
                         "specific_list": [1,3,5,6,9]
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+```
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "Math"
+            },
+            {
+                "name": "num_questions",
+                "value": 1
+            },
+            {
+                "name": "files",
+                "value": [
+                    {
+                        "url": "https://firebasestorage.googleapis.com/v0/b/docxfile-1ed2d.appspot.com/o/Neural%20Networks%20and%20Fuzzy%20Logic.txt?alt=media&token=3ecafbb2-9455-4ebb-9d48-e0b6aec8c3ad",
+                        "file_type":"txt",
+                        "section_start":1,
+                        "section_end": 3
                     }
                 ]
             }
@@ -416,7 +451,7 @@ We use python-docx to handle DOCX files, reading each file's content. The conten
 ```
 
 #### PPTX
-We use python-pptx to handle PPTX files, extracting text from each slide. A Document object is created for each slide, and the content is segmented accordingly. For filtering, you can specify a specific list of slide numbers to include (specific_list),or you can define the starting slide number (section_start) for inclusion, or set the last slide number (section_end) to include, with both boundaries being inclusive.
+We use python-pptx to handle PPTX files, extracting text from each slide. A Document object is created for each slide, and the content is segmented accordingly. For filtering, you can specify a specific list of slide numbers to include (specific_list),or you can define the starting slide number (section_start) for inclusion, and set the last slide number (section_end) to include, with both boundaries being inclusive.
 ```
 {
     "user": {
