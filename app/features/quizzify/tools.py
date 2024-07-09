@@ -292,7 +292,7 @@ class URLLoader:
         for tool_file in tool_files:
             try:
                 url = tool_file.url
-
+                file_type = None
                 regex = r"/d/([^?]+)/"
                 match = re.search(regex,url)
                 if match:
