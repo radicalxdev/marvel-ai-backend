@@ -334,7 +334,7 @@ class SyllabusSchema(BaseModel):
     }
 
 
-def generate_syllabus(request_args, verbose):
+def generate_syllabus(request_args, verbose=True):
     try:
         pipeline = SyllabusGeneratorPipeline(verbose=verbose)
         chain = pipeline.compile()
