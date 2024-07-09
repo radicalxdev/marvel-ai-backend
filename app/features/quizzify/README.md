@@ -20,6 +20,7 @@ The specification is further illustrated in the following table:
 ### Json Request Examples
 
 #### Web Page
+Our method employs urllib to fetch webpage content, utilizing BeautifulSoup for HTML parsing and text extraction. The retrieved content is segmented into "pages," with each page containing approximately 500 words. Subsequently, each segmented page is transformed into a Document object. For filtering purposes, the method supports several options: specific_list allows inclusion of specific page numbers, and another option includes section_start that specifies the starting page number (inclusive) and section_end that determines the ending page number (inclusive) to be included in the processing. 
 ```
 {
     "user": {
@@ -55,7 +56,42 @@ The specification is further illustrated in the following table:
 }
 ```
 
+```
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "Math"
+            },
+            {
+                "name": "num_questions",
+                "value": 1
+            },
+            {
+                "name": "files",
+                "value": [
+                    {
+                        "url": "https://www.britannica.com/science/linear-algebra",
+                        "file_type":"web_url",
+                        "specific_list": [1,2,4,5]
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
 #### YouTube
+
 ```
 {
     "user": {
