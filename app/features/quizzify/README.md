@@ -91,7 +91,7 @@ Our method employs urllib to fetch webpage content, utilizing BeautifulSoup for 
 ```
 
 #### YouTube
-
+Our method extracts the video ID from a YouTube URL and utilizes the YouTubeTranscriptApi to fetch the English transcript of the video. Each segment of the transcript is then converted into a Document object for further processing.  Filtering capabilities include section_start, which specifies the starting time in seconds (inclusive), and section_end, which denotes the ending time in seconds (inclusive). This approach allows for precise extraction of specific segments from the video transcript, facilitating detailed analysis or summarization based on intervals.
 ```
 {
     "user": {
