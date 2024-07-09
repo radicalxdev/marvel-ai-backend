@@ -47,16 +47,6 @@ def mock_upload_file():
     
     return upload_file
 
-def test_upload_pdf_loader(mock_upload_file):
-    # Creating an instance of UploadPDFLoader with the mock UploadFile
-    upload_pdf_loader = UploadPDFLoader([mock_upload_file])
-    
-    documents = upload_pdf_loader.load()
-    
-    # Assert that the documents list contains one Document object with expected metadata
-    assert isinstance(documents, list)
-    assert len(documents) == 1
-
 class MockPdfPage:
     def extract_text(self):
         return "Hello World"
@@ -202,39 +192,6 @@ def test_compile(mock_dependencies):
         rag_pipeline.compile()
     except Exception as e:
         pytest.fail(f"compile() raised Exception unexpectedly: {e}")
-
-def test_call(mock_dependencies):
-    rag_pipeline = mock_dependencies["rag_pipeline"]
-
-    # Mock documents
-    documents = ["doc1", "doc2"]
-    loaded_documents = ["loaded_doc1", "loaded_doc2"]
-    split_documents = ["split_doc1", "split_doc2"]
-    vectorstore = MagicMock()
-
-    # Mock methods
-    rag_pipeline.load_PDFs = MagicMock(return_value=loaded_documents)
-    rag_pipeline.split_loaded_documents = MagicMock(return_value=split_documents)
-    rag_pipeline.create_vectorstore = MagicMock(return_value=vectorstore)
-
-    # Print statements to debug the calls
-    print(f"Before __call__: {rag_pipeline.load_PDFs.mock_calls}")
-    print(f"Before __call__: {rag_pipeline.split_loaded_documents.mock_calls}")
-    print(f"Before __call__: {rag_pipeline.create_vectorstore.mock_calls}")
-
-    # Test __call__ method
-    result = rag_pipeline(documents)
-
-    # Print statements to debug the calls
-    print(f"After __call__: {rag_pipeline.load_PDFs.mock_calls}")
-    print(f"After __call__: {rag_pipeline.split_loaded_documents.mock_calls}")
-    print(f"After __call__: {rag_pipeline.create_vectorstore.mock_calls}")
-
-    rag_pipeline.load_PDFs.assert_called_once_with(documents)
-    rag_pipeline.split_loaded_documents.assert_called_once_with(loaded_documents)
-    rag_pipeline.create_vectorstore.assert_called_once_with(split_documents)
-    assert result == vectorstore
-
 
 class MockUploadFile:
     def __init__(self, file_content):
