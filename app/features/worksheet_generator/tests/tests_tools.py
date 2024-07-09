@@ -1,6 +1,8 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
+# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 from app.features.worksheet_generator.tools import read_text_file, RAGRunnable, UploadPDFLoader, BytesFilePDFLoader, LocalFileLoader, URLLoader, RAGpipeline, QuizBuilder, TextOrPDFLoader, QuestionGenerator, QuizQuestion, QuestionChoice, Document, LoaderError
 import pytest
