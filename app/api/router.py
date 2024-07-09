@@ -2,11 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from typing import Union
-from app.services.schemas import ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
+from app.services.schemas import ToolRequest,QuestionRequest,QuestionResponse, ChatRequest, Message, ChatResponse, ToolResponse
 from app.utils.auth import key_check
 from app.services.logger import setup_logger
 from app.api.error_utilities import InputValidationError, ErrorResponse
 from app.api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from uuid import uuid4 
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -37,6 +38,23 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
             content=jsonable_encoder(ErrorResponse(status=400, message=e.message))
         )
     
+    except HTTPException as e:
+        logger.error(f"HTTPException: {e}")
+        return JSONResponse(
+            status_code=e.status_code,
+            content=jsonable_encoder(ErrorResponse(status=e.status_code, message=e.detail))
+        )
+
+@router.put("/edit-answers", response_model=Union[ToolResponse, ErrorResponse])
+async def edit_answers(data: QuestionRequest, _ = Depends(key_check)):
+    try:
+        return ToolResponse(data = QuestionResponse(data = data.data))
+    except InputValidationError as e:
+        logger.error(f"InputValidationError: {e}")
+        return JSONResponse(
+            status_code=400,
+            content=jsonable_encoder(ErrorResponse(status=400, message=e.message))
+        )
     except HTTPException as e:
         logger.error(f"HTTPException: {e}")
         return JSONResponse(

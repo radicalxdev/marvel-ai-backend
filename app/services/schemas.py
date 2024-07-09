@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from enum import Enum
-from app.services.tool_registry import BaseTool
+from app.services.tool_registry import BaseTool, QuestionFile
 
 
 class User(BaseModel):
@@ -42,6 +42,12 @@ class ChatRequest(GenericRequest):
     
 class ToolRequest(GenericRequest):
     tool_data: BaseTool
+
+class QuestionRequest(BaseModel):
+    data: List[QuestionFile]
+
+class QuestionResponse(BaseModel):
+    data: List[QuestionFile]
     
 class ChatResponse(BaseModel):
     data: List[Message]
@@ -53,4 +59,3 @@ class ChatMessage(BaseModel):
     role: str
     type: str
     text: str
-

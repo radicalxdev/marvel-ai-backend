@@ -15,4 +15,10 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
+BeautifulSoup4
+python-pptx
+python-docx
+pandas
+unstructured
+openpyxl
 python-dotenv

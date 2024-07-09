@@ -13,9 +13,7 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
 
         # Instantiate RAG pipeline with default values
         pipeline = RAGpipeline(verbose=verbose)
-        
         pipeline.compile()
-        
         # Process the uploaded files
         db = pipeline(files)
         
@@ -33,4 +31,3 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
         raise ValueError(error_message)
     
     return output
-
