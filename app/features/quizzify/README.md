@@ -201,7 +201,7 @@ The specification is further illustrated in the following table:
 ```
 
 #### PDF
-We use PdfReader to process PDF files, extracting text from each page individually and creating a Document object for each page. For filtering, you can either provide a list of specific page numbers that are necessary for quiz questions (Specific_list) or specify a range by including the first page number (section_start) and the last page number (section_end), both inclusive.
+We use PdfReader to process PDF files, extracting text from each page individually and creating a Document object for each page. For filtering, you can provide a list of specific page numbers that are necessary for quiz questions (Specific_list).
 ```
 {
     "user": {
@@ -237,6 +237,7 @@ We use PdfReader to process PDF files, extracting text from each page individual
 ```
 
 #### DOCX
+We use python-docx to handle DOCX files, reading each file's content. The content is divided into "pages," each containing approximately 500 words, and a Document object is generated for each page. For filtering, you can specify a specific list of "page" numbers to include (specific_list), define the starting "page" number (section_start) for inclusion, or set the last "page" number (section_end) to include, with both boundaries being inclusive.
 ```
 {
     "user": {
@@ -264,6 +265,40 @@ We use PdfReader to process PDF files, extracting text from each page individual
                         "file_type": "docx",
                         "section_start":1,
                         "section_end":15
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+```
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "Math"
+            },
+            {
+                "name": "num_questions",
+                "value": 1
+            },
+            {
+                "name": "files",
+                "value": [
+                    {
+                        "url": "https://www.hse.ru/data/2014/06/19/1309928966/Linear%20Algebra%20Year%202%20ENG.docx",
+                        "file_type": "docx",
+                        "specific_list": [2,4,7,9]
                     }
                 ]
             }
