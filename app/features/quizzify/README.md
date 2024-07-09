@@ -92,6 +92,7 @@ The specification is further illustrated in the following table:
 ```
 
 #### CSV
+To handle CSV files, our method leverages pandas for efficient CSV file processing, where each file is imported into a DataFrame to facilitate structured data manipulation. Filtering operations are supported using the section_start and section_end parameters. For section_start, input is provided as a specific list [starting row, starting column], while section_end uses a list [ending row, ending column] to define the extraction boundaries. 
 ```
 {
     "user": {
@@ -130,6 +131,7 @@ The specification is further illustrated in the following table:
 ```
 
 #### Excel
+To handle Excel files, our method leverages pandas for efficient Excel file processing, where each file is imported into a DataFrame to facilitate structured data manipulation. Filtering operations are supported using the section_start and section_end parameters. For section_start, input is provided as a specific list [starting row, starting column], while section_end uses a list [ending row, ending column] to define the extraction boundaries. 
 ```
 {
     "user": {
@@ -237,7 +239,7 @@ We use PdfReader to process PDF files, extracting text from each page individual
 ```
 
 #### DOCX
-We use python-docx to handle DOCX files, reading each file's content. The content is divided into "pages," each containing approximately 500 words, and a Document object is generated for each page. For filtering, you can specify a specific list of "page" numbers to include (specific_list), define the starting "page" number (section_start) for inclusion, or set the last "page" number (section_end) to include, with both boundaries being inclusive.
+We use python-docx to handle DOCX files, reading each file's content. The content is divided into "pages," each containing approximately 500 words, and a Document object is generated for each page. For filtering, you can specify a specific list of "page" numbers to include (specific_list), or you can define the starting "page" number (section_start) for inclusion, and set the last "page" number (section_end) to include, with both boundaries being inclusive.
 ```
 {
     "user": {
@@ -378,6 +380,7 @@ We use python-docx to handle DOCX files, reading each file's content. The conten
 ```
 
 #### PPTX
+We use python-pptx to handle PPTX files, extracting text from each slide. A Document object is created for each slide, and the content is segmented accordingly. For filtering, you can specify a specific list of slide numbers to include (specific_list),or you can define the starting slide number (section_start) for inclusion, or set the last slide number (section_end) to include, with both boundaries being inclusive.
 ```
 {
     "user": {
@@ -404,6 +407,40 @@ We use python-docx to handle DOCX files, reading each file's content. The conten
                         "url": "https://personal.utdallas.edu/~nrr150130/cs7301/2021fa/lects/Lecture_9_LA_Review.pptx",
                         "file_type": "pptx",
                         "specific_list": [1,2,4,6,8,10]
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+```
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "Math"
+            },
+            {
+                "name": "num_questions",
+                "value": 1
+            },
+            {
+                "name": "files",
+                "value": [
+                    {
+                        "url": "https://personal.utdallas.edu/~nrr150130/cs7301/2021fa/lects/Lecture_9_LA_Review.pptx",
+                        "file_type": "pptx",
+                        "section_start": 1,
+                        "section_end": 6
                     }
                 ]
             }
