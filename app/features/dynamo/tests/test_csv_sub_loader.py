@@ -7,14 +7,25 @@ class TestCsvSubLoader(unittest.TestCase):
     def setUp(self):
         self.logger = setup_logger(__name__)
         self.sample_csv_content = BytesIO(b'header1,header2\nvalue1,value2')
+        self.empty_csv_content = BytesIO(b'')
+        self.invalid_csv_content = BytesIO(b'This is not a CSV content')
 
-    def test_load(self):
+    def test_load_normal_case(self):
         loader = CsvSubLoader(self.sample_csv_content, 'csv')
         documents = loader.load()
         self.assertTrue(len(documents) > 0)
-        self.assertIn('header1, header2', documents[0].page_content)
-        self.assertIn('value1, value2', documents[0].page_content)
+        self.assertIn('header1,header2', documents[0].page_content)
+        self.assertIn('value1,value2', documents[0].page_content)
+
+    def test_load_empty_csv(self):
+        loader = CsvSubLoader(self.empty_csv_content, 'csv')
+        with self.assertRaises(ValueError):  # Expect a ValueError for empty CSV content
+            loader.load()
+
+    def test_load_invalid_csv(self):
+        loader = CsvSubLoader(self.invalid_csv_content, 'csv')
+        with self.assertRaises(ValueError):  # Expect a ValueError for invalid CSV content
+            loader.load()
 
 if __name__ == '__main__':
     unittest.main()
-
