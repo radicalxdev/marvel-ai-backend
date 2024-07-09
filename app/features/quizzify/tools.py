@@ -4,6 +4,7 @@ from fastapi import UploadFile
 from pypdf import PdfReader
 from urllib.parse import urlparse
 from PIL import Image
+import urllib.request
 import requests
 import os
 import json
@@ -21,13 +22,39 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser,StrOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain.document_loaders import YoutubeLoader
 from langchain.chains import LLMChain
 from docx import Document as docu
+from youtube_transcript_api import YouTubeTranscriptApi
 
 
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
+
+
+#PowerPoint Loader imports
+from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
+import os
+
+import google.generativeai as genai
+from google.generativeai import GenerativeModel
+import PIL
+from io import BytesIO
+from langchain_core.documents import Document
+from typing import List
+#Setting up the model for the AI
+api_key = os.environ.get('API_KEY')
+
+genai.configure(api_key=api_key)
+multimodal_model = GenerativeModel('gemini-1.5-flash')
+
+#HTML and XML loaders
+from bs4 import BeautifulSoup
+
+#Extraction of all text from slides in presentation
+
 
 relative_path = "features/quzzify"
 
@@ -75,6 +102,76 @@ class UploadPDFLoader:
                     documents.append(doc)
 
         return documents
+
+class YouTubeTranscriptLoader:
+    def __init__(self, verbose=False):
+        self.verbose = verbose
+
+
+    def fetch_transcript(self, video_id: str) -> str:
+        try:
+            transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
+            transcript_text = '\n'.join([transcript['text'] for transcript in transcript_list])
+            return transcript_text
+       
+        except Exception as e:
+            print(f"Error fetching transcript for video {video_id}: {e}")
+            return ""
+
+
+    def load(self, files: List[ToolFile]):
+        documents = []
+
+
+        for file in files:
+            try:
+                url = file.url
+                video_id = YoutubeLoader.extract_video_id(url)
+                transcript_text = self.fetch_transcript(video_id)
+            
+               
+                if transcript_text:
+                    documents.append(Document(page_content=transcript_text, metadata={'video_id': video_id}))
+                    if self.verbose:
+                        print(f"Fetched transcript for video {video_id}")
+
+
+                else:
+                    print(f"No transcript found for video {video_id}")
+
+
+            except Exception as e:
+                print(f"Error loading video {video_id}: {e}")
+       
+        return documents
+
+class YoutubeLoaders:
+    def __init__(self, verbose = False):
+        self.verbose = verbose
+
+
+    def load(self, tool_files: List[ToolFile]):
+        documents = []
+        youtube_files = []
+       
+        for file in tool_files:
+            url = file.url
+           
+
+
+            if url.lower().startswith("https://youtu.be/"):
+                youtube_files.append(file)
+   
+        yt_loader = YouTubeTranscriptLoader(verbose=self.verbose)
+        docs = yt_loader.load(youtube_files)
+        if self.verbose:
+            print(f"Documents from YouTube loader: {len(docs)}")
+        documents.extend(docs)
+        if self.verbose:
+            print(f"Total documents: {len(documents)}")
+        return documents
+
+
 
 class BytesFileCSVLoader:
 
@@ -348,10 +445,110 @@ class URLLoader:
         return documents
 
 
+
+
+
+class PowerPointLoader:
+    def __init__(self,loader = None, verbose=False, expected_file_type="pptx"):
+        self.loader = loader
+        self.expected_file_type = expected_file_type
+        self.verbose = verbose
+    def get_slide_text(slides):
+        text_concepts = ""
+        # Iterate over each shape in the slides collection
+        for shape in slides.shapes:
+            # Get the title of the slide
+            title = ""
+            if slides.shapes.title:
+                title = slides.shapes.title.text
+            texts = ""
+            if shape.has_text_frame:
+                # Extract text from each paragraph in the text frame
+                for paragraph in shape.text_frame.paragraphs:
+                    # Extract text from each run in the paragraph
+                    for run in paragraph.runs:
+                        texts += run.text
+            '''elif shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                image = shape.image
+                image_blob = image.blob
+                image_file = PIL.Image.open(BytesIO(image_blob))
+                logger.info("Writing image in AI")
+                response = multimodal_model.generate_content(['Describe the picture', image_file])
+                logger.info(response.text)
+                texts += response.text'''
+            text_concepts += texts
+        return title, text_concepts
+
+    def load(self,files: List[ToolFile]) -> List[Document]:
+        self.files = files
+        
+        documents: List[Document] = []
+        for tool_file in self.files:
+            try:
+                url = tool_file.url
+                path = urlparse(url).path
+                file_type = url.split(".")[-1]
+                if file_type not in ('pptx', 'ppt'):
+                    raise LoaderError(f"Expected ppt/pptx file but got {file_type}")
+
+                response = requests.get(url, stream=True)
+                content = BytesIO(response.content)
+                prs = Presentation(content)
+                page_content = ""
+                
+                for slide_num, slide in enumerate(prs.slides, start = 1):
+                    title, text_concepts = PowerPointLoader.get_slide_text(slide)
+                    
+                    page_content += (title + text_concepts)
+                
+            
+                    metadata = {"source": path, "number of slides": slide_num}
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+                if self.verbose: logger.info(f"Succesfully loaded file from {url}")
+            except Exception as e:
+                logger.error(f"Failed to load file from {url}")
+                logger.error(e)
+                continue
+
+        if len(documents) == 0:
+            raise LoaderError("Unable to load any files")
+        if self.verbose:
+            logger.info(f"Loaded {len(documents)} documents")
+        return documents
+    
+class HTMLLoader:
+    def __init__(self, expected_file_type="html", verbose=False):
+        self.verbose = verbose
+        self.expected_file_type = expected_file_type
+
+    def load(self, files: List[Document]) -> List[Document]:
+        self.files = files
+        
+        documents = []
+        
+        # Ensure file paths is a list
+        for tool_file in self.files:
+            url = tool_file.url
+            response = requests.get(url, stream=True, verify=False)
+            if response.status_code != 200:
+                raise ValueError(f"Request failed to load file from {url} and got status code {response.status_code}")
+            
+            html_content = response.content.decode("utf-8")
+            soup = BeautifulSoup(html_content, "html.parser")
+            text = soup.get_text()
+            
+            documents.append(Document(page_content=text, metadata={"source": url}))
+            logger.info(text)
+
+        return documents
+
+  
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
+            "loader": HTMLLoader(verbose = verbose), # Creates instance on call with verbosity
+            "loader": YoutubeLoaders(verbose=verbose),
             "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
@@ -389,20 +586,30 @@ class RAGpipeline:
         if self.verbose: logger.info(f"Split {len(loaded_documents)} documents into {len(total_chunks)} chunks")
         
         return total_chunks
-    
+
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
+            for document in documents:
+                logger.info(document)
+        try:
+            self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+            logger.info(f"Vectorstore created")
+        except Exception as e:
+            logger.error(f"Error creating vectorstore: {e}")
+            raise  # Rethrow the exception to handle it further
         
-        self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
-
-        if self.verbose: logger.info(f"Vectorstore created")
+        if self.verbose:
+            logger.info(f"Vectorstore created")
+        
         return self.vectorstore
     
     def compile(self):
         # Compile the pipeline
         self.load_PDFs = RAGRunnable(self.load_PDFs)
+        logger.info("Completed loading PDFs - Chuyang Zhang")
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
+        logger.info("Completed splitting loaded documents - Chuyang Zhang")
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
         if self.verbose: logger.info(f"Completed pipeline compilation")
     

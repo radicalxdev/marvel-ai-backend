@@ -11,6 +11,8 @@ def pdf_loader():
 def url_loader(pdf_loader):
     return URLLoader(file_loader=pdf_loader, expected_file_type="pdf")
 
+
+
 @patch('requests.get')
 def test_load_pdf_from_url(mock_get, url_loader):
     
