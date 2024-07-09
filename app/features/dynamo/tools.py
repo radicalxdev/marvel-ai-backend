@@ -1,25 +1,33 @@
-from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader, TextLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.prompts import PromptTemplate
-from langchain_google_genai import GoogleGenerativeAI
-from langchain_core.output_parsers import JsonOutputParser
-from langchain.chains.summarize import load_summarize_chain
-from langchain_core.pydantic_v1 import BaseModel, Field
-from langchain_core.documents import Document
-from app.services.tool_registry import ToolFile
-from app.api.error_utilities import LoaderError
-from typing import List, Tuple, Dict, Any
-from app.api.error_utilities import VideoTranscriptError
-from fastapi import HTTPException
-from pypdf import PdfReader
-from pptx import Presentation
-from app.services.logger import setup_logger
-import requests
-import os
+import csv
 import json
+import os
 from io import BytesIO
-from pypdf import PdfReader
+
+import requests
+from bs4 import BeautifulSoup
+from docx import Document as DocxDocument
+from fastapi import HTTPException
 from pptx import Presentation
+from pypdf import PdfReader
+
+from typing import List
+
+from app.api.error_utilities import LoaderError, VideoTranscriptError
+from app.services.logger import setup_logger
+from app.services.tool_registry import ToolFile
+
+from langchain.chains.summarize import load_summarize_chain
+from langchain.prompts import PromptTemplate
+from langchain_core.documents import Document
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import AzureAIDocumentIntelligenceLoader, YoutubeLoader
+from langchain_google_genai import GoogleGenerativeAI
+
+
+AZURE_END_POINT = 'https://dynamo.cognitiveservices.azure.com/'
+AZURE_API_KEY = 'c9c3c358e15f4908affe1f1fcfae6e49'
 
 logger = setup_logger(__name__)
 
@@ -86,7 +94,7 @@ class PptxSubLoader:
             logger.error(e)
 
         return documents
-    
+
 class TextSubLoader:
     def __init__(self, file_content: BytesIO, file_type: str):
         self.file_content = file_content
@@ -113,10 +121,9 @@ class JsonSubLoader:
             content = json.dumps(data, indent=2)
             doc = Document(page_content=content, metadata={"source": self.file_type})
             return [doc]
-        except Exception as e:
-            logger.error(f"Failed to load JSON file from {self.file_type}")
-            logger.error(e)
-            return []
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to load JSON file from {self.file_type}: {e}")
+            raise ValueError("Invalid JSON content") from e
 
 class MarkdownSubLoader:
     def __init__(self, file_content: BytesIO, file_type: str):
@@ -141,29 +148,59 @@ class DocxSubLoader:
     def load(self) -> List[Document]:
         documents = []
         try:
-            pass
-
+            docx_document = DocxDocument(self.file_content)
+            full_text = []
+            for paragraph in docx_document.paragraphs:
+                full_text.append(paragraph.text)
+            content = '\n'.join(full_text)
+            doc = Document(page_content=content, metadata={"source": self.file_type})
+            documents.append(doc)
         except Exception as e:
-                logger.error(f"Failed to load file from {self.file_type} sub loader")
-                logger.error(e)
-
+            logger.error(f"Failed to load file from {self.file_type} sub loader")
+            logger.error(e)
         return documents
 
+class DocxSubLoaderAzure:
+    def __init__(self, url: str, azure_endpoint: str, azure_api_key: str):
+        self.url = url
+        self.azure_endpoint = azure_endpoint
+        self.azure_api_key = azure_api_key
+
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            loader = AzureAIDocumentIntelligenceLoader(
+                api_endpoint=self.azure_endpoint,
+                api_key=self.azure_api_key,
+                url_path=self.url
+            )
+            documents = loader.load()
+        except Exception as e:
+            logger.error(f"Failed to load file from doc sub loader (Azure)")
+            logger.error(e)
+
+        return documents
+    
 class CsvSubLoader:
     def __init__(self, file_content: BytesIO, file_type: str):
         self.file_content = file_content
         self.file_type = file_type
 
     def load(self) -> List[Document]:
-        documents = []
         try:
-            pass
-
+            self.file_content.seek(0)
+            content = self.file_content.read().decode('utf-8')
+            # Validate CSV format
+            csv_reader = csv.reader(content.splitlines())
+            rows = list(csv_reader)
+            if not rows:
+                raise ValueError("Empty CSV content")
+            
+            doc = Document(page_content=content, metadata={"source": self.file_type})
+            return [doc]
         except Exception as e:
-                logger.error(f"Failed to load file from {self.file_type} sub loader")
-                logger.error(e)
-
-        return documents
+            logger.error(f"Failed to load CSV file from {self.file_type}: {e}")
+            raise ValueError("Invalid CSV content") from e
 
 class HtmlSubLoader:
     def __init__(self, file_content: BytesIO, file_type: str):
@@ -171,15 +208,20 @@ class HtmlSubLoader:
         self.file_type = file_type
 
     def load(self) -> List[Document]:
-        documents = []
         try:
-            pass
+            self.file_content.seek(0)
+            content = self.file_content.read().decode('utf-8')
+            # Validate HTML format
+            soup = BeautifulSoup(content, 'html.parser')
+            if not soup.body:
+                raise ValueError("Invalid HTML content")
 
+            doc = Document(page_content=soup.get_text(), metadata={"source": self.file_type})
+            return [doc]
         except Exception as e:
-                logger.error(f"Failed to load file from {self.file_type} sub loader")
-                logger.error(e)
+            logger.error(f"Failed to load HTML file from {self.file_type}: {e}")
+            raise ValueError("Invalid HTML content") from e
 
-        return documents
 
 class URLLoader:
     def __init__(self, file_loader=None, verbose=False):
@@ -203,7 +245,7 @@ class URLLoader:
                     file_content = BytesIO(response.content)
 
                     # Append to Queue
-                    queued_files.append((file_content, file_type))
+                    queued_files.append((file_content, file_type, url))
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
 
@@ -218,7 +260,7 @@ class URLLoader:
 
         # Load file if reponse successful
         if any_success:
-            for cur_file_content, cur_file_type in queued_files:
+            for cur_file_content, cur_file_type, url in queued_files:
                 if cur_file_type == "pdf":
                     self.loader = PDFSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "pptx":
@@ -230,7 +272,8 @@ class URLLoader:
                 elif cur_file_type == "md":
                     self.loader = MarkdownSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type in ["doc", 'docx']:
-                    self.loader = DocxSubLoader(cur_file_content, cur_file_type)
+                    # self.loader = DocxSubLoader(cur_file_content, cur_file_type)
+                    self.loader = DocxSubLoaderAzure(url, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
                 elif cur_file_type == "csv":
                     self.loader = CsvSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "html":
@@ -292,7 +335,7 @@ def load_documents(youtube_url: str, files: list[ToolFile]):
     if youtube_url:
         documents.extend(get_youtube_doc(youtube_url))
     if files:
-        loader = URLLoader()
+        loader = URLLoader(verbose=True)
         docs = loader.load(files)
         documents.extend(docs)
     
