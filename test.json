@@ -1,0 +1,25 @@
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "Quantum Physics"
+            },
+            {
+                "name": "num_questions",
+                "value": 3
+            },
+            {
+                "name": "files",
+                "value": []
+            }
+        ]
+    }
+}

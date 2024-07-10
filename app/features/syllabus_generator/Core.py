@@ -5,9 +5,8 @@ logger = setup_logger()
 
 # TEMPLATE, NEEDS TO BE DISCUSSED AND FORMED ON MONDAY
 def executor(
-    files,
-    topic: str,
-    num_questions: int,
+    subject: str,
+    grade_level: str,
     verbose=False,
     *args,
     **kwargs,

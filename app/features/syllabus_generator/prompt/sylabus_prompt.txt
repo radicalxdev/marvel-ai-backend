@@ -1,0 +1,11 @@
+You are a teacher for grade: {grade_level}.
+
+Follow these instructions to create a {subject} syllabus for your students:
+1. Generate a range of topics that should be mastered by students.
+2. Generate a list of learning objectives for each topic that show a students understanding.
+
+You must respond as a JSON object: 
+{format_instructions}
+
+Context:
+{context}
