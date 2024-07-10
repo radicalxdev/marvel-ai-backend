@@ -46,6 +46,7 @@
         postShellHook = ''
           # allow pip to install wheels
           unset SOURCE_DATE_EPOCH
+          pip install --upgrade pip
         '';
 
         # Dependency for NixOS
