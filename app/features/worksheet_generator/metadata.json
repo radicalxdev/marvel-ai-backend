@@ -1,0 +1,24 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "number"
+        },
+        {
+            "label": "Topic",
+            "name": "topic",
+            "type": "text"
+        },
+        {
+            "label": "Question Type",
+            "name": "question_type",
+            "type": "text"
+        },
+        {
+            "label": "Number of Questions",
+            "name": "num_questions",
+            "type": "number"
+        }
+    ]
+}
