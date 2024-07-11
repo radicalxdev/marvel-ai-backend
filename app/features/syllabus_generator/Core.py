@@ -1,3 +1,5 @@
+from app.features.quizzify.tools import RAGpipeline
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from services.logger import setup_logger
 
 logger = setup_logger()
@@ -7,23 +9,31 @@ logger = setup_logger()
 def executor(
     subject: str,
     grade_level: str,
+    guidance: str,
+    files: str,
     verbose=False,
-    *args,
-    **kwargs,
 ):
     try:
         if verbose:
-            logger.debug(f"Files: {files}")
+            logger.debug(
+                f"Subject: {subject}, grade_level: {grade_level}, guidance: {guidance}"
+            )
 
-        # # Instantiate RAG pipeline with default values
-        # pipeline = RAGpipeline(verbose=verbose)
-        #
-        # pipeline.compile()
-        #
-        # # Process the uploaded files
-        # db = pipeline(files)
-        #
-        # # Create and return the quiz questions
+        # Instantiate RAG pipeline with default values
+        pipeline = RAGpipeline(
+            loader=TextLoader(),
+            splitter=RecursiveCharacterTextSplitter(
+                chunk_size=100, chunk_overlap=10
+            ),  # smaller chunks cause probably less data input for what will be used for atm
+            verbose=verbose,
+        )
+
+        pipeline.compile()
+
+        # Process the extra guidance
+        db = pipeline(files)
+
+        # Create and return the quiz questions
         # output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
 
     # except LoaderError as e:

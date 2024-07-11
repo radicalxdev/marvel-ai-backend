@@ -9,6 +9,11 @@
             "label": "Grade Level",
             "name": "grade_level",
             "type": "text"
+        },
+        {
+            "label": "Guidance",
+            "name": "guidance",
+            "type": "text"
         }
     ]
 }
