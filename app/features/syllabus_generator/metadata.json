@@ -11,9 +11,9 @@
             "type": "text"
         },
         {
-            "label": "Guidance",
-            "name": "guidance",
-            "type": "text"
+            "label": "Uploaded files",
+            "name": "files",
+            "type": "file"
         }
     ]
 }
