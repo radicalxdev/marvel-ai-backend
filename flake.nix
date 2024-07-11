@@ -46,6 +46,7 @@
         postShellHook = ''
           # allow pip to install wheels
           unset SOURCE_DATE_EPOCH
+          export PYTHONPATH=./app:$PYTHONPATH
           pip install --upgrade pip
         '';
 

@@ -6,6 +6,3 @@ Follow these instructions to create a {subject} syllabus for your students:
 
 You must respond as a JSON object: 
 {format_instructions}
-
-Context:
-{context}

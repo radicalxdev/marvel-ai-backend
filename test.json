@@ -1,25 +1,52 @@
-{
-    "user": {
-        "id": "string",
-        "fullName": "string",
-        "email": "string"
+[
+    {
+        "user": {
+            "id": "string",
+            "fullName": "string",
+            "email": "string"
+        },
+        "type": "tool",
+        "tool_data": {
+            "tool_id": 0,
+            "inputs": [
+                {
+                    "name": "topic",
+                    "value": "Quantum Physics"
+                },
+                {
+                    "name": "num_questions",
+                    "value": 3
+                },
+                {
+                    "name": "files",
+                    "value": []
+                }
+            ]
+        }
     },
-    "type": "tool",
-    "tool_data": {
-        "tool_id": 0,
-        "inputs": [
-            {
-                "name": "topic",
-                "value": "Quantum Physics"
-            },
-            {
-                "name": "num_questions",
-                "value": 3
-            },
-            {
-                "name": "files",
-                "value": []
-            }
-        ]
+    {
+        "user": {
+            "id": "string",
+            "fullName": "string",
+            "email": "string"
+        },
+        "type": "tool",
+        "tool_data": {
+            "tool_id": 2,
+            "inputs": [
+                {
+                    "name": "subject",
+                    "value": "Multiplication"
+                },
+                {
+                    "name": "grade_level",
+                    "value": "K12"
+                },
+                {
+                    "name": "files",
+                    "value": []
+                }
+            ]
+        }
     }
-}
+]

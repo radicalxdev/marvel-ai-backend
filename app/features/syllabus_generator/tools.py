@@ -1,17 +1,28 @@
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
-from app.features.quizzify.tools import read_text_file
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from app.services.logger import setup_logger
+import os
 
 logger = setup_logger(__name__)
+
+
+def read_text_file(file_path):
+    # Get the directory containing the script file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Combine the script directory with the relative file path
+    absolute_file_path = os.path.join(script_dir, file_path)
+
+    with open(absolute_file_path, "r") as file:
+        return file.read()
 
 
 class SyllabusBuilder:
     def __init__(
         self,
-        vectorestore,
+        # vectorstore,
         subject: str,
         grade_level: str,
         prompt: str = "",
@@ -29,20 +40,19 @@ class SyllabusBuilder:
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
 
-        self.vectorestore = vectorestore
+        # self.vectorstore = vectorstore
         self.subject = subject
         self.grade_level = grade_level
         self.verbose = verbose
 
-        if vectorestore is None:
-            raise ValueError("Vectorestore must be provided")
+        # if vectorstore is None:
+        # raise ValueError("Vectorestore must be provided")
         if subject is None:
             raise ValueError("Subject must be provided")
         if grade_level is None:
             raise ValueError("Grade level must be provided")
 
-        # Returns langchain chain for creating syllabus
-
+    # Returns langchain chain for creating syllabus
     def compile(self):
         prompt = PromptTemplate(
             template=self.prompt,
@@ -52,16 +62,16 @@ class SyllabusBuilder:
             },
         )
 
-        retriever = self.vectorestore.as_retriever()
-        runner = RunnableParallel(
-            {
-                "context": retriever,
-                "subject": RunnablePassthrough(),
-                "grade_level": RunnablePassthrough(),
-            }
-        )
+        # retriever = self.vectorstore.as_retriever()
+        # runner = RunnableParallel(
+        #     {
+        #         # "context": retriever,
+        #         "subject": RunnablePassthrough(),
+        #         "grade_level": RunnablePassthrough(),
+        #     }
+        # )
 
-        chain = runner | prompt | self.model | self.parser
+        chain = prompt | self.model | self.parser
 
         if self.verbose:
             logger.info("Chain compilation complete")
@@ -76,5 +86,7 @@ class SyllabusBuilder:
 
         chain = self.compile()
 
-        response = chain.invoke(self.subject, self.grade_level)
+        response = chain.invoke(
+            {"subject": self.subject, "grade_level": self.grade_level}
+        )
         return response
