@@ -1,7 +1,6 @@
 import pytest
-import requests
-import json
 from app.features.syllabus_generator.core import executor
+from app.api.error_utilities import SyllabusGeneratorError
 
 def test_executor_pdf_url_valid():
     grade_level = "college"
@@ -44,7 +43,7 @@ def test_executor_pdf_url_invalid():
     file_url = "https://filesamples.com/samples/document/pdf/dummy.pdf"
     file_type = "pdf"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -57,7 +56,7 @@ def test_executor_pdf_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 
 def test_executor_csv_url_valid():
@@ -101,7 +100,7 @@ def test_executor_csv_url_invalid():
     file_url = "https://filesamples.com/samples/document/csv/dummy.csv"
     file_type = "csv"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -114,7 +113,7 @@ def test_executor_csv_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_txt_url_valid():
     grade_level = "college"
@@ -157,7 +156,7 @@ def test_executor_txt_url_invalid():
     file_url = "https://filesamples.com/samples/document/txt/dummy.txt"
     file_type = "txt"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -170,7 +169,7 @@ def test_executor_txt_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 
 def test_executor_md_url_valid():
@@ -214,7 +213,7 @@ def test_executor_md_url_invalid():
     file_url = "https://github.com/radicalxdev/kai-ai-backend/blob/main/dummy.md"
     file_type = "md"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -227,7 +226,7 @@ def test_executor_md_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 
 def test_executor_pptx_url_valid():
@@ -271,7 +270,7 @@ def test_executor_pptx_url_invalid():
     file_url = "https://scholar.harvard.edu/files/torman_personal/files/dummy.pptx"
     file_type = "pptx"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -284,7 +283,7 @@ def test_executor_pptx_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 
 def test_executor_docx_url_valid():
@@ -328,7 +327,7 @@ def test_executor_docx_url_invalid():
     file_url = "https://filesamples.com/samples/document/docx/dummy.docx"
     file_type = "docx"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -341,7 +340,7 @@ def test_executor_docx_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_xls_url_valid():
     grade_level = "college"
@@ -384,7 +383,7 @@ def test_executor_xls_url_invalid():
     file_url = "https://filesamples.com/samples/document/xls/dummy.xls"
     file_type = "xls"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -397,7 +396,7 @@ def test_executor_xls_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_xlsx_url_valid():
     grade_level = "college"
@@ -440,7 +439,7 @@ def test_executor_xlsx_url_invalid():
     file_url = "https://filesamples.com/samples/document/xlsx/dummy.xlsx"
     file_type = "xlsx"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -453,7 +452,7 @@ def test_executor_xlsx_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_xml_url_valid():
     grade_level = "college"
@@ -496,7 +495,7 @@ def test_executor_xml_url_invalid():
     file_url = "https://filesampleshub.com/download/code/xml/dummy.xml"
     file_type = "xml"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -509,7 +508,7 @@ def test_executor_xml_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_gdocs_url_valid():
     grade_level = "college"
@@ -552,7 +551,7 @@ def test_executor_gdocs_url_invalid():
     file_url = "https://docs.google.com/document/d/1OWQfO9LX6psGipJu9LabzNE22us1Ct/edit"
     file_type = "gdoc"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -565,7 +564,7 @@ def test_executor_gdocs_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_gsheets_url_valid():
     grade_level = "college"
@@ -608,7 +607,7 @@ def test_executor_gsheets_url_invalid():
     file_url = "https://docs.google.com/spreadsheets/d/16OPtLLSfU/edit"
     file_type = "gsheet"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -621,7 +620,7 @@ def test_executor_gsheets_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_gslides_url_valid():
     grade_level = "college"
@@ -664,7 +663,7 @@ def test_executor_gslides_url_invalid():
     file_url = "https://docs.google.com/presentation/d/1GeIRGJF63v683LEn4J3UnhI/edit"
     file_type = "gslide"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -677,7 +676,7 @@ def test_executor_gslides_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
 
 def test_executor_gpdfs_url_valid():
     grade_level = "college"
@@ -720,7 +719,7 @@ def test_executor_gpdfs_url_invalid():
     file_url = "https://drive.google.com/file/d/1gBeAzJKTaZFwEbub8wkXrF3/view?usp=sharing"
     file_type = "gpdf"
 
-    with pytest.raises(ValueError) as exc_info:
+    with pytest.raises(SyllabusGeneratorError) as exc_info:
         syllabus = executor(grade_level, 
                             course, 
                             instructor_name, 
@@ -733,5 +732,4 @@ def test_executor_gpdfs_url_invalid():
                             file_url,
                             file_type)
 
-    assert isinstance(exc_info.value, ValueError)
-
+    assert isinstance(exc_info.value, SyllabusGeneratorError)
