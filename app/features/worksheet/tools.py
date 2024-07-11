@@ -2,7 +2,8 @@ from typing import List, Tuple, Dict, Any
 
 import os
 
-from langchain_google_vertexai import VertexAI
+#from langchain_google_vertexai import VertexAI
+from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
@@ -218,7 +219,8 @@ class WorksheetBuilder:
             raise ValueError("Topic and Grade level must be provided")
         
         default_config = {
-            "model": VertexAI(model="gemini-1.0-pro", temperature = 0.4),
+            #"model": VertexAI(model="gemini-1.0-pro", temperature = 0.4),
+            "model": GoogleGenerativeAI(model="gemini-1.0-pro", temperature=0.4),
             "embedding_model": SentenceTransformer('all-MiniLM-L6-v2'),
             "prompt_summary": read_text_file("prompts/worksheet_prompt_summary.txt"),
             "parser_summary": JsonOutputParser(pydantic_object=SummaryFormat),
@@ -284,6 +286,7 @@ class WorksheetBuilder:
 
             generated_worksheets.append(worksheet)
         # Return the list of worksheets
+        if self.verbose: logger.info(f"Created {len(generated_worksheets)} Worksheets")
         return generated_worksheets
 
 
