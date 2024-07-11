@@ -6,7 +6,7 @@ import os
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.pydantic_v1 import BaseModel, Field
+from langchain_core.pydantic_v1 import BaseModel, Field, ValidationError
 
 from sentence_transformers import SentenceTransformer, util
 
@@ -110,26 +110,39 @@ class MultipleChoiceQuestion(QuestionBase):
         self.section_name = 'Miltiple-Choice question'
         self.main_field = 'question'
 
+    # def validate_response(self) -> bool:
+    #     try:
+    #         if isinstance(self.response, dict):
+    #             if 'question' in self.response and 'choices' in self.response:
+    #                 choices = self.response['choices']
+    #                 if isinstance(choices, dict):
+    #                     # Format choices if they are in dict format
+    #                     choices = self.format_choices(choices)
+    #                     self.response['choices'] = choices
+                    
+    #                 if isinstance(choices, list):
+    #                     # Check if choices are already formatted correctly
+    #                     for choice in choices:
+    #                         if not isinstance(choice, dict) or 'key' not in choice or 'value' not in choice:
+    #                             return False
+    #                         if not isinstance(choice['key'], str) or not isinstance(choice['value'], str):
+    #                             return False
+    #                     return True
+    #                 else:
+    #                     return False
+    #         return False
+    #     except TypeError as e:
+    #         if self.verbose:
+    #             logger.error(f"TypeError during {self.section_name} response validation: {e}")
+    #         return False
+
     def validate_response(self) -> bool:
         try:
-            if isinstance(self.response, dict):
-                if 'question' in self.response and 'choices' in self.response:
-                    choices = self.response['choices']
-                    if isinstance(choices, dict):
-                        # Format choices if they are in dict format
-                        choices = self.format_choices(choices)
-                        self.response['choices'] = choices
-                    
-                    if isinstance(choices, list):
-                        # Check if choices are already formatted correctly
-                        for choice in choices:
-                            if not isinstance(choice, dict) or 'key' not in choice or 'value' not in choice:
-                                return False
-                            if not isinstance(choice['key'], str) or not isinstance(choice['value'], str):
-                                return False
-                        return True
-                    else:
-                        return False
+            # Use Pydantic model to validate the response
+            validated_response = MultipleChoiceQuestionFormat(**self.response)
+        except ValidationError as e:
+            if self.verbose:
+                logger.error(f"Validation error during {self.section_name} response validation: {e}")
             return False
         except TypeError as e:
             if self.verbose:
@@ -227,7 +240,7 @@ class WorksheetBuilder:
             "prompt_fill_in_blank": read_text_file('prompts/worksheet_prompt_fill_in_blank.txt'),
             "parser_fill_in_blank": JsonOutputParser(pydantic_object = FillinblankQuestionFormat),
             "prompt_multiple_choice": read_text_file("prompts/worksheet_prompt_multiple_choice.txt"),
-            "parser_multiple_choice": JsonOutputParser(pydantic_object = QuizQuestionFormat),
+            "parser_multiple_choice": JsonOutputParser(pydantic_object = MultipleChoiceQuestionFormat),
             "prompt_open_ended": read_text_file("prompts/worksheet_prompt_open_ended.txt"),
             "parser_open_ended": JsonOutputParser(pydantic_object = OpenEndedQuestionFormat),
             "prompt_true_false": read_text_file("prompts/worksheet_prompt_true_false.txt"),
@@ -293,7 +306,7 @@ class WorksheetBuilder:
 class QuestionChoiceFormat(BaseModel):
     key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
     value: str = Field(description="The text content of the choice")
-class QuizQuestionFormat(BaseModel):
+class MultipleChoiceQuestionFormat(BaseModel):
     question: str = Field(description="The question text")
     choices: List[QuestionChoiceFormat] = Field(description="A list of choices")
     answer: str = Field(description="The correct answer")
