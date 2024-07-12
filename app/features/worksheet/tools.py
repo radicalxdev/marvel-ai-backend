@@ -29,7 +29,7 @@ class QuestionBase:
     def __init__(self, model, embedding_model, topic, grade_level, prompt_template, parser, verbose):
         self.model = model
         self.embedding_model = embedding_model
-        self.similarity_threshold = 0.8  # Adjust threshold as needed
+        self.similarity_threshold = 0.9  # Adjust threshold as needed
         self.topic = topic
         self.grade_level = grade_level
         self.prompt_template = prompt_template
@@ -54,8 +54,24 @@ class QuestionBase:
         
         if self.verbose: logger.info(f"Chain for {self.section_name} compilation complete")
     
-    def validate_response(self) -> bool:
+    def sub_validate(self):
         pass
+
+    def validate_response(self) -> bool:
+        try:
+            # Use Pydantic model to validate the response
+            if self.sub_validate():
+                return True
+            else:
+                return False
+        except ValidationError as e:
+            if self.verbose:
+                logger.error(f"Validation error during {self.section_name} response validation: {e}")
+            return False
+        except TypeError as e:
+            if self.verbose:
+                logger.error(f"TypeError during {self.section_name} response validation: {e}")
+            return False
 
     def not_unique(self):
         question = self.response[self.main_field]
@@ -109,48 +125,10 @@ class MultipleChoiceQuestion(QuestionBase):
     def set_names(self):
         self.section_name = 'Miltiple-Choice question'
         self.main_field = 'question'
-
-    # def validate_response(self) -> bool:
-    #     try:
-    #         if isinstance(self.response, dict):
-    #             if 'question' in self.response and 'choices' in self.response:
-    #                 choices = self.response['choices']
-    #                 if isinstance(choices, dict):
-    #                     # Format choices if they are in dict format
-    #                     choices = self.format_choices(choices)
-    #                     self.response['choices'] = choices
-                    
-    #                 if isinstance(choices, list):
-    #                     # Check if choices are already formatted correctly
-    #                     for choice in choices:
-    #                         if not isinstance(choice, dict) or 'key' not in choice or 'value' not in choice:
-    #                             return False
-    #                         if not isinstance(choice['key'], str) or not isinstance(choice['value'], str):
-    #                             return False
-    #                     return True
-    #                 else:
-    #                     return False
-    #         return False
-    #     except TypeError as e:
-    #         if self.verbose:
-    #             logger.error(f"TypeError during {self.section_name} response validation: {e}")
-    #         return False
-
-    def validate_response(self) -> bool:
-        try:
-            # Use Pydantic model to validate the response
-            validated_response = MultipleChoiceQuestionFormat(**self.response)
-        except ValidationError as e:
-            if self.verbose:
-                logger.error(f"Validation error during {self.section_name} response validation: {e}")
-            return False
-        except TypeError as e:
-            if self.verbose:
-                logger.error(f"TypeError during {self.section_name} response validation: {e}")
-            return False
-
-    def format_choices(self, choices: Dict[str, str]) -> List[Dict[str, str]]:
-        return [{"key": k, "value": v} for k, v in choices.items()]
+    
+    def sub_validate(self):
+        MultipleChoiceQuestionFormat(**self.response)
+        return True
 
 # Summary subclass
 class Summary(QuestionBase):
@@ -158,16 +136,9 @@ class Summary(QuestionBase):
         self.section_name = 'Summary'
         self.main_field = 'description'
     
-    def validate_response(self) -> bool:
-        try:
-            if isinstance(self.response, dict):
-                if 'description' in self.response:
-                    return True
-            return False
-        except TypeError as e:
-            if self.verbose:
-                logger.error(f"TypeError during {self.section_name} response validation: {e}")
-            return False
+    def sub_validate(self):
+        SummaryFormat(**self.response)
+        return True
 
 # Fill in the Blank subclass
 class FillInTheBlankQuestion(QuestionBase):
@@ -175,20 +146,13 @@ class FillInTheBlankQuestion(QuestionBase):
         self.section_name = 'Fill-in-the-blank question'
         self.main_field = 'question'
     
-    def validate_response(self) -> bool:
-        try:
-            if isinstance(self.response, dict):
-                if 'properties' in self.response:
-                    if self.verbose:
-                        logger.warning(f"{self.section_name} received format instructions instead of a valid response.")
-                    return False
-                if 'question' in self.response and 'answer' in self.response:
-                    if '_' in self.response['question']:
-                        return True
-            return False
-        except TypeError as e:
+    def sub_validate(self):
+        validated_response = FillinblankQuestionFormat(**self.response)
+        if '_' in getattr(validated_response, self.main_field):
+            return True
+        else:
             if self.verbose:
-                logger.error(f"TypeError during {self.section_name} response validation: {e}")
+                logger.warning(f"{self.section_name} does not have blank ___.")
             return False
 
 # Open ended question subclass
@@ -197,16 +161,9 @@ class OpenEndedQuestion(QuestionBase):
         self.section_name = 'Open-ended question'
         self.main_field = 'question'
     
-    def validate_response(self) -> bool:
-        try:
-            if isinstance(self.response, dict):
-                if 'question' in self.response and 'answer' in self.response:
-                    return True
-            return False
-        except TypeError as e:
-            if self.verbose:
-                logger.error(f"TypeError during {self.section_name} response validation: {e}")
-            return False
+    def sub_validate(self):
+        OpenEndedQuestionFormat(**self.response)
+        return True
 
 # True False question subclass
 class TrueFalseQuestion(QuestionBase):
@@ -214,16 +171,9 @@ class TrueFalseQuestion(QuestionBase):
         self.section_name = 'True or False question'
         self.main_field = 'question'
     
-    def validate_response(self) -> bool:
-        try:
-            if isinstance(self.response, dict):
-                if 'question' in self.response and 'answer' in self.response:
-                    return True
-            return False
-        except TypeError as e:
-            if self.verbose:
-                logger.error(f"TypeError during {self.section_name} response validation: {e}")
-            return False
+    def sub_validate(self):
+        TrueFalseQuestionFormat(**self.response)
+        return True
 
 # Create worksheets
 class WorksheetBuilder:
@@ -232,8 +182,7 @@ class WorksheetBuilder:
             raise ValueError("Topic and Grade level must be provided")
         
         default_config = {
-            #"model": VertexAI(model="gemini-1.0-pro", temperature = 0.4),
-            "model": GoogleGenerativeAI(model="gemini-1.0-pro", temperature=0.4),
+            "model": GoogleGenerativeAI(model="gemini-1.0-pro", temperature=0.5),
             "embedding_model": SentenceTransformer('all-MiniLM-L6-v2'),
             "prompt_summary": read_text_file("prompts/worksheet_prompt_summary.txt"),
             "parser_summary": JsonOutputParser(pydantic_object=SummaryFormat),

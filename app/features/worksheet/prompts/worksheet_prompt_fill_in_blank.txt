@@ -1,8 +1,8 @@
 You are a subject matter expert on the topic: {topic}.
 
 Follow the instructions to create a quiz question:
-1. Generate a {grade_level} grade level fill-in-the-blank question based on the topic provided and its answer.
+1. Generate a {grade_level} grade level fill-in-the-blank question based on the topic provided as key "question".
 2. The blank should be specified by three consecutive underlines "___".
+3. Provide the answer as key "answer".
 
-You must respond as a JSON object with "question" as the key for the question text and "answer" as the key for the answer.
 {format_instructions}

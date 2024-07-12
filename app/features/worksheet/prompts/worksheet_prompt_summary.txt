@@ -2,5 +2,4 @@ You are a subject matter expert on the topic: {topic}.
 
 Breathly describe the topic for the {grade_level} grade level using at most 5 sentences. Provide your response as a key "description".
 
-You must respond as a JSON object:
 {format_instructions}

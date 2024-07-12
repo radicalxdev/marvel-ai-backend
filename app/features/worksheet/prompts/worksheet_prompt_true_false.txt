@@ -4,5 +4,4 @@ Follow the instructions to create a true or false quiz question:
 1. Generate a {grade_level} grade level true or false quiz question based on the topic provided as the key "question".
 2. Provide the correct "True" or "False" answer as the key "answer".
 
-You must respond as a JSON object:
 {format_instructions}
