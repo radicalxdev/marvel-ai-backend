@@ -85,7 +85,7 @@ class RAGRunnable:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-class YouTubeTranscriptLoader():
+class YouTubeTranscriptLoader(BaseLoader):
     def __init__(self, verbose=False):
         self.verbose = verbose
 
@@ -127,31 +127,31 @@ class YouTubeTranscriptLoader():
        
         return documents
 
-class YoutubeLoaders:
-    def __init__(self, verbose = False):
-        self.verbose = verbose
+# class YoutubeLoaders:
+#     def __init__(self, verbose = False):
+#         self.verbose = verbose
 
 
-    def load(self, tool_files: List[ToolFile]):
-        documents = []
-        youtube_files = []
+#     def load(self, tool_files: List[ToolFile]):
+#         documents = []
+#         youtube_files = []
        
-        for file in tool_files:
-            url = file.url
+#         for file in tool_files:
+#             url = file.url
            
 
 
-            if url.lower().startswith("https://youtu.be/"):
-                youtube_files.append(file)
+#             if url.lower().startswith("https://youtu.be/"):
+#                 youtube_files.append(file)
    
-        yt_loader = YouTubeTranscriptLoader(verbose=self.verbose)
-        docs = yt_loader.load(youtube_files)
-        if self.verbose:
-            print(f"Documents from YouTube loader: {len(docs)}")
-        documents.extend(docs)
-        if self.verbose:
-            print(f"Total documents: {len(documents)}")
-        return documents
+#         yt_loader = YouTubeTranscriptLoader(verbose=self.verbose)
+#         docs = yt_loader.load(youtube_files)
+#         if self.verbose:
+#             print(f"Documents from YouTube loader: {len(docs)}")
+#         documents.extend(docs)
+#         if self.verbose:
+#             print(f"Total documents: {len(documents)}")
+#         return documents
 
 
 
@@ -392,6 +392,7 @@ class URLLoader():
         self.loader_dict = {"xlsx":BytesFileXLSXLoader, "pdf":BytesFilePDFLoader, "pptx": PowerPointLoader, 
                         "csv": BytesFileCSVLoader, "docx": DocLoader,"jpeg": ImageLoader,
                         'jpg': ImageLoader,"png": ImageLoader, "ppt": PowerPointLoader, "html": HTMLLoader}
+        
     
     def download_from_drive(self,file_id : str):
         download_url = "https://docs.google.com/uc?export=download&id=" + file_id
@@ -418,6 +419,7 @@ class URLLoader():
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
+        youtube_files = []
         # any_success = False
         response = None
 
@@ -425,6 +427,13 @@ class URLLoader():
             url = tool_file.url
             file_type = None
             regex = r"/d/([^?]+)/"
+            
+            if url.lower().startswith("https://youtu.be/"):
+                youtube_files.append(tool_file)
+                
+            
+            
+            
             
             try:
                 match = re.search(regex,url)
@@ -459,7 +468,16 @@ class URLLoader():
                 logger.error(f"Failed to load file from {url}")
                 logger.error(e)
                 continue
-
+        if youtube_files:
+            yt_loader = YouTubeTranscriptLoader(verbose=self.verbose)
+            docs = yt_loader.load(youtube_files)
+            if self.verbose:
+                print(f"Documents from YouTube loader: {len(docs)}")
+                documents.extend(docs)
+            if self.verbose:
+                print(f"Total documents: {len(documents)}")
+                return documents   
+     
         # Pass Queue to the file loader if there are any successful loads
         if len(queued_files) > 0:
             documents = []
