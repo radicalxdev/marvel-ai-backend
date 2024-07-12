@@ -16,6 +16,10 @@ from app.api.error_utilities import LoaderError, VideoTranscriptError
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
 
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
 from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
 from langchain_core.documents import Document
@@ -27,7 +31,9 @@ from langchain_google_genai import GoogleGenerativeAI
 
 
 AZURE_END_POINT = 'https://dynamo.cognitiveservices.azure.com/'
-AZURE_API_KEY = 'c9c3c358e15f4908affe1f1fcfae6e49'
+AZURE_API_KEY = 'azure_api_key'
+
+gcloud_auth = 'kai-ai-backend\\app\local-auth.json'
 
 logger = setup_logger(__name__)
 
@@ -222,7 +228,46 @@ class HtmlSubLoader:
             logger.error(f"Failed to load HTML file from {self.file_type}: {e}")
             raise ValueError("Invalid HTML content") from e
 
+class GoogleSlidesSubLoader:
+    def __init__(self, presentation_id: str, credentials_path: str, file_type: str):
+        self.presentation_id = presentation_id
+        self.credentials_path = credentials_path
+        self.file_type = file_type
 
+    def load(self) -> List[Document]:
+        SCOPES = ['https://www.googleapis.com/auth/presentations.readonly']
+        try:
+            creds = service_account.Credentials.from_service_account_file(self.credentials_path, scopes=SCOPES)
+            service = build('slides', 'v1', credentials=creds)
+
+            presentation = service.presentations().get(presentationId=self.presentation_id).execute()
+            slides = presentation.get('slides')
+
+            documents = []
+            for i, slide in enumerate(slides):
+                slide_text = []
+                for element in slide.get('pageElements', []):
+                    if 'shape' in element and 'text' in element['shape']:
+                        for text_run in element['shape']['text']['textElements']:
+                            if 'textRun' in text_run:
+                                slide_text.append(text_run['textRun']['content'])
+
+                page_content = "\n".join(slide_text)
+                metadata = {"source": self.file_type, "slide_number": i + 1}
+
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+
+            return documents
+
+        except HttpError as e:
+            logger.error(f"Failed to load Google Slides file from {self.file_type}: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"An error occurred while loading Google Slides file from {self.file_type}")
+            logger.error(e)
+            return []
+        
 class URLLoader:
     def __init__(self, file_loader=None, verbose=False):
         self.loader = file_loader
@@ -236,31 +281,33 @@ class URLLoader:
         for tool_file in tool_files:
             try:
                 url = tool_file.url
-                response = requests.get(url)
                 file_type = tool_file.filename.split(".")[-1]
 
-                # Check response status
-                if response.status_code == 200:
-                    # Read file
-                    file_content = BytesIO(response.content)
-
-                    # Append to Queue
-                    queued_files.append((file_content, file_type, url))
+                if "docs.google.com/presentation/d/" in url:
+                    file_type = "google-slides"
+                    presentation_id = url.split('/d/')[1].split('/')[0]
+                    queued_files.append((None, file_type, presentation_id))
+                    any_success = True
                     if self.verbose:
-                        logger.info(f"Successfully loaded file from {url}")
-
-                    any_success = True  # Mark that at least one file was successfully loaded
+                        logger.info(f"Successfully queued Google Slides presentation from {url}")
                 else:
-                    logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
+                    response = requests.get(url)
+                    if response.status_code == 200:
+                        file_content = BytesIO(response.content)
+                        queued_files.append((file_content, file_type, url))
+                        any_success = True
+                        if self.verbose:
+                            logger.info(f"Successfully loaded file from {url}")
+                    else:
+                        logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
             except Exception as e:
                 logger.error(f"Failed to load file from {url}")
                 logger.error(e)
                 continue
 
-        # Load file if reponse successful
         if any_success:
-            for cur_file_content, cur_file_type, url in queued_files:
+            for cur_file_content, cur_file_type, identifier in queued_files:
                 if cur_file_type == "pdf":
                     self.loader = PDFSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "pptx":
@@ -272,12 +319,13 @@ class URLLoader:
                 elif cur_file_type == "md":
                     self.loader = MarkdownSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type in ["doc", 'docx']:
-                    # self.loader = DocxSubLoader(cur_file_content, cur_file_type)
-                    self.loader = DocxSubLoaderAzure(url, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
+                    self.loader = DocxSubLoaderAzure(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
                 elif cur_file_type == "csv":
                     self.loader = CsvSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "html":
                     self.loader = HtmlSubLoader(cur_file_content, cur_file_type)
+                elif cur_file_type == "google-slides":
+                    self.loader = GoogleSlidesSubLoader(identifier, gcloud_auth, cur_file_type)
                 else:
                     raise LoaderError(f"Unsupported file type: {file_type}")
                 document = self.loader.load()
