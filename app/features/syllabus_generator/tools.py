@@ -7,6 +7,8 @@ from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from app.features.syllabus_generator.document_loaders import read_text_file
 
+from fastapi import HTTPException
+
 
 logger = setup_logger(__name__)
 
@@ -102,26 +104,31 @@ class SyllabusGeneratorPipeline:
         self.verbose = verbose
 
     def compile(self):
-        prompt = PromptTemplate(
-            template=self.prompt,
-            input_variables=[
-                "grade_level", 
-                "course",
-                "instructor_name",
-                "instructor_title",
-                "unit_time",
-                "unit_time_value",
-                "start_date",
-                "assessment_methods",
-                "grading_scale",
-                "summary"
-                ],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()}
-        )
+        try:
+            prompt = PromptTemplate(
+                template=self.prompt,
+                input_variables=[
+                    "grade_level", 
+                    "course",
+                    "instructor_name",
+                    "instructor_title",
+                    "unit_time",
+                    "unit_time_value",
+                    "start_date",
+                    "assessment_methods",
+                    "grading_scale",
+                    "summary"
+                    ],
+                partial_variables={"format_instructions": self.parser.get_format_instructions()}
+            )
 
-        chain = prompt | self.model | self.parser
+            chain = prompt | self.model | self.parser
 
-        if self.verbose: logger.info(f"Chain compilation complete")
+            if self.verbose: logger.info(f"Chain compilation complete")
+
+        except Exception as e:
+            logger.error(f"Failed to compile LLM chain : {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to compile LLM chain")
         
         return chain
 
@@ -326,3 +333,15 @@ class SyllabusSchema(BaseModel):
         }
     }
 
+
+def generate_syllabus(request_args, verbose=True):
+    try:
+        pipeline = SyllabusGeneratorPipeline(verbose=verbose)
+        chain = pipeline.compile()
+        output = chain.invoke(request_args.to_dict())
+
+    except Exception as e:
+        logger.error(f"Failed to generate syllabus: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate syllabus from LLM")
+
+    return output
