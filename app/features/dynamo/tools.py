@@ -9,6 +9,8 @@ from docx import Document as DocxDocument
 from fastapi import HTTPException
 from pptx import Presentation
 from pypdf import PdfReader
+import openpyxl
+import xlrd
 
 from typing import List
 
@@ -227,6 +229,78 @@ class HtmlSubLoader:
         except Exception as e:
             logger.error(f"Failed to load HTML file from {self.file_type}: {e}")
             raise ValueError("Invalid HTML content") from e
+        
+class GoogleSheetsSubLoader:
+    def __init__(self, file_content: BytesIO, file_type: str):
+        self.file_content = file_content
+        self.file_type = file_type
+
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            if self.file_content.endswith('.xlsx'):
+               
+               # Load the workbook
+               workbook = openpyxl.load_workbook(self.file_content)
+                          
+               # Iterate over all sheets
+               for sheet_name in workbook.sheetnames:
+                   sheet = workbook[sheet_name]
+                   print(f"Sheet name: {sheet_name}")
+
+               full_workbook =[]
+               # Access cells
+               for row in sheet.iter_rows(values_only=True):
+                   full_workbook.append(row)
+
+               doc = Document(page_content=full_workbook, metadata={"source": self.file_type})
+               documents.append(doc)   
+
+            elif self.file_content.endswith('.xls'):
+                 
+                 # Read .xls file using xlrd
+                 workbook = xlrd.open_workbook(self.file_content)
+
+                 # Iterate over all sheets
+                 for sheet_idx in range(workbook.nsheets):
+                     sheet = workbook.sheet_by_index(sheet_idx)
+                     print(f"Sheet name: {sheet.name}")
+                
+                 full_data =[]
+                 # Access cells
+                 for row_idx in range(sheet.nrows):
+                     row_data = sheet.row_values(row_idx)
+                     full_data.append(row_data)
+               
+                 doc = Document(page_content=full_data, metadata={"source": self.file_type})
+                 documents.append(doc)
+
+        except Exception as e:
+            logger.error(f"Failed to load file from {self.file_type} sub loader")
+            logger.error(e)
+        return documents
+
+class GoogleSheetsSubLoaderAzure:
+    def __init__(self, url: str, azure_endpoint: str, azure_api_key: str):
+        self.url = url
+        self.azure_endpoint = azure_endpoint
+        self.azure_api_key = azure_api_key
+
+    def load(self) -> List[Document]:
+        documents = []
+        try:
+            loader = AzureAIDocumentIntelligenceLoader(
+                api_endpoint=self.azure_endpoint,
+                api_key=self.azure_api_key,
+                url_path=self.url
+            )
+            documents = loader.load()
+        except Exception as e:
+            logger.error(f"Failed to load file from google sheets sub loader (Azure)")
+            logger.error(e)
+
+        return documents
+       
 
 class GoogleSlidesSubLoader:
     def __init__(self, presentation_id: str, credentials_path: str, file_type: str):
@@ -326,6 +400,9 @@ class URLLoader:
                     self.loader = HtmlSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "google-slides":
                     self.loader = GoogleSlidesSubLoader(identifier, gcloud_auth, cur_file_type)
+                elif cur_file_type in ['xls','xlsx'] :
+                    self.loader = GoogleSheetsSubLoaderAzure(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
+
                 else:
                     raise LoaderError(f"Unsupported file type: {file_type}")
                 document = self.loader.load()
