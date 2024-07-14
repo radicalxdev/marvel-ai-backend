@@ -16,10 +16,6 @@ from app.api.error_utilities import LoaderError, VideoTranscriptError
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
 
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
 from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
 from langchain_core.documents import Document
@@ -29,10 +25,14 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import AzureAIDocumentIntelligenceLoader, YoutubeLoader
 from langchain_google_genai import GoogleGenerativeAI
 
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 AZURE_END_POINT = 'https://dynamo.cognitiveservices.azure.com/'
-AZURE_API_KEY = 'azure_api_key'
+AZURE_API_KEY = 'c9c3c358e15f4908affe1f1fcfae6e49'
 
+os.environ['GOOGLE_API_KEY'] = 'AIzaSyAmXl7Pf4tyG4r0D8ff-r-nw4UUy3lcSvI'
 gcloud_auth = 'kai-ai-backend\\app\local-auth.json'
 
 logger = setup_logger(__name__)
@@ -166,7 +166,7 @@ class DocxSubLoader:
             logger.error(e)
         return documents
 
-class DocxSubLoaderAzure:
+class AzureSubLoader:
     def __init__(self, url: str, azure_endpoint: str, azure_api_key: str):
         self.url = url
         self.azure_endpoint = azure_endpoint
@@ -182,7 +182,7 @@ class DocxSubLoaderAzure:
             )
             documents = loader.load()
         except Exception as e:
-            logger.error(f"Failed to load file from doc sub loader (Azure)")
+            logger.error(f"Failed to load file from Azure sub loader")
             logger.error(e)
 
         return documents
@@ -318,8 +318,8 @@ class URLLoader:
                     self.loader = JsonSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "md":
                     self.loader = MarkdownSubLoader(cur_file_content, cur_file_type)
-                elif cur_file_type in ["doc", 'docx']:
-                    self.loader = DocxSubLoaderAzure(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
+                elif cur_file_type in ["doc", 'docx, xls','xlsx']:
+                    self.loader = AzureSubLoader(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
                 elif cur_file_type == "csv":
                     self.loader = CsvSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "html":
