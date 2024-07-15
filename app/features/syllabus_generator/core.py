@@ -1,4 +1,3 @@
-from app.features.quizzify.tools import RAGpipeline
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.text import TextLoader
 from app.services.tool_registry import ToolFile
