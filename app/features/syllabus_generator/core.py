@@ -15,23 +15,6 @@ def executor(subject: str, grade_level: str, verbose=True, **kwargs):
         if verbose:
             logger.debug(f"Subject: {subject}, grade_level: {grade_level}")
 
-        # Instantiate RAG pipeline with default values
-        pipeline = RAGpipeline(
-            splitter=RecursiveCharacterTextSplitter(
-                chunk_size=100, chunk_overlap=10
-            ),  # smaller chunks cause probably less data input for what will be used for atm
-            verbose=verbose,
-        )
-
-        pipeline.compile()
-
-        # Process the extra guidance files/text
-        # file = ToolFile(
-        #     url="file:///code/app/features/quizzify/tests/test.pdf",
-        #     filename="tests.pdf",
-        # )
-        # db = pipeline([file])
-
         # Create and return the quiz questions
         output = SyllabusBuilder(
             subject, grade_level, verbose=verbose
