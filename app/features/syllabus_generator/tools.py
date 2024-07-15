@@ -39,6 +39,7 @@ class SyllabusBuilder:
         self.prompt = prompt or default_config["prompt"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
+        self.grade_level_assessments = ""
 
         # self.vectorstore = vectorstore
         self.subject = subject
@@ -52,16 +53,37 @@ class SyllabusBuilder:
         if grade_level is None:
             raise ValueError("Grade level must be provided")
 
-    # Returns langchain chain for creating syllabus
-    def compile(self):
+    #custommises the prompt template based on the grade level provided    
+    def create_prompt_temp(self):
+        if "k" in self.grade_level.lower().strip() :
+            self.grade_level_assessments = read_text_file("prompt/elementary.txt")
+
+        elif "grade" in self.grade_level:
+           
+           if int(self.grade_level.replace("grade ",""))<6:
+               self.grade_level_assessments = read_text_file("prompt/primary.txt")
+
+           elif int(self.grade_level.replace("grade ",""))<9:
+               self.grade_level_assessments = read_text_file("prompt/middle.txt")
+
+           else:
+               self.grade_level_assessments = read_text_file("prompt/highschool.txt")
+
+        else:
+            self.grade_level_assessments = read_text_file("prompt/university.txt")
+
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["subject", "grade_level"],
+            input_variables=["subject", "grade_level","grade_level_assesments"],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
             },
         )
-
+        return prompt
+    
+    # Returns langchain chain for creating syllabus
+    def compile(self):
+        
         # retriever = self.vectorstore.as_retriever()
         # runner = RunnableParallel(
         #     {
@@ -70,7 +92,7 @@ class SyllabusBuilder:
         #         "grade_level": RunnablePassthrough(),
         #     }
         # )
-
+        prompt = self.create_prompt_temp()
         chain = prompt | self.model | self.parser
 
         if self.verbose:
@@ -87,6 +109,6 @@ class SyllabusBuilder:
         chain = self.compile()
 
         response = chain.invoke(
-            {"subject": self.subject, "grade_level": self.grade_level}
+            {"subject": self.subject, "grade_level": self.grade_level, "grade_level_assessments":self.grade_level_assessments}
         )
         return response
