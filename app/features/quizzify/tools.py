@@ -15,7 +15,7 @@ import pandas as pd
 import pytesseract
 
 from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter,CharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
 from langchain_core.prompts import PromptTemplate
@@ -23,7 +23,6 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser,StrOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain.document_loaders import YoutubeLoader
-from langchain.chains import LLMChain
 from docx import Document as docu
 from youtube_transcript_api import YouTubeTranscriptApi
 
@@ -38,17 +37,10 @@ from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 import os
 
-import google.generativeai as genai
-from google.generativeai import GenerativeModel
 import PIL
 from io import BytesIO
 from langchain_core.documents import Document
 from typing import List
-#Setting up the model for the AI
-api_key = os.environ.get('API_KEY')
-
-genai.configure(api_key=api_key)
-multimodal_model = GenerativeModel('gemini-1.5-flash')
 
 #HTML and XML loaders
 from bs4 import BeautifulSoup
@@ -156,8 +148,6 @@ class YoutubeLoaders:
        
         for file in tool_files:
             url = file.url
-           
-
 
             if url.lower().startswith("https://youtu.be/"):
                 youtube_files.append(file)
@@ -355,7 +345,7 @@ class LocalFileLoader:
 class URLLoader:
     def __init__(self, verbose=False):
         self.loaders = [BytesFileXLSXLoader,BytesFilePDFLoader,BytesFileCSVLoader,DocLoader,ImageLoader]
-        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png"]
+        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png","html"]
         self.verbose = verbose
     
     def download_from_drive(self,file_id : str):
@@ -408,7 +398,7 @@ class URLLoader:
                     # file_type = path.rsplit(".")[-1]
                     if not file_type:
                         file_type = url.rsplit('.')[-1]
-                    if file_type not in  self.expected_file_types:
+                    if file_type not in  self.expected_file_types and not url.lower().startswith("https://youtu.be/"):
                         string = self.expected_file_types.join(", ")
                         raise LoaderError(f"Expected file types: {string}, but got: {file_type}")
 
@@ -547,9 +537,9 @@ class HTMLLoader:
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
-            "loader": HTMLLoader(verbose = verbose), # Creates instance on call with verbosity
-            "loader": YoutubeLoaders(verbose=verbose),
-            "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
+            "loader": URLLoader(verbose = verbose), # Creates instance on call with verbosity
+            # "splitter": RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100),
+            "splitter": CharacterTextSplitter(),
             "vectorstore_class": Chroma,
             "embedding_model": VertexAIEmbeddings(model='textembedding-gecko')
         }
