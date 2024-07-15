@@ -36,4 +36,4 @@ def executor(subject: str, grade_level: str, verbose=True, **kwargs):
 
 
 if __name__ == "__main__":
-    executor(subject="Multiplication", grade_level="K12", files=[])
+    executor(subject="Multiplication", grade_level="K12")
