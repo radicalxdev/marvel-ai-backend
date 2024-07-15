@@ -1,13 +1,17 @@
 from app.services.logger import setup_logger
-from typing import List, Any
-from app.api.error_utilities import LoaderError, ToolExecutorError
-from app.features.worksheet_generator.tools import RAGpipeline # TODO: ensure this is the correct import path
-from app.features.worksheet_generator.tools import QuizBuilder # TODO: ensure this is the correct import path
+from typing import List
+from app.api.error_utilities import ToolExecutorError, LoaderError
 from app.services.tool_registry import ToolFile
+from app.features.worksheet_generator.tools import RAGpipeline, QuizBuilder
 
 logger = setup_logger(__name__)
 
 def executor(files: List[ToolFile], topic: str, num_questions: int, grade_level: str, question_type: str, context: str, verbose: bool = False):
+    if not files:
+        error_message = "No files provided for processing"
+        logger.error(error_message)
+        raise ToolExecutorError(error_message)
+
     try:
         if verbose:
             logger.debug(f"Files: {files}")
@@ -17,20 +21,21 @@ def executor(files: List[ToolFile], topic: str, num_questions: int, grade_level:
         pipeline.compile()
 
         db = pipeline(files)
-        
+
         if verbose:
             logger.debug(f"Database after processing files: {db}")
-        
-        output = QuizBuilder(db, topic, grade_level, question_type, context, verbose=verbose).create_questions(num_questions)
-    
+
+        quiz_builder = QuizBuilder(db, topic, verbose=verbose)
+        output = quiz_builder.create_questions(num_questions)
+
     except LoaderError as e:
         error_message = str(e)
         logger.error(f"Error in RAGPipeline -> {error_message}")
         raise ToolExecutorError(error_message)
-    
+
     except Exception as e:
         error_message = f"Error in executor: {e}"
         logger.error(error_message)
         raise ValueError(error_message)
-    
+
     return output
