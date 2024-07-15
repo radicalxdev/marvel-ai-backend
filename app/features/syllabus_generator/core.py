@@ -4,7 +4,6 @@ from app.services.tool_registry import ToolFile
 from services.logger import setup_logger
 from app.features.syllabus_generator.tools import SyllabusBuilder
 from app.api.error_utilities import LoaderError, ToolExecutorError
-import traceback
 
 logger = setup_logger()
 
@@ -26,7 +25,6 @@ def executor(subject: str, grade_level: str, verbose=True, **kwargs):
         raise ToolExecutorError(error_message.message)
 
     except Exception as e:
-        print(traceback.format_exc())
         error_message = f"Error in executor: {e}"
         logger.error(error_message)
         raise ValueError(error_message)
