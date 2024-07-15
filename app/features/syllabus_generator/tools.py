@@ -54,9 +54,9 @@ class SyllabusBuilder:
         if grade_level is None or len(grade_level) == 0:
             raise ValueError("Grade level must be provided")
 
-    # custommises the prompt template based on the grade level provided
-    def create_prompt_temp(self) -> PromptTemplate:
-        if "k" in self.grade_level.lower().strip():
+    #custommises the prompt template based on the grade level provided    
+    def create_prompt_temp(self):
+        if "k" in self.grade_level:
             self.grade_level_assessments = read_text_file("prompt/elementary.txt")
 
         elif "grade" in self.grade_level:
