@@ -64,15 +64,6 @@ class SyllabusBuilder:
             },
         )
 
-        # retriever = self.vectorstore.as_retriever()
-        # runner = RunnableParallel(
-        #     {
-        #         # "context": retriever,
-        #         "subject": RunnablePassthrough(),
-        #         "grade_level": RunnablePassthrough(),
-        #     }
-        # )
-
         chain = prompt | self.model | self.parser
 
         if self.verbose:
