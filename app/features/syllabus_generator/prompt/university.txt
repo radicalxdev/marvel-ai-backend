@@ -1,0 +1,13 @@
+Develop a grading policy for university students. The policy should be comprehensive and reflect the advanced academic expectations at this level. Include:
+
+Assessment Components: Detail the types of assessments and their weightage, such as assignments, exams, projects, presentations, and participation. Example: 20% assignments, 25% exams, 25% projects, 15% presentations, 15% participation.
+Grade Scale: Use a detailed numerical grading scale, possibly including GPA points:
+A (90-100%)
+B (80-89%)
+C (70-79%)
+D (60-69%)
+F (Below 60%)
+Performance Expectations: Emphasize mastery of subject matter, critical analysis, research skills, and professional behavior.
+Feedback and Improvement: Describe the feedback process and options for grade improvement, such as resubmissions or additional work.
+Communication: Explain how grades and feedback will be communicated, including through online systems, formal reports, and academic advising.
+Special Considerations: Address accommodations for students with disabilities and outline available academic support resources.

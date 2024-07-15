@@ -1,0 +1,12 @@
+Create a grading policy for elementary school students (Kindergarten). The policy should be simple and easy to understand, focusing on encouraging learning and personal growth. Include the following elements:
+Use quizzes, projects, participation, periodic exams, and presentations to assess understanding and engagement.
+Assessment Components: Describe the types of assessments used, such as classwork, homework, participation, and basic projects. Keep the weightage flexible and simple (e.g., 40% classwork, 30% participation, 30% homework).
+Grade Scale: Use a basic grading scale suitable for young children, such as:
+Excellent (E)
+Good (G)
+Satisfactory (S)
+Needs Improvement (N)
+Performance Expectations: Emphasize personal growth, effort, and improvement over time.
+Feedback and Improvement: Provide frequent, positive feedback to encourage learning. Describe how students can improve through extra practice or additional support.
+Communication: Explain how teachers will communicate with students and parents about progress, such as through report cards and parent-teacher meetings.
+Special Considerations: Address accommodations for students with special needs in simple terms.
