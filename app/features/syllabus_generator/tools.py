@@ -112,7 +112,7 @@ class SyllabusBuilder:
             logger.error(f"TypeError during reponse validation: {e}")
             return False
         except ValidationError as e:
-            logger.error(f"ValidationError during response validation: {e}")
+            logger.warn(f"ValidationError during response validation: {e}")
             return False
 
     def create_syllabus(self):
@@ -123,15 +123,26 @@ class SyllabusBuilder:
 
         chain = self.compile()
         max_attempts = 3
+        response = ""
 
-        for i in range(max_attempts):
+        for attempt in range(max_attempts):
             response = chain.invoke(
                 {"subject": self.subject, "grade_level": self.grade_level}
             )
             if self.verbose:
-                logger.info(f"Generated reponse for attempt {i}")
-            
-            if self.validate_response(reponse)
+                logger.info(f"Generated reponse for attempt {attempt}")
+
+            if self.validate_response(response):
+                if self.verbose:
+                    logger.info("Valid response formed")
+                return response
+            else:
+                logger.warn(
+                    f"Invalid response format. Attempt {attempt} of {max_attempts}"
+                )
+        logger.error(
+            f"Failed to generate valid response within {max_attempts} attempts"
+        )
         return response
 
 
