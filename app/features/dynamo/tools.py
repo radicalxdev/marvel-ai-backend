@@ -373,8 +373,8 @@ class URLLoader:
                     self.loader = JsonSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "md":
                     self.loader = MarkdownSubLoader(cur_file_content, cur_file_type)
-                elif cur_file_type in ['doc', 'docx', 'xls','xlsx']:
-                    self.loader = AzureSubLoader(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
+                elif cur_file_type in ["doc", 'docx']:
+                    self.loader = DocxSubLoaderAzure(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
                 elif cur_file_type == "csv":
                     self.loader = CsvSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "html":
