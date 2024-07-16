@@ -45,7 +45,7 @@ class SyllabusBuilder:
 
         # self.vectorstore = vectorstore
         self.subject = subject
-        self.grade_level = grade_level
+        self.grade_level = grade_level.lower().strip()
         self.verbose = verbose
 
         # if vectorstore is None:
@@ -195,7 +195,62 @@ class SyllabusModel(BaseModel):
         description="Class policies, exceptions, important rules and any special consideration all students must be aware of"
     )
 
-    grade_level_assesments: Dict[str, str] = Field(description="")
+    grade_level_assesments: Dict[str, str] = Field(
+        description="assessment components, grade scale, performance expectations, feedback and improvement, communication and special considerations",
+        examples = [{
+            "grading_policy": {
+        "assessment_components": [
+          {
+            "type": "Assignments",
+            "weightage": "20%"
+          },
+          {
+            "type": "Exams",
+            "weightage": "25%"
+          },
+          {
+            "type": "Projects",
+            "weightage": "25%"
+          },
+          {
+            "type": "Presentations",
+            "weightage": "15%"
+          },
+          {
+            "type": "Participation",
+            "weightage": "15%"
+          }
+        ],
+        "grade_scale": {
+          "A": "90-100%",
+          "B": "80-89%",
+          "C": "70-79%",
+          "D": "60-69%",
+          "F": "Below 60%"
+        },
+        "performance_expectations": {
+          "mastery_of_subject_matter": "Students are expected to demonstrate a mastery of the subject matter covered in the course.",
+          "critical_analysis": "Students are expected to be able to critically analyze scientific information and arguments.",
+          "research_skills": "Students are expected to be able to conduct research and use scientific literature to support their work.",
+          "professional_behavior": "Students are expected to behave in a professional manner at all times."
+        },
+        "feedback_and_improvement": {
+          "feedback_process": "Students will receive feedback on their work through written comments, discussion, and peer review.",
+          "options_for_grade_improvement": "Students may have the opportunity to improve their grades by resubmitting assignments or completing additional work."
+        },
+        "communication": {
+          "grades_and_feedback": "Grades and feedback will be communicated to students through the online course management system and in person during office hours.",
+          "academic_advising": "Students may also meet with their academic advisor to discuss their grades and progress in the course."
+        },
+        "special_considerations": {
+          "accommodations_for_students_with_disabilities": "Students with disabilities who need accommodations should contact the Disability Services office.",
+          "academic_support_resources": "Students may also access a variety of academic support resources, such as tutoring, writing centers, and counseling services."
+            }
+         }
+       },
+      ],
+    )
+    
     # This can be expanded
 
     model_config = {
