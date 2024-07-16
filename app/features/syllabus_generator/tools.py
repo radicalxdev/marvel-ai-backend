@@ -2,7 +2,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 from app.services.logger import setup_logger
 from typing import List, Dict
 import os
@@ -49,9 +49,9 @@ class SyllabusBuilder:
 
         # if vectorstore is None:
         # raise ValueError("Vectorestore must be provided")
-        if subject is None:
+        if subject is None or len(subject) <= 2:
             raise ValueError("Subject must be provided")
-        if grade_level is None:
+        if grade_level is None or len(grade_level) == 0:
             raise ValueError("Grade level must be provided")
 
     # Returns langchain chain for creating syllabus
@@ -71,6 +71,50 @@ class SyllabusBuilder:
 
         return chain
 
+    def validate_response(self, response: Dict) -> bool:
+        policies_and_exceptions_flag = False
+        objectives_flag = False
+
+        try:
+            # Assuming reponse is already a dict
+            if isinstance(response, dict):
+                if (
+                    "title" in response
+                    and "overview" in response
+                    and "objectives" in response
+                    and "policies_and_exceptions" in response
+                ):
+                    # Check objectives in correct format
+                    objectives = response["objectives"]
+                    if isinstance(objectives, dict):
+                        for key, value in objectives.items():
+                            if isinstance(key, int) or isinstance(value, str):
+                                return False
+                            objectives_flag = True
+
+                    # Check policies_and_exceptions in correct format
+                    policies_and_exceptions = response["policies_and_exceptions"]
+                    if isinstance(policies_and_exceptions, list):
+                        for item in policies_and_exceptions:
+                            if not isinstance(item, str):
+                                return False
+                            policies_and_exceptions_flag = True
+
+            if objectives_flag and policies_and_exceptions_flag:
+                if self.verbose:
+                    logger.info("Response validated successfully")
+                return True
+
+            logger.warn("Response failed to validate")
+            return False
+
+        except TypeError as e:
+            logger.error(f"TypeError during reponse validation: {e}")
+            return False
+        except ValidationError as e:
+            logger.error(f"ValidationError during response validation: {e}")
+            return False
+
     def create_syllabus(self):
         if self.verbose:
             logger.info(
@@ -78,10 +122,16 @@ class SyllabusBuilder:
             )
 
         chain = self.compile()
+        max_attempts = 3
 
-        response = chain.invoke(
-            {"subject": self.subject, "grade_level": self.grade_level}
-        )
+        for i in range(max_attempts):
+            response = chain.invoke(
+                {"subject": self.subject, "grade_level": self.grade_level}
+            )
+            if self.verbose:
+                logger.info(f"Generated reponse for attempt {i}")
+            
+            if self.validate_response(reponse)
         return response
 
 
@@ -108,9 +158,6 @@ class SyllabusModel(BaseModel):
     policies_and_exceptions: List[str] = Field(
         description="Class policies, exceptions, important rules and any special consideration all students must be aware of"
     )
-    # resources: List[str] = Field(
-    #     description="A list of exisiting resources such as books, websites that can be used to learn key topics for the course"
-    # )
     # This can be expanded
 
     model_config = {
