@@ -148,10 +148,11 @@ class SyllabusBuilder:
 
         for attempt in range(max_attempts):
             response = chain.invoke(
-                {"subject": self.subject, 
-                 "grade_level": self.grade_level,
-                "grade_level_assessments": self.grade_level_assessments,
-                 }
+                {
+                    "subject": self.subject,
+                    "grade_level": self.grade_level,
+                    "grade_level_assessments": self.grade_level_assessments,
+                }
             )
             if self.verbose:
                 logger.info(f"Generated reponse for attempt {attempt}")
@@ -227,4 +228,3 @@ class SyllabusModel(BaseModel):
             """
         }
     }
->>>>>>> policies-exceptions
