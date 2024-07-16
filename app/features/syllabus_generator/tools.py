@@ -194,6 +194,8 @@ class SyllabusModel(BaseModel):
     policies_and_exceptions: List[str] = Field(
         description="Class policies, exceptions, important rules and any special consideration all students must be aware of"
     )
+
+    grade_level_assesments: Dict[str, str] = Field(description="")
     # This can be expanded
 
     model_config = {
