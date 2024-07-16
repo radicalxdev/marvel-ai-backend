@@ -18,10 +18,6 @@ from app.api.error_utilities import LoaderError, VideoTranscriptError
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
 
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
-
 from langchain.chains.summarize import load_summarize_chain
 from langchain.prompts import PromptTemplate
 from langchain_core.documents import Document
@@ -31,6 +27,12 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import AzureAIDocumentIntelligenceLoader, YoutubeLoader
 from langchain_google_genai import GoogleGenerativeAI
 
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+
+from sklearn.metrics.pairwise import cosine_similarity
+from langchain_openai import OpenAIEmbeddings
 
 AZURE_END_POINT = 'https://dynamo.cognitiveservices.azure.com/'
 AZURE_API_KEY = 'azure_api_key'
@@ -168,7 +170,7 @@ class DocxSubLoader:
             logger.error(e)
         return documents
 
-class DocxSubLoaderAzure:
+class AzureSubLoader:
     def __init__(self, url: str, azure_endpoint: str, azure_api_key: str):
         self.url = url
         self.azure_endpoint = azure_endpoint
@@ -184,7 +186,7 @@ class DocxSubLoaderAzure:
             )
             documents = loader.load()
         except Exception as e:
-            logger.error(f"Failed to load file from doc sub loader (Azure)")
+            logger.error(f"Failed to load file from Azure sub loader")
             logger.error(e)
 
         return documents
@@ -279,27 +281,6 @@ class GoogleSheetsSubLoader:
             logger.error(f"Failed to load file from {self.file_type} sub loader")
             logger.error(e)
         return documents
-
-class GoogleSheetsSubLoaderAzure:
-    def __init__(self, url: str, azure_endpoint: str, azure_api_key: str):
-        self.url = url
-        self.azure_endpoint = azure_endpoint
-        self.azure_api_key = azure_api_key
-
-    def load(self) -> List[Document]:
-        documents = []
-        try:
-            loader = AzureAIDocumentIntelligenceLoader(
-                api_endpoint=self.azure_endpoint,
-                api_key=self.azure_api_key,
-                url_path=self.url
-            )
-            documents = loader.load()
-        except Exception as e:
-            logger.error(f"Failed to load file from google sheets sub loader (Azure)")
-            logger.error(e)
-
-        return documents
        
 
 class GoogleSlidesSubLoader:
@@ -392,19 +373,16 @@ class URLLoader:
                     self.loader = JsonSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "md":
                     self.loader = MarkdownSubLoader(cur_file_content, cur_file_type)
-                elif cur_file_type in ["doc", 'docx']:
-                    self.loader = DocxSubLoaderAzure(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
+                elif cur_file_type in ['doc', 'docx', 'xls','xlsx']:
+                    self.loader = AzureSubLoader(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
                 elif cur_file_type == "csv":
                     self.loader = CsvSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "html":
                     self.loader = HtmlSubLoader(cur_file_content, cur_file_type)
                 elif cur_file_type == "google-slides":
                     self.loader = GoogleSlidesSubLoader(identifier, gcloud_auth, cur_file_type)
-                elif cur_file_type in ['xls','xlsx'] :
-                    self.loader = GoogleSheetsSubLoaderAzure(identifier, azure_endpoint=AZURE_END_POINT, azure_api_key=AZURE_API_KEY)
-
                 else:
-                    raise LoaderError(f"Unsupported file type: {file_type}")
+                    raise LoaderError(f"Unsupported file type: {cur_file_type}")
                 document = self.loader.load()
                 documents_list.extend(document)
 
@@ -440,19 +418,63 @@ def get_youtube_doc(youtube_url: str, max_video_length=600, verbose=False) -> Li
         logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
 
-def summarize_docs(documents) -> str:
+def get_document_embeddings(documents: List[Document], model) -> List:
+    embeddings = []
+    for doc in documents:
+        embedding = model.embed_query(doc.page_content)
+        embeddings.append(embedding)
+    return embeddings
+
+def select_k_nearest_neighbors(documents: List[Document], embeddings: List, K: int) -> List[Document]:
+    # Compute the mean embedding to represent the overall topic
+    mean_embedding = sum(embeddings) / len(embeddings)
+    
+    # Compute cosine similarities with the mean embedding
+    similarities = cosine_similarity([mean_embedding], embeddings)[0]
+    
+    # Select the indices of the top K similar documents
+    top_k_indices = similarities.argsort()[-K:][::-1]
+    
+    return [documents[i] for i in top_k_indices]
+
+def summarize_docs(documents: List[Document], K: int = 10) -> str:
     try:
         summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
         chain = load_summarize_chain(summarize_model, chain_type="map_reduce")
-        result = chain.invoke(documents)
+        
+        # Compute embeddings for all documents
+        embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002")
+        document_embeddings = get_document_embeddings(documents, embedding_model)
+        
+        # Select the K-nearest neighbors based on semantic relevance
+        if len(documents) > K:
+            selected_documents = select_k_nearest_neighbors(documents, document_embeddings, K)
+            logger.info(f"Selected top {K} nearest neighbors for summarization.")
+        else:
+            selected_documents = documents
+        
+        # Split selected documents into batches
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        split_docs = splitter.split_documents(selected_documents)
+        
+        num_batches = len(split_docs)
+        logger.info(f"Number of documents: {len(selected_documents)}")
+        logger.info(f"Number of batches created: {num_batches}")
+
+        result = chain.invoke(split_docs)
     
     except Exception as e:
         logger.error(f"Summarize error: {e}")
-    
-    # TODO 
+        raise
+
+    summary_text = result["output_text"]
+
     # Evaluate Summary Quality
-    
-    return result["output_text"]
+    logger.info("Evaluating summary quality...")
+    summary_length = len(summary_text.split())
+    logger.info(f"Summary length (in words): {summary_length}")
+
+    return summary_text
 
 def load_documents(youtube_url: str, files: list[ToolFile]):
     logger.info(f'Files: {files}')
