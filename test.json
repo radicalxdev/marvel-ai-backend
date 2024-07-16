@@ -41,10 +41,6 @@
                 {
                     "name": "grade_level",
                     "value": "Kindergarten"
-                },
-                {
-                    "name": "files",
-                    "value": []
                 }
             ]
         }
