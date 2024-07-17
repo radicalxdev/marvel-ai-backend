@@ -5,5 +5,8 @@ Follow these instructions to create a {subject} syllabus for your students:
 2. Generate a list of learning objectives for each topic that show a students understanding.
 3. {grade_level_assessments}
 
+Use the provided additional notes to further tailor the syllabus as needed:
+        {customisations}
+
 You must respond as a JSON object: 
 {format_instructions}
