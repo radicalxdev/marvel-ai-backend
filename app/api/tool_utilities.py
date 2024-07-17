@@ -29,7 +29,6 @@ def get_executor_by_name(module_path):
         module = __import__(module_path, fromlist=["executor"])
         return getattr(module, "executor")
     except Exception as e:
-        logger.error(f"HEREHREHREHR: {print_exception(e)}")
         logger.error(f"Failed to import executor from {module_path}: {str(e)}")
         raise ImportError(f"Failed to import module from {module_path}: {str(e)}")
 
