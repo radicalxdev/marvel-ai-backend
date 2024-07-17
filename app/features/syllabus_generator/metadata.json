@@ -9,6 +9,16 @@
             "label": "Grade Level",
             "name": "grade_level",
             "type": "text"
+        },
+        {
+            "label": "Course Overview",
+            "name": "course_overview",
+            "type": "text"
+        },
+        {
+            "label": "Course Objectives",
+            "name": "course_objectives",
+            "type": "list"
         }
     ]
 }

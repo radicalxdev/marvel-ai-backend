@@ -1,0 +1,14 @@
+You are a {grade_level} teacher and expert in the {subject} course.
+
+Your task is to create a comprehensive description for the {subject} course.
+
+This description should provide a clear and detailed overview of what the students will learn and the purpose of the {subject} course. Ensure the course description includes the following:
+
+- An introduction to the {subject} and its importance based on the {course_overview}.
+- The main topics that will be covered.
+- The balance between theoretical concepts and practical applications.
+- Specific course objectives, including {course_objectives}, integrated within the description.
+- How this course will help students in their academic and professional development, preparing them for advanced studies or professional roles in the field.
+
+You must respond as a JSON object:
+{format_instructions}

@@ -48,5 +48,39 @@
                 }
             ]
         }
+    },
+    {
+        "user": {
+            "id": "string",
+            "fullName": "string",
+            "email": "string"
+        },
+        "type": "tool",
+        "tool_data": {
+            "tool_id": 2,
+            "inputs": [
+                {
+                    "name": "subject",
+                    "value": "Data Structures"
+                },
+                {
+                    "name": "grade_level",
+                    "value": "University"
+                },
+                {
+                    "name": "course_overview",
+                    "value": "This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs. The course will emphasize both the theoretical and practical aspects of data structures, including their implementation and analysis of their efficiency. By the end of the course, students will be equipped with the knowledge to use data structures effectively in real-world applications and advanced computing challenges."
+                },
+                {
+                    "name": "course_objectives",
+                    "value": [
+                        "Understand the basic concepts of data structures.",
+                        "Implement various data structures in programming.",
+                        "Analyze the efficiency and performance of data structures.",
+                        "Apply data structures to solve computational problems."
+                    ]
+                }
+            ]
+        }
     }
 ]

@@ -4,72 +4,66 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from app.services.logger import setup_logger
 import os
+from typing import List, Optional
 
 logger = setup_logger(__name__)
 
-
-def read_text_file(file_path):
-    # Get the directory containing the script file
+def read_text_file(file_path: str) -> str:
+    """Read the content of a text file."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Combine the script directory with the relative file path
     absolute_file_path = os.path.join(script_dir, file_path)
-
     with open(absolute_file_path, "r") as file:
         return file.read()
-
 
 class SyllabusBuilder:
     def __init__(
         self,
-        # vectorstore,
         subject: str,
         grade_level: str,
+        course_overview: str = "",
+        course_objectives: str = "",
         prompt: str = "",
         model=None,
         parser=None,
-        verbose=False,
+        verbose: bool = False,
     ):
+        """Initialize SyllabusBuilder with default configurations."""
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(),
-            "prompt": read_text_file("prompt/syllabus_prompt.txt"),
+            "prompt": read_text_file("prompt/Description_prompt.txt"),
         }
 
         self.prompt = prompt or default_config["prompt"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
 
-        # self.vectorstore = vectorstore
         self.subject = subject
         self.grade_level = grade_level
+        self.course_overview = course_overview
+        self.course_objectives = course_objectives
         self.verbose = verbose
 
-        # if vectorstore is None:
-        # raise ValueError("Vectorestore must be provided")
-        if subject is None:
-            raise ValueError("Subject must be provided")
-        if grade_level is None:
-            raise ValueError("Grade level must be provided")
+        self._validate_inputs()
 
-    # Returns langchain chain for creating syllabus
-    def compile(self):
+    def _validate_inputs(self):
+        """Validate inputs to ensure all required fields are provided."""
+        if not self.subject:
+            raise ValueError("Subject must be provided")
+        if not self.grade_level:
+            raise ValueError("Grade level must be provided")
+        if not self.course_overview:
+            raise ValueError("Course overview must be provided")
+        if not self.course_objectives:
+            raise ValueError("Course objectives must be provided")
+
+    def compile(self) -> RunnableParallel:
+        """Compile the prompt and return the runnable chain."""
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["subject", "grade_level"],
-            partial_variables={
-                "format_instructions": self.parser.get_format_instructions()
-            },
+            input_variables=["subject", "grade_level", "course_overview", "course_objectives"],
+            partial_variables={"format_instructions": self.parser.get_format_instructions()},
         )
-
-        # retriever = self.vectorstore.as_retriever()
-        # runner = RunnableParallel(
-        #     {
-        #         # "context": retriever,
-        #         "subject": RunnablePassthrough(),
-        #         "grade_level": RunnablePassthrough(),
-        #     }
-        # )
 
         chain = prompt | self.model | self.parser
 
@@ -78,15 +72,23 @@ class SyllabusBuilder:
 
         return chain
 
-    def create_syllabus(self):
+    def create_syllabus(self) -> dict:
+        """Create syllabus by invoking the compiled chain."""
         if self.verbose:
             logger.info(
-                f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}"
+                f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}, Course Overview: {self.course_overview}, Course Objectives: {self.course_objectives}"
             )
 
         chain = self.compile()
 
+        
         response = chain.invoke(
-            {"subject": self.subject, "grade_level": self.grade_level}
-        )
+                {
+                    "subject": self.subject,
+                    "grade_level": self.grade_level,
+                    "course_overview": self.course_overview,
+                    "course_objectives": self.course_objectives,
+                }
+            )
         return response
+

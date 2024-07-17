@@ -9,39 +9,42 @@ import traceback
 
 logger = setup_logger()
 
-
-def executor(subject: str, grade_level: str, verbose=True, **kwargs):
+def executor(
+    subject: str, 
+    grade_level: str, 
+    course_overview: str,
+    course_objectives: str,
+    verbose: bool = True, 
+    **kwargs
+) -> dict:
+    """Execute the syllabus generation process."""
     try:
         if verbose:
-            logger.debug(f"Subject: {subject}, grade_level: {grade_level}")
+            logger.debug(
+                f"Subject: {subject}, Grade Level: {grade_level}, Course Overview: {course_overview}, Course Objectives: {course_objectives}"
+            )
 
-        # Instantiate RAG pipeline with default values
         pipeline = RAGpipeline(
-            splitter=RecursiveCharacterTextSplitter(
-                chunk_size=100, chunk_overlap=10
-            ),  # smaller chunks cause probably less data input for what will be used for atm
+            splitter=RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=10),
             verbose=verbose,
         )
 
         pipeline.compile()
 
-        # Process the extra guidance files/text
-        # file = ToolFile(
-        #     url="file:///code/app/features/quizzify/tests/test.pdf",
-        #     filename="tests.pdf",
-        # )
-        # db = pipeline([file])
-
-        # Create and return the quiz questions
-        output = SyllabusBuilder(
-            subject, grade_level, verbose=verbose
-        ).create_syllabus()
+        syllabus_builder = SyllabusBuilder(
+            subject, grade_level, course_overview, course_objectives, verbose=verbose
+        )
+        output = syllabus_builder.create_syllabus()
         print(output)
 
     except LoaderError as e:
-        error_message = e
-        logger.error(f"Error in RAGPipeline -> {error_message}")
-        raise ToolExecutorError(error_message.message)
+        error_message = f"Error in RAGPipeline -> {e}"
+        logger.error(error_message)
+        raise ToolExecutorError(error_message)
+
+    except ValueError as e:
+        logger.error(f"Error creating syllabus: {e}")
+        raise ValueError(f"Error creating syllabus: {e}")
 
     except Exception as e:
         print(traceback.format_exc())
@@ -51,6 +54,11 @@ def executor(subject: str, grade_level: str, verbose=True, **kwargs):
 
     return output
 
-
 if __name__ == "__main__":
-    executor(subject="Multiplication", grade_level="K12", files=[])
+    executor(
+        subject="Data Structures", 
+        grade_level="University", 
+        course_overview="This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs.",
+        course_objectives="Students will be equipped with the knowledge to use data structures effectively in real-world applications and advanced computing challenges.",
+        files=[]
+    )
