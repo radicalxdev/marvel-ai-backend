@@ -9,6 +9,11 @@
             "label": "Grade Level",
             "name": "grade_level",
             "type": "text"
+        },
+        {
+            "label":"Customisation",
+            "name": "custom_info",
+            "type":"text"
         }
     ]
 }
