@@ -158,7 +158,7 @@ class MultiChoiceQuestionBuilder(QuestionBuilder):
                     logger.info(f"Total generated questions: {len(generated_questions)}")
             else:
                 if self.verbose:
-                    logger.warning(f"Invalid response format. Attempt {attempts + 1 of {max_attempts}")
+                    logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
             
             # Move to the next attempt regardless of success to ensure progress
             attempts += 1
