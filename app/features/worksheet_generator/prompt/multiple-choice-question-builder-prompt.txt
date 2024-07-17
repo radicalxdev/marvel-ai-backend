@@ -1,5 +1,5 @@
 You are a subject matter expert on the topic: 
-{topic} in grade level: {grade_level}
+{topic} in grade level: {grade_level} with difficulty level: {difficulty_level}
 
 Follow the instructions to create a quiz question:
 1. Generate a question based on the topic provided and context as key "question"
