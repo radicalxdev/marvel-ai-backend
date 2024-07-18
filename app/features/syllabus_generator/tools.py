@@ -110,19 +110,19 @@ class SyllabusBuilder:
                 ):
                     # Check objectives in correct format
                     objectives = response["objectives"]
-                    if isinstance(objectives, dict):
-                        for key, value in objectives.items():
-                            if isinstance(key, int) or isinstance(value, str):
+                    if isinstance(objectives, list):
+                        for item in objectives:
+                            if not isinstance(item, str):
                                 return False
-                            objectives_flag = True
+                        objectives_flag = True
 
                     # Check policies_and_exceptions in correct format
                     policies_and_exceptions = response["policies_and_exceptions"]
-                    if isinstance(policies_and_exceptions, list):
-                        for item in policies_and_exceptions:
-                            if not isinstance(item, str):
+                    if isinstance(policies_and_exceptions, dict):
+                        for key, value in policies_and_exceptions.items():
+                            if not isinstance(key, str) or not isinstance(value, str):
                                 return False
-                            policies_and_exceptions_flag = True
+                        policies_and_exceptions_flag = True
 
             if objectives_flag and policies_and_exceptions_flag:
                 if self.verbose:
@@ -179,19 +179,19 @@ class SyllabusModel(BaseModel):
     overview: str = Field(
         description="A broad overview of what is expected of students and what they will learn"
     )
-    objectives: Dict[int, str] = Field(
-        description="A numbered list of of specific tasks the student will be able to successfully do upon completion of the course",
+    objectives: List[str] = Field(
+        description="A list of specific tasks the student will be able to successfully do upon completion of the course",
         examples=[
-            {
-                1: "Define the key terms associated with electrocardiographs.",
-                2: "Describe the cardiac cycle and the conduction systems that controls the cardiac cycle.",
-                3: "Describe the electrocardiogram.",
-            },
-            {
-                1: "Craft short plays with clear action, developed characters, and precise dialogue",
-                2: "Apply feedback to your own writing through revision",
-                3: "Analyse and discuss the craft of contemporary plays",
-            },
+            [
+                "Define the key terms associated with electrocardiographs.",
+                "Describe the cardiac cycle and the conduction systems that controls the cardiac cycle.",
+                "Describe the electrocardiogram.",
+            ],
+            [
+                "Craft short plays with clear action, developed characters, and precise dialogue",
+                "Apply feedback to your own writing through revision",
+                "Analyse and discuss the craft of contemporary plays",
+            ],
         ],
     )
     policies_and_exceptions: Dict[str, str] = Field(
@@ -253,13 +253,13 @@ class SyllabusModel(BaseModel):
                     practice basic electrocardiograph patient care techniques, applying legal and ethical responsibilities. Students learn the
                     use of medical instrumentation, electrocardiogram theory, identification of and response to mechanical problems,
                     recognition of cardiac rhythm and response to emergency findings.",
-                "objectives": {
-                        1: "Define the key terms associated with electrocardiographs.",
-                        2: "Describe the cardiac cycle and the conduction systems that controls the cardiac cycle.",
-                        3: "Describe the electrocardiogram.",
-                        4: "Maintain equipment for safety and accuracy; identify and eliminate or report interference and
-                            mechanical problems."
-                    },
+                "objectives": [
+                        "Define the key terms associated with electrocardiographs.",
+                        "Describe the cardiac cycle and the conduction systems that controls the cardiac cycle.",
+                        "Describe the electrocardiogram.",
+                        "Maintain equipment for safety and accuracy; identify and eliminate or report interference and
+                        mechanical problems."
+                    ],
                 "policies_and_exceptions": {
                     "attendance requirements":
                         "It is important for the school to be notified when a student is not able to attend class. It is the student’s responsibility to
