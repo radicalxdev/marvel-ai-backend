@@ -1,5 +1,4 @@
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableParallel, RunnablePassthrough
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
@@ -150,7 +149,7 @@ class SyllabusBuilder:
         max_attempts = 3
         response = ""
 
-        for attempt in range(max_attempts):
+        for attempt in range(1, max_attempts + 1):
             response = chain.invoke(
                 {
                     "subject": self.subject,
@@ -181,7 +180,7 @@ class SyllabusModel(BaseModel):
         description="A broad overview of what is expected of students and what they will learn"
     )
     objectives: Dict[int, str] = Field(
-        description="A numbered list of of specific taskts the student will be able to successfully do upon completion of the course",
+        description="A numbered list of of specific tasks the student will be able to successfully do upon completion of the course",
         examples=[
             {
                 1: "Define the key terms associated with electrocardiographs.",
@@ -222,7 +221,7 @@ class SyllabusModel(BaseModel):
     )
 
     grade_level_assessments: Dict[str, Dict[str, int | str]] = Field(
-        description="assessment components, grade scale, performance expectations, feedback and improvement, communication and special considerations",
+        description="assessment components and grade scale for completing the course. Assessment components being a dictionary of components and percentages, grade_scale being a dictionary of grades and percentage ranges",
         examples=[
             {
                 "assessment_components": {
