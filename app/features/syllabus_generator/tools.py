@@ -92,7 +92,11 @@ class SyllabusBuilder:
 
         return chain
 
+    # Probably a better way to do this
     def validate_response(self, response: Dict) -> bool:
+        """
+        Validates response from LLM
+        """
         policies_and_exceptions_flag = False
         objectives_flag = False
 
