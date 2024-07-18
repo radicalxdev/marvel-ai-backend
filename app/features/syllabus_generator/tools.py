@@ -194,7 +194,6 @@ class SyllabusModel(BaseModel):
             ],
         ],
     )
-
     policies_and_exceptions: Dict[str, str] = Field(
         description="Class policies, exceptions, important rules and any special consideration all students must be aware of. Each has a title and contents.",
         examples=[
