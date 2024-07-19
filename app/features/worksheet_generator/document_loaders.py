@@ -1,6 +1,5 @@
 from langchain_community.document_loaders import YoutubeLoader
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_core.documents import Document
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_community.document_loaders import TextLoader
 from langchain_community.document_loaders import UnstructuredURLLoader
@@ -11,13 +10,11 @@ from langchain_community.document_loaders import UnstructuredXMLLoader
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.utils.allowed_file_extensions import FileType
 from app.api.error_utilities import FileHandlerError, ImageHandlerError
-from langchain.prompts import PromptTemplate
-from langchain_google_genai import GoogleGenerativeAI
 from app.api.error_utilities import VideoTranscriptError
 from langchain_core.messages import HumanMessage
 from app.services.logger import setup_logger
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-
+from langchain_core.documents import Document
 import os
 import tempfile
 import uuid
@@ -30,7 +27,7 @@ logger = setup_logger(__name__)
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size = 1000,
-    chunk_overlap = 0
+    chunk_overlap = 100
 )
 
 def read_text_file(file_path):
@@ -43,29 +40,16 @@ def read_text_file(file_path):
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
-def build_chain(prompt: str):
-    prompt_template = read_text_file(prompt)
-    summarize_prompt = PromptTemplate.from_template(prompt_template)
-
-    summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
-
-    chain = summarize_prompt | summarize_model 
-    return chain
-
-def get_summary(file_url: str, file_type: str, verbose=True):
+def get_docs(file_url: str, file_type: str, verbose=True):
     file_type = file_type.lower()
     try:
         file_loader = file_loader_map[FileType(file_type)]
-        full_content = file_loader(file_url, verbose)
-        if file_type in STRUCTURED_TABULAR_FILE_EXTENSIONS:
-            prompt = "prompt/summarize-structured-tabular-data-prompt.txt"
-        else:
-            prompt = "prompt/summarize-text-prompt.txt"
+        docs = file_loader(file_url, verbose)
 
-        chain = build_chain(prompt)
-        return chain.invoke(full_content)
+        return docs
 
     except Exception as e:
+        print(e)
         logger.error(f"Unsupported file type: {file_type}")
         raise FileHandlerError(f"Unsupported file type", file_url) from e
 
@@ -115,10 +99,7 @@ def load_pdf_documents(pdf_url: str, verbose=False):
             logger.info(f"Found PDF file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 
 def load_csv_documents(csv_url: str, verbose=False):
@@ -130,10 +111,7 @@ def load_csv_documents(csv_url: str, verbose=False):
             logger.info(f"Found CSV file")
             logger.info(f"Splitting documents into {len(docs)} chunks")
 
-        full_content = [doc.page_content for doc in docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return docs
 
 def load_txt_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "txt")
@@ -147,10 +125,7 @@ def load_txt_documents(notes_url: str, verbose=False):
             logger.info(f"Found TXT file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_md_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "md")
@@ -164,10 +139,7 @@ def load_md_documents(notes_url: str, verbose=False):
             logger.info(f"Found MD file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_url_documents(url: str, verbose=False):
     url_loader = UnstructuredURLLoader(urls=[url])
@@ -180,10 +152,7 @@ def load_url_documents(url: str, verbose=False):
             logger.info(f"Found URL")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_pptx_documents(pptx_url: str, verbose=False):
     pptx_handler = FileHandler(UnstructuredPowerPointLoader, 'pptx')
@@ -197,10 +166,7 @@ def load_pptx_documents(pptx_url: str, verbose=False):
             logger.info(f"Found PPTX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_docx_documents(docx_url: str, verbose=False):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
@@ -213,10 +179,7 @@ def load_docx_documents(docx_url: str, verbose=False):
             logger.info(f"Found DOCX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_xls_documents(xls_url: str, verbose=False):
     xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
@@ -229,10 +192,7 @@ def load_xls_documents(xls_url: str, verbose=False):
             logger.info(f"Found XLS file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
     xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
@@ -245,10 +205,7 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
             logger.info(f"Found XLSX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_xml_documents(xml_url: str, verbose=False):
     xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
@@ -261,10 +218,7 @@ def load_xml_documents(xml_url: str, verbose=False):
             logger.info(f"Found XML file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 
 class FileHandlerForGoogleDrive:
@@ -312,9 +266,7 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Docs files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-        return full_content
+        return split_docs
 
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
     gsheets_loader = FileHandlerForGoogleDrive(UnstructuredExcelLoader, 'xlsx')
@@ -327,10 +279,7 @@ def load_gsheets_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Sheets files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_gslides_documents(drive_folder_url: str, verbose=False):
     gslides_loader = FileHandlerForGoogleDrive(UnstructuredPowerPointLoader, 'pptx')
@@ -343,10 +292,7 @@ def load_gslides_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google Slides files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        full_content = [doc.page_content for doc in split_docs]
-        full_content = " ".join(full_content)
-
-        return full_content
+        return split_docs
 
 def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
@@ -359,12 +305,9 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
             logger.info(f"Found Google PDF files")
             logger.info(f"Splitting documents into {len(docs)} chunks")
 
-        full_content = [doc.page_content for doc in docs]
-        full_content = " ".join(full_content)
+        return docs
 
-        return full_content
-
-def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, verbose=False) -> str:
+def load_docs_youtube_url(youtube_url: str, verbose=False) -> str:
     try:
         loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
     except Exception as e:
@@ -375,31 +318,39 @@ def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, ver
         docs = loader.load()
         length = docs[0].metadata["length"]
         title = docs[0].metadata["title"]
+        logger.info("Length of the video: ",length)
+        logger.info("Title of the video: ",title)
     except Exception as e:
         logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
 
     split_docs = splitter.split_documents(docs)
 
-    full_transcript = [doc.page_content for doc in split_docs]
-    full_transcript = " ".join(full_transcript)
+    return split_docs
 
-    if length > max_video_length:
-        raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
+llm_for_img = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
-    if verbose:
-        logger.info(f"Found video with title: {title} and length: {length}")
-        logger.info(f"Combined documents into a single string.")
-        logger.info(f"Beginning to process transcript...")
+def generate_docs_from_img(img_url, verbose: bool=False):
+    message = HumanMessage(
+    content=[
+            {
+                "type": "text",
+                "text": "Give me a summary of what you see in the image. It must be 3 detailed paragraphs.",
+            }, 
+            {"type": "image_url", "image_url": img_url},
+        ]
+    )
 
-    prompt_template = read_text_file("prompt/summarize-youtube-video-prompt.txt")
-    summarize_prompt = PromptTemplate.from_template(prompt_template)
+    try:
+        response = llm_for_img.invoke([message]).content
+        logger.info(f"Generated summary: {response}")
+        docs = Document(page_content=response, metadata={"source": img_url})
+        split_docs = splitter.split_documents([docs])
+    except Exception as e:
+        logger.error(f"Error processing the request due to Invalid Content or Invalid Image URL")
+        raise ImageHandlerError(f"Error processing the request", img_url) from e
 
-    summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
-
-    chain = summarize_prompt | summarize_model 
-
-    return chain.invoke(full_transcript)
+    return split_docs
 
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
@@ -415,27 +366,7 @@ file_loader_map = {
     FileType.GDOC: load_gdocs_documents,
     FileType.GSHEET: load_gsheets_documents,
     FileType.GSLIDE: load_gslides_documents,
-    FileType.GPDF: load_gpdf_documents
+    FileType.GPDF: load_gpdf_documents,
+    FileType.YOUTUBE_URL: load_docs_youtube_url,
+    FileType.IMG: generate_docs_from_img
 }
-
-llm_for_img = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
-
-def generate_summary_from_img(img_url):
-    message = HumanMessage(
-    content=[
-            {
-                "type": "text",
-                "text": "Give me a summary of what you see in the image. It must be a detailed paragraph.",
-            }, 
-            {"type": "image_url", "image_url": img_url},
-        ]
-    )
-
-    try:
-        response = llm_for_img.invoke([message]).content
-        logger.info(f"Generated summary: {response}")
-    except Exception as e:
-        logger.error(f"Error processing the request due to Invalid Content or Invalid Image URL")
-        raise ImageHandlerError(f"Error processing the request", img_url) from e
-
-    return response

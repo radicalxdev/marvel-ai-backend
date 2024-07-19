@@ -18,3 +18,4 @@ class FileType(Enum):
     GPDF = 'gpdf'
 
     YOUTUBE_URL = 'youtube_url' 
+    IMG = 'img'
