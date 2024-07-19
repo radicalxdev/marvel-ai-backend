@@ -28,10 +28,6 @@ def executor(grade_level: int, topic: str, context: str) -> str:
         
         logger.error(f"Execution successful: {result}")
 
-    except LoaderError as e:
-        error_message = e
-        logger.error(f"Error in RAGPipeline -> {error_message}")
-        raise ToolExecutorError(error_message)
     
     except Exception as e:
         error_message = f"Error in executor: {e}"
