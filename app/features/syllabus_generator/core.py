@@ -1,5 +1,6 @@
 # This is code from quizbuilder - repurpose for syllabus generator
 from services.logger import setup_logger
+from gemini_api_client import generate_response
 
 logger = setup_logger()
 
@@ -20,13 +21,21 @@ def executor(grade_level: int, topic: str, context: str) -> str:
         logger.error(f"Executing with grade_level={grade_level}, topic={topic}, context={context}")
         
         # Here you would define the core functionality
-        # For example, creating a PromptTemplate, chain, and invoking the chain
+        #Prompt
         prompt_template = f"Create content for grade {grade_level} on {topic}. Context: {context}"
-        # Assume some chain logic here
-        result = prompt_template  # This would be replaced by actual processing logic
+        # Call the Gemini API to generate a response
+        response = generate_response(prompt_template) 
         
         logger.error(f"Execution successful: {result}")
-        return result
+
+    except LoaderError as e:
+        error_message = e
+        logger.error(f"Error in RAGPipeline -> {error_message}")
+        raise ToolExecutorError(error_message)
+    
     except Exception as e:
-        logger.error(f"An error occurred during execution: {e}")
-        raise
+        error_message = f"Error in executor: {e}"
+        logger.error(error_message)
+        raise ValueError(error_message)
+    
+    return response
