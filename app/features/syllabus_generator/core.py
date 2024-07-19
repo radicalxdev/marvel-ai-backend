@@ -1,14 +1,9 @@
 # This is code from quizbuilder - repurpose for syllabus generator
-
-from app.services.tool_registry import ToolFile
-from app.services.logger import setup_logger
-from app.features.quizzify.tools import RAGpipeline
-from app.features.quizzify.tools import QuizBuilder
-from app.api.error_utilities import LoaderError, ToolExecutorError
+from services.logger import setup_logger
 
 logger = setup_logger()
 
-def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=False):
+def executor(grade_level: str | int, topic: str, context: str, verbose=False):
     
     try:
         if verbose: logger.debug(f"Files: {files}")
@@ -18,12 +13,7 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
         
         pipeline.compile()
         
-        # Process the uploaded files
-        db = pipeline(files)
-        
-        # Create and return the quiz questions
-        output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
-    
+
     except LoaderError as e:
         error_message = e
         logger.error(f"Error in RAGPipeline -> {error_message}")
