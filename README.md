@@ -87,7 +87,7 @@ pip install -r requirements.txt
 ### Step 4: Create a new .env and store the API Key
 
 1. Create a new file called `.env` in the root of the project.
-2. Copy the contents of the `.env.example` file into the `.env` file.
+2. Copy the contents of the `.env.sample` file into the `.env` file.
 3. Replace the placeholder values with your API key and project ID.
 4. Set the `ENV_TYPE` variable to `dev`.
 
