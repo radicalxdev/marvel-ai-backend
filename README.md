@@ -91,7 +91,7 @@ pip install -r requirements.txt
 3. Replace the placeholder values with your API key and project ID.
 4. Set the `ENV_TYPE` variable to `dev`.
 
-### Step 4: Run the Application with Local Shell Script
+### Step 5: Run the Application with Local Shell Script
 
 1. Run the following command to start the application:
 
