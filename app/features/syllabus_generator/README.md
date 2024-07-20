@@ -230,7 +230,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "two weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -290,7 +290,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -350,7 +350,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -410,7 +410,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -470,7 +470,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -530,7 +530,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -590,7 +590,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -650,7 +650,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -710,7 +710,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -770,7 +770,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -830,7 +830,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -890,7 +890,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -950,7 +950,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -1010,7 +1010,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
@@ -1070,7 +1070,7 @@ generate_concepts_from_img(img_url: str)
       },
       {
         "name": "unit_time",
-        "value": "weeks"
+        "value": "week"
       },
       {
         "name": "unit_time_value",
