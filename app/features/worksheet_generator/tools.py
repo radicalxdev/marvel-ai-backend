@@ -150,15 +150,18 @@ class RAGpipeline:
         total_chunks = []
         chunks = self.splitter.split_documents(loaded_documents)
         total_chunks.extend(chunks)
-        if self.verbose:
+        
+        if self.verbose: 
             logger.info(f"Split {len(loaded_documents)} documents into {len(total_chunks)} chunks")
+        
         return total_chunks
 
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
-        if self.verbose:
+
+        if self.verbose: 
             logger.info(f"Vectorstore created")
         return self.vectorstore
 
@@ -166,15 +169,16 @@ class RAGpipeline:
         self.load_PDFs = RAGRunnable(self.load_PDFs)
         self.split_loaded_documents = RAGRunnable(self.split_loaded_documents)
         self.create_vectorstore = RAGRunnable(self.create_vectorstore)
-        if self.verbose:
+        if self.verbose: 
             logger.info(f"Completed pipeline compilation")
-
+    
     def __call__(self, documents):
         if self.verbose:
             logger.info(f"Executing pipeline")
             logger.info(f"Start of Pipeline received: {len(documents)} documents of type {type(documents[0])}")
         pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
+
 
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):

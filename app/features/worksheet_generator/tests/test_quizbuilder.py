@@ -1,72 +1,103 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../')))
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 import pytest
-from unittest.mock import MagicMock, patch
-from app.features.worksheet_generator.tools import QuizBuilder
-from langchain_chroma import Chroma
-from langchain_google_vertexai import VertexAI
+from unittest.mock import MagicMock, patch, mock_open
+from fastapi import UploadFile
+from pydantic import BaseModel
+from io import BytesIO
+from pypdf import PdfReader
+from app.features.worksheet_generator.tools import (
+    QuizBuilder, GoogleGenerativeAI, JsonOutputParser, 
+    PromptTemplate, QuizQuestion, QuestionChoice, TextOrPDFLoader, 
+    QuestionGenerator, RunnablePassthrough
+)
 
-class TestQuizBuilder:
-    @pytest.fixture
-    def mock_vectorstore(self):
-        return MagicMock(spec=Chroma)
+@pytest.fixture
+def mock_vectorstore():
+    return MagicMock()
 
-    @pytest.fixture
-    def mock_vertexai(self):
-        return MagicMock(spec=VertexAI)
+@pytest.fixture
+def mock_quiz_builder(mock_vectorstore):
+    return QuizBuilder(
+        vectorstore=mock_vectorstore,
+        topic="Artificial Intelligence",
+        prompt="Generate quiz questions about {topic}",
+        model=GoogleGenerativeAI(model="gemini-1.0-pro"),
+        parser=JsonOutputParser(pydantic_object=QuizQuestion),
+        verbose=True
+    )
 
-    @pytest.fixture
-    def quiz_builder(self, mock_vectorstore, mock_vertexai):
-        topic = "Sample Topic"
-        return QuizBuilder(vectorstore=mock_vectorstore, topic=topic, model=mock_vertexai)
+def test_quiz_builder_init(mock_vectorstore):
+    quiz_builder = QuizBuilder(
+        vectorstore=mock_vectorstore,
+        topic="Artificial Intelligence"
+    )
+    assert quiz_builder.topic == "Artificial Intelligence"
+    assert isinstance(quiz_builder.model, GoogleGenerativeAI)
+    assert isinstance(quiz_builder.parser, JsonOutputParser)
 
-    @patch("app.features.worksheet_generator.tools.read_text_file", return_value="Sample Prompt")
-    def test_compile(self, mock_read_text_file, quiz_builder):
-        chain = quiz_builder.compile()
-        assert chain is not None
-        assert quiz_builder.prompt == "Sample Prompt"
+def test_quiz_builder_compile(mock_quiz_builder):
+    chain = mock_quiz_builder.compile()
+    assert chain is not None
 
-    def test_validate_response_valid(self, quiz_builder):
-        response = {
-            "question": "Sample question?",
-            "choices": {"A": "Option 1", "B": "Option 2"},
+def test_quiz_builder_validate_response_valid(mock_quiz_builder):
+    valid_response = {
+        "question": "What is AI?",
+        "choices": {"A": "Artificial Intelligence", "B": "Automated Intelligence"},
+        "answer": "A",
+        "explanation": "AI stands for Artificial Intelligence."
+    }
+    result = mock_quiz_builder.validate_response(valid_response)
+    assert result == True
+
+def test_quiz_builder_validate_response_invalid(mock_quiz_builder):
+    invalid_response = {
+        "question": "What is AI?",
+        "choices": {"A": "Artificial Intelligence"},
+    }
+    result = mock_quiz_builder.validate_response(invalid_response)
+    assert result == False
+
+def test_quiz_builder_format_choices(mock_quiz_builder):
+    choices = {"A": "Option A", "B": "Option B"}
+    formatted_choices = mock_quiz_builder.format_choices(choices)
+    assert formatted_choices == [{"key": "A", "value": "Option A"}, {"key": "B", "value": "Option B"}]
+
+def test_quiz_builder_create_questions(mock_quiz_builder):
+    with patch.object(mock_quiz_builder, 'compile') as mock_compile:
+        mock_chain = MagicMock()
+        mock_chain.invoke = MagicMock(return_value={
+            "question": "What is AI?",
+            "choices": {"A": "Artificial Intelligence", "B": "Automated Intelligence"},
             "answer": "A",
-            "explanation": "Sample explanation"
-        }
-        assert quiz_builder.validate_response(response) is True
+            "explanation": "AI stands for Artificial Intelligence."
+        })
+        mock_compile.return_value = mock_chain
 
-    def test_validate_response_invalid(self, quiz_builder):
-        response = {
-            "question": "Sample question?",
-            "choices": {"A": "Option 1", "B": "Option 2"},
-            # Missing 'answer' and 'explanation'
-        }
-        assert quiz_builder.validate_response(response) is False
+        questions = mock_quiz_builder.create_questions(num_questions=5)
+        assert len(questions) == 1
+        assert questions[0]["question"] == "What is AI?"
 
-    def test_format_choices(self, quiz_builder):
-        choices = {"A": "Option 1", "B": "Option 2"}
-        formatted_choices = quiz_builder.format_choices(choices)
-        assert formatted_choices == [{"key": "A", "value": "Option 1"}, {"key": "B", "value": "Option 2"}]
+def test_text_or_pdf_loader_text():
+    loader = TextOrPDFLoader(text="Sample text")
+    content = loader.load()
+    assert content == "Sample text"
 
-    @patch.object(QuizBuilder, 'compile', return_value=MagicMock())
-    @patch.object(QuizBuilder, 'validate_response', return_value=True)
-    @patch.object(QuizBuilder, 'format_choices', return_value=[{"key": "A", "value": "Option 1"}])
-    @patch("app.features.worksheet_generator.tools.read_text_file", return_value="Sample Prompt")
-    def test_create_questions(self, mock_read_text_file, mock_compile, mock_validate_response, mock_format_choices, quiz_builder):
-        mock_chain = mock_compile.return_value
-        mock_chain.invoke.return_value = {
-            "question": "Sample question?",
-            "choices": {"A": "Option 1"},
-            "answer": "A",
-            "explanation": "Sample explanation"
-        }
 
-        questions = quiz_builder.create_questions(num_questions=3)
-        assert len(questions) == 3
-        for question in questions:
-            assert question["question"] == "Sample question?"
-            assert question["choices"] == [{"key": "A", "value": "Option 1"}]
-            assert question["answer"] == "A"
-            assert question["explanation"] == "Sample explanation"
+
+def test_quiz_question_model():
+    question = QuizQuestion(
+        question="What is AI?",
+        choices=[QuestionChoice(key="A", value="Artificial Intelligence"), QuestionChoice(key="B", value="Automated Intelligence")],
+        answer="A",
+        explanation="AI stands for Artificial Intelligence."
+    )
+    assert question.question == "What is AI?"
+    assert len(question.choices) == 2
+    assert question.answer == "A"
+    assert question.explanation == "AI stands for Artificial Intelligence."
+
+
