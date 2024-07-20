@@ -1,0 +1,14 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade",
+            "type": "text"
+        },
+        {
+            "label": "Course Subject",
+            "name": "subject name",
+            "type": "number"
+        }
+    ]
+}
