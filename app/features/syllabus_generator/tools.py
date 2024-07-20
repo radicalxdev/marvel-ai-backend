@@ -1,5 +1,10 @@
 # This is code for quizzify repurpose for syllabus generator
 
+
+
+### MINI FUNCTIONS FOR EAC SUB PART OF THE SYLLABUS AND THEN ONE FINAL FUNCTION TO COMBINE THE OUTPUT
+
+
 from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
