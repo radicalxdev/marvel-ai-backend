@@ -23,8 +23,10 @@ class TestFunctions(unittest.TestCase):
         with open(self.test_file_path, 'w') as f:
             f.write(self.test_content)
 
+
     def tearDown(self):
         # Clean up the test file after each test
+
         os.remove(self.test_file_path)
 
     def test_read_text_file(self):
@@ -147,6 +149,7 @@ class TestFunctions(unittest.TestCase):
         self.assertEqual(result, "Generated study materials")
 
     def test_final_output(self):
+
         course_desc = "Course description"
         course_obj = "Course objectives"
         course_out = "Course outline"
@@ -157,6 +160,7 @@ class TestFunctions(unittest.TestCase):
         result = final_output(course_desc, course_obj, course_out, grading_pol, rules_pol, study_mat)
         
         expected_output = (
+
             f"#Course Description\n{course_desc}\n\n"
             f"#Course Objectives\n{course_obj}\n\n"
             f"#Course Outline\n{course_out}\n\n"
