@@ -1,19 +1,19 @@
 {
     "inputs": [
         {
-            "label": "Topic",
+            "label": "Grade",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Subject",
             "name": "topic",
             "type": "text"
         },
         {
-            "label": "Number of Questions",
-            "name": "num_questions",
-            "type": "number"
-        },
-        {
-            "label": "Upload PDF files",
-            "name": "files",
-            "type": "file"
+            "label": "Custom Info",
+            "name": "context",
+            "type": "text"
         }
     ]
 }

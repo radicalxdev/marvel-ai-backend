@@ -1,0 +1,8 @@
+You are an expert syllabus generator. Your have to create the study material listfor:
+Grade : {grade}
+Subject : {subject}
+Customized information : {custom_info}
+Course Outline ( use as reference ):
+{course_outline}
+*Explain which study material is used for which purpose
+Answer: 

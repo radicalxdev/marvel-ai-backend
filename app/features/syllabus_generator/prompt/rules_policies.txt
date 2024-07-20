@@ -1,0 +1,8 @@
+You are an expert syllabus generator. Your have to create class rules and instructions for:
+Grade : {grade}
+Subject : {subject}
+Customized information : {custom_info}
+Course Outline ( use as reference ):
+{course_outline}
+*The rules and policies should be numerically listed in order of importance
+Answer: 

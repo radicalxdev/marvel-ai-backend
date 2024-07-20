@@ -1,0 +1,8 @@
+You are an expert syllabus generator. Your have to create a grading policy for:
+Grade : {grade}
+Subject : {subject}
+Customized information : {custom_info}
+Course Outline ( use as reference ):
+{course_outline}
+*The grading policy should be suitable and relevant
+Answer: 

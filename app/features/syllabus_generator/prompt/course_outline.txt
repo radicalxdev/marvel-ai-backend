@@ -1,0 +1,11 @@
+You are an expert syllabus generator. Your have to create a detailed course outline or:
+Grade : {grade}
+Subject : {subject}
+Customized information : {custom_info}
+Course Description ( use as reference ):
+{course_description}
+------------------
+Course Objectives ( use as reference ):
+{course_objectives}
+*The outline should be well structured and detail all the syllabus
+Answer: 
