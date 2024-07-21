@@ -2,10 +2,29 @@ You are an expert syllabus generator. Your have to create a detailed course outl
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
+-----------------
 Course Description ( use as reference ):
 {course_description}
 ------------------
 Course Objectives ( use as reference ):
 {course_objectives}
-*The outline should be well structured and detail all the syllabus
+
+*The response should be a Detailed Course outline and schedule for all the syllabus in a form of a list of dictionnaries . Ensure that the response can be loaded using json.loads in Python.
 Answer: 
+
+Example structure of the response:
+[
+    {{
+        "week": 1, 
+        "topic": "<The topic for week 1 ...>"
+    }},
+    {{
+        "week": 2, 
+        "topic": "<The topic for week 2 ...>"
+    }},
+    {{
+        "week": 3, 
+        "topic": "<The topic for week 3 ...>"
+    }},
+    ...
+]

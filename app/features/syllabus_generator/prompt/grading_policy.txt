@@ -4,5 +4,6 @@ Subject : {subject}
 Customized information : {custom_info}
 Course Outline ( use as reference ):
 {course_outline}
-*The grading policy should be suitable and relevant
+
+*The response should be only the grading policy that should be suitable and relevant
 Answer: 

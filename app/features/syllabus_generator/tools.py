@@ -111,11 +111,17 @@ def study_materials(grade:str,subject:str,course_outline:str,custom_info='None')
     return response
 
 def final_output(course_description:str,course_objectives:str,course_outline:str,grading_policy:str,rules_policies:str,study_materials:str) -> str:
-    #prompt = read_text_file('prompt/course_description.txt')
-    #prompt = PromptTemplate.format(prompt)
-    response = f"#Course Description\n{course_description}\n\n#Course Objectives\n{course_objectives}\n\n" \
-    "#Course Outline\n{course_outline}\n\n#Grading Policy\n{grading_policy}\n\n" \
-    "#Class Rules\n{rules_policies}\n\n#Study Materials\n{study_materials}\n\n"
+    # response = f"#Course Description\n{course_description}\n\n#Course Objectives\n{course_objectives}\n\n" \
+    # "#Course Outline\n{course_outline}\n\n#Grading Policy\n{grading_policy}\n\n" \
+    # "#Class Rules\n{rules_policies}\n\n#Study Materials\n{study_materials}\n\n"
+    response = {
+        'course_description' : course_description,
+        'course_objectives'  : course_objectives,
+        'study_materials'    : study_materials,
+        'course_outline'     : course_outline,
+        'grading_policy'     : grading_policy,
+        'rules_policies'     : rules_policies,
+        }
 
     return response
     

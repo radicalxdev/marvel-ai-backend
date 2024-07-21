@@ -3,5 +3,5 @@ Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
 
-*The descripion should be a brief summary convering key aspects of the course
+*Respond only with The descripion that should be a brief summary convering key aspects of the course
 Answer: 

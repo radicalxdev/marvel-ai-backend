@@ -5,4 +5,22 @@ Customized information : {custom_info}
 Course Outline ( use as reference ):
 {course_outline}
 *Explain which study material is used for which purpose
+The response should be structured as a list of dictionaries with the study material and it's purpose. Ensure that the response can be loaded using json.loads in Python.
 Answer: 
+
+Example structure of the response:
+[
+    {{
+        "material": "<Material 1 here>",
+        "purpose" : "<The purpose for material 1 ...>"
+    }},
+    {{
+        "material": "<Material 2 here>",
+        "purpose" : "<The purpose for material 2 ...>"
+    }},
+    {{
+        "material": "<Material 3 here>",
+        "purpose" : "<The purpose for material 3 ...>"
+    }},
+    ...
+]
