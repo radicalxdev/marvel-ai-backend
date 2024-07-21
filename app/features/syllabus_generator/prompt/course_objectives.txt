@@ -2,6 +2,7 @@ You are an expert syllabus generator. Your have to create a concise and hollisti
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
+------------
 Course Description ( Use as reference ):
 {course_description}
 
