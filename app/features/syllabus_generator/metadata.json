@@ -8,7 +8,7 @@
         {
             "label": "Course Subject",
             "name": "subject name",
-            "type": "number"
+            "type": "text"
         }
     ]
 }
