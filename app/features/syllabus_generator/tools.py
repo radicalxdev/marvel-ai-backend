@@ -49,7 +49,7 @@ def build_prompt(filepath):
         template)
     return prompt
 
-def course_description(grade:int,subject:str,custom_info='None') -> str:
+def course_description(grade:str,subject:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/course_description.txt')
@@ -59,7 +59,7 @@ def course_description(grade:int,subject:str,custom_info='None') -> str:
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info})
     return response
 
-def course_objectives(grade:int,subject:str,course_description:str,custom_info='None') -> str:
+def course_objectives(grade:str,subject:str,course_description:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/course_objectives.txt')
@@ -69,7 +69,7 @@ def course_objectives(grade:int,subject:str,course_description:str,custom_info='
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_description':course_description})
     return response
 
-def course_outline(grade:int,subject:str,course_description:str,course_objectives:str,custom_info='None') -> str:
+def course_outline(grade:str,subject:str,course_description:str,course_objectives:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/course_outline.txt')
@@ -80,7 +80,7 @@ def course_outline(grade:int,subject:str,course_description:str,course_objective
                              'course_objectives':course_objectives})
     return response
 
-def grading_policy(grade:int,subject:str,course_outline:str,custom_info='None') -> str:
+def grading_policy(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/grading_policy.txt')
@@ -90,7 +90,7 @@ def grading_policy(grade:int,subject:str,course_outline:str,custom_info='None') 
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
     return response
 
-def rules_policies(grade:int,subject:str,course_outline:str,custom_info='None') -> str:
+def rules_policies(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/rules_policies.txt')
@@ -100,7 +100,7 @@ def rules_policies(grade:int,subject:str,course_outline:str,custom_info='None') 
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
     return response
 
-def study_materials(grade:int,subject:str,course_outline:str,custom_info='None') -> str:
+def study_materials(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/study_materials.txt')
