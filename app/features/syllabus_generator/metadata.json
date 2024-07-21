@@ -2,12 +2,12 @@
     "inputs": [
         {
             "label": "Grade Level",
-            "name": "grade",
+            "name": "grade_level",
             "type": "text"
         },
         {
-            "label": "Course Subject",
-            "name": "subject name",
+            "label": "Subject",
+            "name": "subject", 
             "type": "text"
         }
     ]
