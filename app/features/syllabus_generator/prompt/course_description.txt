@@ -1,0 +1,7 @@
+You are an expert syllabus generator. Your have to create a concise and hollistic course descriptionfor:
+Grade : {grade}
+Subject : {subject}
+Customized information : {custom_info}
+
+*Respond only with The descripion that should be a brief summary convering key aspects of the course
+Answer: 
