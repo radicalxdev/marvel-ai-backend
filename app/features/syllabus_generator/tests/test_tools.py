@@ -33,8 +33,8 @@ def test_read_text_file(test_file):
     result = read_text_file(test_file_path)
     assert result == test_content
 
-@patch('your_module.read_text_file')
-@patch('your_module.PromptTemplate')
+@patch('app.features.syllabus_generator.tools.read_text_file')
+@patch('langchain_core.prompts.PromptTemplate')
 def test_build_prompt(MockPromptTemplate, mock_read_text_file, test_file):
     _, test_content = test_file
     mock_read_text_file.return_value = test_content
@@ -45,8 +45,8 @@ def test_build_prompt(MockPromptTemplate, mock_read_text_file, test_file):
     MockPromptTemplate.from_template.assert_called_once_with(test_content)
     assert result == mock_prompt_template_instance
 
-@patch('your_module.build_prompt')
-@patch('your_module.GoogleGenerativeAI')
+@patch('app.features.syllabus_generator.tools.build_prompt')
+@patch('langchain_google_genai.GoogleGenerativeAI')
 def test_course_description(MockGoogleGenerativeAI, mock_build_prompt):
     mock_build_prompt.return_value = MagicMock()
     mock_model = MockGoogleGenerativeAI.return_value
@@ -58,8 +58,8 @@ def test_course_description(MockGoogleGenerativeAI, mock_build_prompt):
     mock_chain.invoke.assert_called_once_with({"grade": 10, "subject": "Math", "custom_info": 'None'})
     assert result == "Generated course description"
 
-@patch('your_module.build_prompt')
-@patch('your_module.GoogleGenerativeAI')
+@patch('app.features.syllabus_generator.tools.build_prompt')
+@patch('langchain_google_genai.GoogleGenerativeAI')
 def test_course_objectives(MockGoogleGenerativeAI, mock_build_prompt):
     mock_build_prompt.return_value = MagicMock()
     mock_model = MockGoogleGenerativeAI.return_value
@@ -76,8 +76,8 @@ def test_course_objectives(MockGoogleGenerativeAI, mock_build_prompt):
     })
     assert result == "Generated course objectives"
 
-@patch('your_module.build_prompt')
-@patch('your_module.GoogleGenerativeAI')
+@patch('app.features.syllabus_generator.tools.build_prompt')
+@patch('langchain_google_genai.GoogleGenerativeAI')
 def test_course_outline(MockGoogleGenerativeAI, mock_build_prompt):
     mock_build_prompt.return_value = MagicMock()
     mock_model = MockGoogleGenerativeAI.return_value
@@ -95,8 +95,8 @@ def test_course_outline(MockGoogleGenerativeAI, mock_build_prompt):
     })
     assert result == "Generated course outline"
 
-@patch('your_module.build_prompt')
-@patch('your_module.GoogleGenerativeAI')
+@patch('app.features.syllabus_generator.tools.build_prompt')
+@patch('langchain_google_genai.GoogleGenerativeAI')
 def test_grading_policy(MockGoogleGenerativeAI, mock_build_prompt):
     mock_build_prompt.return_value = MagicMock()
     mock_model = MockGoogleGenerativeAI.return_value
@@ -113,8 +113,8 @@ def test_grading_policy(MockGoogleGenerativeAI, mock_build_prompt):
     })
     assert result == "Generated grading policy"
 
-@patch('your_module.build_prompt')
-@patch('your_module.GoogleGenerativeAI')
+@patch('app.features.syllabus_generator.tools.build_prompt')
+@patch('langchain_google_genai.GoogleGenerativeAI')
 def test_rules_policies(MockGoogleGenerativeAI, mock_build_prompt):
     mock_build_prompt.return_value = MagicMock()
     mock_model = MockGoogleGenerativeAI.return_value
@@ -131,8 +131,8 @@ def test_rules_policies(MockGoogleGenerativeAI, mock_build_prompt):
     })
     assert result == "Generated rules and policies"
 
-@patch('your_module.build_prompt')
-@patch('your_module.GoogleGenerativeAI')
+@patch('app.features.syllabus_generator.tools.build_prompt')
+@patch('langchain_google_genai.GoogleGenerativeAI')
 def test_study_materials(MockGoogleGenerativeAI, mock_build_prompt):
     mock_build_prompt.return_value = MagicMock()
     mock_model = MockGoogleGenerativeAI.return_value
