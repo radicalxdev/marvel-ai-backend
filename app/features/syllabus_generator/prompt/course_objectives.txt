@@ -2,8 +2,17 @@ You are an expert syllabus generator. Your have to create a concise and hollisti
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
+------------
 Course Description ( Use as reference ):
 {course_description}
 
-*The objectives should be a numerically numbered list of the aims and goals of the course
+*The response should be structured as a list. Ensure that the response can be loaded using json.loads in Python.
 Answer: 
+
+Example structure of the response:
+[
+    "<Objective 1 here ...>",
+    "<Objective 2 here ...>",
+    "<Objective 3 here ...>",
+    ...
+]
