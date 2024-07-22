@@ -21,6 +21,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_google_genai import GoogleGenerativeAI
+from langchain.utilities import WikipediaAPIWrapper 
 
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
@@ -31,6 +32,11 @@ relative_path = "features/syllabus"
 logger = setup_logger(__name__)
 
 # All functions and procedures program requires should be in tools.py
+def wikipedia_search(keywords):
+    
+    wiki = WikipediaAPIWrapper(wiki_client=None,top_k_results=3,doc_content_chars_max=5000,load_all_available_meta=True)
+    wiki_research = wiki.run(keywords) 
+    return wiki_research
 
 def read_text_file(file_path):
     # Get the directory containing the script file
