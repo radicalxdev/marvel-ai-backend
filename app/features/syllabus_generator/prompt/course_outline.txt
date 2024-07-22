@@ -8,9 +8,10 @@ Course Description ( use as reference ):
 ------------------
 Course Objectives ( use as reference ):
 {course_objectives}
-*The outline should be well structured and detail all the syllabus in a form of a list of dictionnaries . Ensure that the response can be loaded using json.loads in Python.
+*The outline should be well structured and detail all the syllabus
 Answer: 
 
+The response should be in a form of a list of dictionnaries . Ensure that the response can be loaded using json.loads in Python.
 Example structure of the response:
 [
     {{

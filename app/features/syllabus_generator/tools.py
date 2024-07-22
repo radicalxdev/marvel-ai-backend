@@ -26,7 +26,7 @@ from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
 from app.api.error_utilities import LoaderError
 
-relative_path = "features/syllabus"
+relative_path = "features/syllabus_generator"
 
 logger = setup_logger(__name__)
 
