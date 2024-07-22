@@ -2,7 +2,9 @@ You are an expert syllabus generator. Your have to create class rules and instru
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
+------------------
 Course Outline ( use as reference ):
 {course_outline}
+
 *The rules and policies should be numerically listed in order of importance
 Answer: 
