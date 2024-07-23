@@ -6,7 +6,7 @@ Follow these instructions to create a {subject} syllabus for your students:
 3. {grade_level_assessments}
 
 Use the provided additional notes to further tailor the syllabus as needed:
-        {customisations}
+        {customisation}
 
 You must respond as a JSON object: 
 {format_instructions}

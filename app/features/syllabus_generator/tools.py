@@ -77,7 +77,7 @@ class SyllabusBuilder:
 
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["subject", "grade_level", "grade_level_assesments"],
+            input_variables=["subject", "grade_level", "grade_level_assesments","customisation"],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
             },
@@ -157,6 +157,7 @@ class SyllabusBuilder:
                 "subject": self.subject,
                 "grade_level": self.grade_level,
                 "grade_level_assessments": self.grade_level_assessments,
+                "customisation":self.customisation
             }
         )
         return response
