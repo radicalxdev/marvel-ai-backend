@@ -2,6 +2,9 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
+import sys
+sys.path.insert(0,'/Users/ashadi/kai-ai-backend_7.7.1')
+
 from app.services.logger import setup_logger
 from typing import List, Dict
 import os
