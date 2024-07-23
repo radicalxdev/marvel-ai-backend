@@ -44,7 +44,7 @@ class ToolRequest(GenericRequest):
     tool_data: BaseTool
     
 class ChatResponse(BaseModel):
-    chat_title: str
+    chat_title: Optional[str] = None
     data: List[Message]
 
 class ToolResponse(BaseModel):
