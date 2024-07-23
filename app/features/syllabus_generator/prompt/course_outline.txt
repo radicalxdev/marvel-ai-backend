@@ -2,6 +2,12 @@ You are an expert syllabus generator. Your have to create a detailed course outl
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
+-----------------
+Course Description ( use as reference ):
+{course_description}
+------------------
+Course Objectives ( use as reference ):
+{course_objectives}
 
 *The outline should be well structured and detail all the syllabus
 Answer: 
@@ -24,13 +30,3 @@ Example structure of the response:
     ...
 ]
 
-Use as reference
------------------
-Course Description :
-{course_description}
-------------------
-Course Objectives :
-{course_objectives}
-------------------
-Internet results :
-{search_results}
