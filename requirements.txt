@@ -15,4 +15,8 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
-python-dotenv
+python-dotenv 
+python-docx 
+python-pptx
+openpyxl 
+pytube 

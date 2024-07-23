@@ -4,6 +4,31 @@
             "label": "Youtube URL",
             "name": "youtube_url",
             "type": "string"
+        },
+        {
+            "label": "PDF File",
+            "name": "pdf_files",
+            "type": "file"
+        },
+        {
+            "label": "DOCX File",
+            "name": "docx_files",
+            "type": "file"
+        },
+        {
+            "label": "PPTX File",
+            "name": "pptx_files",
+            "type": "file"
+        },
+        {
+            "label": "XLSX File",
+            "name": "xlsx_files",
+            "type": "file"
+        },
+        {
+            "label": "CSV File",
+            "name": "csv_files",
+            "type": "file"
         }
     ],
     "models": {

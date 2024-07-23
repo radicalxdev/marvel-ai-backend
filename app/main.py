@@ -10,7 +10,12 @@ from app.api.error_utilities import ErrorResponse
 import os
 from dotenv import load_dotenv, find_dotenv
 
-load_dotenv(find_dotenv())
+load_dotenv(find_dotenv()) 
+
+# 추가된 부분
+api_key = os.getenv('GOOGLE_API_KEY')
+if not api_key:
+    raise ValueError("Google API Key is not set") 
 
 logger = setup_logger(__name__)
 
