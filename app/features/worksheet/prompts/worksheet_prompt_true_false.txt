@@ -1,4 +1,7 @@
 You are a subject matter expert on the topic: {topic}.
+Review the existing questions (if any) provided below, delimited by XML tags, and generate a new question that is not similar to them.
+<existing questions>{existing_questions}
+</existing questions>
 
 Follow the instructions to create a true or false quiz question:
 1. Generate a {grade_level} grade level true or false quiz question based on the topic provided as the key "question".

@@ -46,7 +46,7 @@ class QuestionBase:
         # create the chain
         prompt = PromptTemplate(
             template=self.prompt_template,
-            input_variables=["topic", "grade_level"],
+            input_variables=["topic", "existing_questions", "grade_level"],
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )
         
@@ -83,18 +83,20 @@ class QuestionBase:
                 return True
 
         self.question_bank.append(question_embedding)
+        self.existing_questions += f'\n{question}' 
         return False
     
     def create_questions(self, num_questions = 0) -> List:
         attempts = 0
         max_attempts = num_questions * 5  # Allow for more attempts to generate questions
         self.question_bank = []
+        self.existing_questions = ''
         generated_questions = []
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             # Move to the next attempt regardless of success to ensure progress
             attempts += 1
-            self.response = self.chain.invoke({"topic": self.topic, "grade_level": self.grade_level})
+            self.response = self.chain.invoke({"topic": self.topic, "existing_questions": self.existing_questions, "grade_level": self.grade_level})
 
             if self.verbose:
                 logger.info(f"Generated {self.section_name} response attempt {attempts}: {self.response}")
