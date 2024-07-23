@@ -61,6 +61,8 @@ async def chat( request: ChatRequest, _ = Depends(key_check) ):
         payload={"text": response}
     )
 
+    chat_title = None
+
     if(len(chat_messages)==1):
         chat_title = executor_for_title(user_query)
     
