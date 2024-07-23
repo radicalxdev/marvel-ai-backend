@@ -32,7 +32,7 @@ relative_path = "features/syllabus_generator"
 
 logger = setup_logger(__name__)
 
-os.environ['GOOGLE_CLOUD_CREDENTIALS'] = 'app.local-auth.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'abolute file path'
 
 
 # All functions and procedures program requires should be in tools.py

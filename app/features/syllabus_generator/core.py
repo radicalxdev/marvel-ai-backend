@@ -1,8 +1,11 @@
 # This is code from quizbuilder - repurpose for syllabus generator
+import os
 from services.logger import setup_logger
 from gemini_api_client import generate_response
 from tools import course_objectives,course_description,course_outline,grading_policy,rules_policies,study_materials,final_output
 logger = setup_logger()
+
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = r'abolute file path'
 
 def executor(grade_level: str, topic: str, context: str) -> str:
     """
