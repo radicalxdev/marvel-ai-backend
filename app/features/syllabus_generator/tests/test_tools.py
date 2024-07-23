@@ -12,6 +12,7 @@ from app.features.syllabus_generator.tools import (
     study_materials, 
     final_output
 )
+
 @pytest.fixture(scope='function')
 def test_file():
     # Setup a test file

@@ -4,6 +4,8 @@ from gemini_api_client import generate_response
 from tools import course_objectives,course_description,course_outline,grading_policy,rules_policies,study_materials,final_output
 logger = setup_logger()
 
+
+
 def executor(grade_level: str, topic: str, context: str) -> str:
     """
     Executes the tool's functionality.
