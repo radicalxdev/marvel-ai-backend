@@ -33,6 +33,7 @@ relative_path = "features/syllabus_generator"
 logger = setup_logger(__name__)
 
 
+
 # All functions and procedures program requires should be in tools.py
 def scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID):
     # We use the google api to get the results of the search 'syllabus of {subject} {grade} level' then we extract the first link
