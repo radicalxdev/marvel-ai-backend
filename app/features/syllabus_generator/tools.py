@@ -26,10 +26,12 @@ class SyllabusBuilder:
         # vectorstore,
         subject: str,
         grade_level: str,
+        customisation:str = "",
         prompt: str = "",
         model=None,
         parser=None,
         verbose=False,
+        
     ):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
@@ -41,6 +43,7 @@ class SyllabusBuilder:
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
         self.grade_level_assessments = ""
+        self.customisation = customisation
 
         # self.vectorstore = vectorstore
         self.subject = subject
@@ -56,7 +59,7 @@ class SyllabusBuilder:
 
     #custommises the prompt template based on the grade level provided    
     def create_prompt_temp(self):
-        if "k" in self.grade_level:
+        if "k" in self.grade_level.lower().strip():
             self.grade_level_assessments = read_text_file("prompt/elementary.txt")
 
         elif "grade" in self.grade_level:
@@ -74,7 +77,7 @@ class SyllabusBuilder:
 
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["subject", "grade_level", "grade_level_assessments"],
+            input_variables=["subject", "grade_level", "grade_level_assesments"],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
             },
@@ -149,27 +152,12 @@ class SyllabusBuilder:
         max_attempts = 3
         response = ""
 
-        for attempt in range(1, max_attempts + 1):
-            response = chain.invoke(
-                {
-                    "subject": self.subject,
-                    "grade_level": self.grade_level,
-                    "grade_level_assessments": self.grade_level_assessments,
-                }
-            )
-            if self.verbose:
-                logger.info(f"Generated reponse for attempt {attempt}")
-
-            if self.validate_response(response):
-                if self.verbose:
-                    logger.info("Valid response formed")
-                return response
-            else:
-                logger.warn(
-                    f"Invalid response format. Attempt {attempt} of {max_attempts}"
-                )
-        logger.error(
-            f"Failed to generate valid response within {max_attempts} attempts"
+        response = chain.invoke(
+            {
+                "subject": self.subject,
+                "grade_level": self.grade_level,
+                "grade_level_assessments": self.grade_level_assessments,
+            }
         )
         return response
 
