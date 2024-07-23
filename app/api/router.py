@@ -47,6 +47,7 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
 @router.post("/chat", response_model=ChatResponse)
 async def chat( request: ChatRequest, _ = Depends(key_check) ):
     from app.features.Kaichat.core import executor as kaichat_executor
+    from app.features.Kaichat.core import executor_for_title
     
     user_name = request.user.fullName
     chat_messages = request.messages
@@ -59,5 +60,8 @@ async def chat( request: ChatRequest, _ = Depends(key_check) ):
         type="text",
         payload={"text": response}
     )
+
+    if(len(chat_messages)==1):
+        chat_title = executor_for_title(user_query)
     
-    return ChatResponse(data=[formatted_response])
+    return ChatResponse(chat_title=chat_title, data=[formatted_response])
