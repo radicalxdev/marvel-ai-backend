@@ -1,0 +1,82 @@
+[
+    {
+        "week": 1, 
+        "topic": "Introduction to Computer Science"
+    },
+    {
+        "week": 2, 
+        "topic": "Programming Fundamentals"
+    },
+    {
+        "week": 3, 
+        "topic": "Data Structures and Algorithms"
+    },
+    {
+        "week": 4, 
+        "topic": "Computer Organization and Architecture"
+    },
+    {
+        "week": 5, 
+        "topic": "Operating Systems"
+    },
+    {
+        "week": 6, 
+        "topic": "Database Systems"
+    },
+    {
+        "week": 7, 
+        "topic": "Software Engineering"
+    },
+    {
+        "week": 8, 
+        "topic": "Theory of Computation"
+    },
+    {
+        "week": 9, 
+        "topic": "Computer Networks"
+    },
+    {
+        "week": 10, 
+        "topic": "Artificial Intelligence"
+    },
+    {
+        "week": 11, 
+        "topic": "Machine Learning"
+    },
+    {
+        "week": 12, 
+        "topic": "Cybersecurity"
+    },
+    {
+        "week": 13, 
+        "topic": "Web Development"
+    },
+    {
+        "week": 14, 
+        "topic": "Mobile Application Development"
+    },
+    {
+        "week": 15, 
+        "topic": "Human-Computer Interaction"
+    },
+    {
+        "week": 16, 
+        "topic": "Data Science"
+    },
+    {
+        "week": 17, 
+        "topic": "Cloud Computing"
+    },
+    {
+        "week": 18, 
+        "topic": "Capstone Project Planning"
+    },
+    {
+        "week": 19, 
+        "topic": "Capstone Project Implementation"
+    },
+    {
+        "week": 20, 
+        "topic": "Capstone Project Presentation"
+    }
+]

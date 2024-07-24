@@ -2,13 +2,10 @@ You are an expert syllabus generator. Your have to create the study material lis
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
-------------------
-Course Outline ( use as reference ):
-{course_outline}
 
 *Explain which study material is used for which purpose
 The response should be structured as a list of dictionaries with the study material and it's purpose. Ensure that the response can be loaded using json.loads in Python.
-Answer: 
+the response should be only the study materials without any titles or something else
 
 Example structure of the response:
 [
@@ -26,3 +23,11 @@ Example structure of the response:
     }},
     ...
 ]
+
+Use as reference
+------------------------
+Course Outline :
+{course_outline}
+------------------------
+
+Answer: 

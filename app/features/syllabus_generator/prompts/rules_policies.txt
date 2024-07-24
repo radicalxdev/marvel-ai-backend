@@ -1,0 +1,23 @@
+You are an expert syllabus generator. Your have to create class rules and instructions for:
+Grade : {grade}
+Subject : {subject}
+Customized information : {custom_info}
+
+*The response should be structured as a list. Ensure that the response can be loaded using json.loads in Python.
+the response should be only the rules without any titles or something else
+
+Example structure of the response:
+[
+    "<Rule 1 here ...>",
+    "<Rule 2 here ...>",
+    "<Rule 3 here ...>",
+    ...
+]
+
+Use as reference
+------------------------
+Course Outline :
+{course_outline}
+------------------------
+
+Answer: 

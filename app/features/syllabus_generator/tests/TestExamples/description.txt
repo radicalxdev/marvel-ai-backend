@@ -1,0 +1,5 @@
+The Bachelor of Science in Computer Science is a comprehensive program 
+designed to equip students with a solid foundation in computing principles,
+programming languages, software development, and system design. 
+This program integrates theoretical knowledge with practical skills, 
+preparing graduates to solve complex computing problems and innovate in a rapidly evolving technological landscape.

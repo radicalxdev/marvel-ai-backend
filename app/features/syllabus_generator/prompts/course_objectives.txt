@@ -2,12 +2,9 @@ You are an expert syllabus generator. Your have to create a concise and hollisti
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
-------------
-Course Description ( Use as reference ):
-{course_description}
 
 *The response should be structured as a list. Ensure that the response can be loaded using json.loads in Python.
-Answer: 
+the response should be only the objectives without any titles or something else.
 
 Example structure of the response:
 [
@@ -16,3 +13,12 @@ Example structure of the response:
     "<Objective 3 here ...>",
     ...
 ]
+
+Use as reference
+------------------------
+Course Description :
+{course_description}
+------------------------
+
+Answer: 
+

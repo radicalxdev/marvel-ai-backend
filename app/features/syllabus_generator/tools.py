@@ -1,39 +1,38 @@
 # This is code for quizzify repurpose for syllabus generator
 ### MINI FUNCTIONS FOR EAC SUB PART OF THE SYLLABUS AND THEN ONE FINAL FUNCTION TO COMBINE THE OUTPUT
 
-from typing import List, Tuple, Dict, Any
-from io import BytesIO
-from fastapi import UploadFile
-from pypdf import PdfReader
-from urllib.parse import urlparse
-from bs4 import BeautifulSoup
+# from typing import List, Tuple, Dict, Any
+# from io import BytesIO
+# from fastapi import UploadFile
+# from pypdf import PdfReader
+# from urllib.parse import urlparse
+# from bs4 import BeautifulSoup
 import requests
 import os
 import json
 import time
 
-from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_chroma import Chroma
+# from langchain_core.documents import Document
+# from langchain_text_splitters import RecursiveCharacterTextSplitter
+# from langchain_chroma import Chroma
+# from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+# from langchain_core.output_parsers import JsonOutputParser
+# from langchain_core.pydantic_v1 import BaseModel, Field
+# from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
-from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import GoogleGenerativeAI
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_google_genai import GoogleGenerativeAI
-
+from langchain_google_vertexai import VertexAI
+import json
 
 from app.services.logger import setup_logger
-from app.services.tool_registry import ToolFile
-from app.api.error_utilities import LoaderError
+# from app.services.tool_registry import ToolFile
+# from app.api.error_utilities import LoaderError
 
 relative_path = "features/syllabus_generator"
 
 logger = setup_logger(__name__)
 
-os.environ['GOOGLE_CLOUD_CREDENTIALS'] = 'app.local-auth.json'
-
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
 
 # All functions and procedures program requires should be in tools.py
 def scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID):
@@ -73,11 +72,7 @@ def get_table_from_link(link):
     return str(table_data)
     
 def read_text_file(file_path):
-    # Get the directory containing the script file
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Combine the script directory with the relative file path
-    absolute_file_path = os.path.join(script_dir, file_path)
-    with open(absolute_file_path, 'r') as file:
+    with open(file_path, 'r') as file:
         return file.read()
 
 def build_prompt(filepath):
@@ -94,9 +89,13 @@ def course_description(grade:str,subject:str,custom_info='None') -> str:
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/course_description.txt')
     #prompt.format({'grade':grade,'subject':subject})
-    model = GoogleGenerativeAI(model="gemini-1.0-pro")
+    model = VertexAI(
+        model_name='gemini-pro',
+        temperature=0.3,
+    )
     chain = prompt | model
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info})
+    
     return response
 
 def course_objectives(grade:str,subject:str,course_description:str,custom_info='None') -> str:
@@ -104,29 +103,47 @@ def course_objectives(grade:str,subject:str,course_description:str,custom_info='
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/course_objectives.txt')
     #prompt.format({'grade':grade,'subject':subject})
-    model = GoogleGenerativeAI(model="gemini-1.0-pro")
+    model = VertexAI(
+        model_name='gemini-pro',
+        temperature=0.3,
+    )
     chain = prompt | model
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_description':course_description})
+    for _ in range(5):
+        try :
+            response = json.loads(response)
+            break
+        except :
+            continue
     return response
 
-def course_outline(grade:str,subject:str,course_description:str,course_objectives:str,search_results:str,custom_info='None') -> str:
-    link = scrap_data(grade,subject)
-    scraped_data = get_table_from_link(link)
+def course_outline(grade:str,subject:str,course_description:str,course_objectives:str,custom_info='None') -> str: #link:str
+    # link = scrap_data(grade,subject)
+    # scraped_data = get_table_from_link(link)
     Outline_prompt = build_prompt('prompts/course_outline.txt')
-    Search_prompt = build_prompt('prompts/search_results.txt')
-    model = GoogleGenerativeAI(model="gemini-1.0-pro")
+    # Search_prompt = build_prompt('prompts/search_results.txt')
+    model = VertexAI(
+        model_name='gemini-pro',
+        temperature=0.3,
+    )
     
-    chain1 = Search_prompt | model
-    search_results = chain1.invoke({"scraped_data":scraped_data})
+    # chain1 = Search_prompt | model
+    # search_results = chain1.invoke({"scraped_data":scraped_data})
     
     chain2 = Outline_prompt | model
     response = chain2.invoke({'grade':grade,
                               'subject':subject,
                               'custom_info':custom_info,
-                              'search_results':search_results,
+                              #'search_results':search_results,
                               'course_objectives':course_objectives,
                               'course_description':course_description,
                               })
+    for _ in range(5):
+        try :
+            response = json.loads(response)
+            break
+        except :
+            continue
     return response
 
 def grading_policy(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
@@ -134,9 +151,13 @@ def grading_policy(grade:str,subject:str,course_outline:str,custom_info='None') 
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/grading_policy.txt')
     #prompt.format({'grade':grade,'subject':subject})
-    model = GoogleGenerativeAI(model="gemini-1.0-pro")
+    model = VertexAI(
+        model_name='gemini-pro',
+        temperature=0.3,
+    )
     chain = prompt | model
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
+    
     return response
 
 def rules_policies(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
@@ -144,9 +165,18 @@ def rules_policies(grade:str,subject:str,course_outline:str,custom_info='None') 
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/rules_policies.txt')
     #prompt.format({'grade':grade,'subject':subject})
-    model = GoogleGenerativeAI(model="gemini-1.0-pro")
+    model = VertexAI(
+        model_name='gemini-pro',
+        temperature=0.3,
+    )
     chain = prompt | model
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
+    for _ in range(5):
+        try :
+            response = json.loads(response)
+            break
+        except :
+            continue
     return response
 
 def study_materials(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
@@ -154,9 +184,18 @@ def study_materials(grade:str,subject:str,course_outline:str,custom_info='None')
     #prompt = PromptTemplate.format(prompt)
     prompt = build_prompt('prompts/study_materials.txt')
     #prompt.format({'grade':grade,'subject':subject})
-    model = GoogleGenerativeAI(model="gemini-1.0-pro")
+    model = VertexAI(
+        model_name='gemini-pro',
+        temperature=0.3,
+    )
     chain = prompt | model
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
+    for _ in range(5):
+        try :
+            response = json.loads(response)
+            break
+        except :
+            continue
     return response
 
 def final_output(course_description:str,course_objectives:str,course_outline:str,grading_policy:str,rules_policies:str,study_materials:str) -> str:
@@ -170,6 +209,4 @@ def final_output(course_description:str,course_objectives:str,course_outline:str
         'grading_policy'    :grading_policy,
         'rules_policies'    :rules_policies
     }
-
     return response
-    

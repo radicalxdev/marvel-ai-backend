@@ -4,9 +4,10 @@ Subject : {subject}
 Customized information : {custom_info}
 
 *The outline should be well structured and detail all the syllabus
-Answer: 
 
 The response should be in a form of a list of dictionnaries . Ensure that the response can be loaded using json.loads in Python.
+the response should be only the outline without any titles or something else
+
 Example structure of the response:
 [
     {{
@@ -25,12 +26,12 @@ Example structure of the response:
 ]
 
 Use as reference
------------------
+------------------------
 Course Description :
 {course_description}
-------------------
+------------------------
 Course Objectives :
 {course_objectives}
-------------------
-Internet results :
-{search_results}
+------------------------
+
+Answer: 
