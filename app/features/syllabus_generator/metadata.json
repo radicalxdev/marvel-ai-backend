@@ -1,0 +1,91 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Important Dates",
+            "name": "important_dates",
+            "type": "text"
+        },
+
+        {
+            "label": "Subject",
+            "name": "subject",
+            "type": "text"
+        },
+        {
+            "label": "Course Description",
+            "name": "course_description",
+            "type": "text"
+        },
+        {
+            "label": "Learning Outcomes",
+            "name": "learning_outcomes",
+            "type": "text"
+        },
+        {
+            "label": "Course Objectives",
+            "name": "course_objectives",
+            "type": "text"
+        },
+        {
+            "label": "Class Schedule",
+            "name": "class_schedule",
+            "type": "text"
+        },
+        {
+            "label": "Required Materials",
+            "name": "required_materials",
+            "type": "text"
+        },
+        {
+            "label": "Grading Policy",
+            "name": "grading_policy",
+            "type": "text"
+        },
+        {
+            "label": "Course Outline",
+            "name": "course_outline",
+            "type": "text"
+        },
+        {
+            "label": "Class Policies",
+            "name": "class_policies",
+            "type": "text"
+        },
+        {
+            "label": "Instructor Name",
+            "name": "instructor_name",
+            "type": "text"
+        },
+        {
+            "label": "Instructor Title",
+            "name": "instructor_title",
+            "type": "text"
+        },
+        {
+            "label": "Instructor Contact",
+            "name": "instructor_contact",
+            "type": "text"
+        },
+        
+        {
+            "label": "File Type",
+            "name": "file_type",
+            "type": "string"
+        },
+        {
+            "label": "File URL",
+            "name": "file_url",
+            "type": "string"
+        },
+        {
+            "label": "Additional Customizations",
+            "name": "additional_customizations",
+            "type": "text"
+        }
+    ]
+}

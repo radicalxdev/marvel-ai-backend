@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from enum import Enum
-from app.services.tool_registry import BaseTool
+from services.tool_registry import BaseTool
 
 
 class User(BaseModel):
