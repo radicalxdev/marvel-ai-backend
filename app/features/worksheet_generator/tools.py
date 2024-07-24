@@ -72,6 +72,7 @@ class WorksheetGenerator(BaseGenerator):
         self.vectorstore_class = vectorstore_class or self.get_default_config()["vectorstore_class"]
         self.embedding_model = embedding_model or self.get_default_config()["embedding_model"]
         self.vectorstore, self.retriever, self.runner = None, None, None
+
         super().__init__(prompt, model, parser, verbose)
 
     def get_default_config(self):
@@ -92,6 +93,7 @@ class WorksheetGenerator(BaseGenerator):
             'relate_concepts': RelateConceptsQuestion,
             'math_exercises': MathExerciseQuestion,
             'default': TrueFalseQuestion,
+
         }
         schema = schema_mapping.get(self.question_type)
         if schema is None:
@@ -124,6 +126,7 @@ class WorksheetGenerator(BaseGenerator):
 
         chain = self.runner | prompt | self.model | self.parser
 
+
         if self.verbose:
             logger.info(f"Chain compilation complete")
 
@@ -151,6 +154,7 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
         max_attempts = worksheet.number * 5  # 5 attempts per question
         while len(generated_questions) < worksheet.number and attempts < max_attempts:        
         # for _ in range(worksheet.number):
+
             attribute_collection = f"""
             1. Course type: {course_type}
             2. Grade level: {grade_level}
@@ -172,6 +176,7 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
             else:
                 logger.warning(f"Invalid question format. Attempt {attempts + 1}/{max_attempts}") if verbose else None
             attempts += 1
+
         results[worksheet.question_type] = generated_questions
         generated_questions = []
         previous_questions = []
