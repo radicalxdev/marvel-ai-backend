@@ -6,7 +6,7 @@ echo "Starting local server\n"
 export LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 export LANGCHAIN_API_KEY=$LANGSMITH_API_KEY
 export LANGCHAIN_PROJECT=$LANGSMITH_PROJECT
-export GOOGLE_API_KEY="AIzaSyCH3czP10VBYFFh-cean9XQ457SHBSkaFY"
+export GOOGLE_API_KEY=$GOOGLE_API_KEY
 
 export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/app/local-auth.json
 export ENV_TYPE="dev"

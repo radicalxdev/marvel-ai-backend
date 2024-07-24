@@ -129,6 +129,16 @@ class WorksheetGenerator(BaseGenerator):
 
         return chain
 
+    def validate_result(self, result):
+        try:
+            logger.info(f"Validating question format") if self.verbose else None
+            schema = self.get_parser_for_question_type().pydantic_object
+            schema(**result)
+            return True
+        except Exception as e:
+            logger.warning(f"Invalid question format: {e}") if self.verbose else None
+            return False
+
 def worksheet_generator(course_type, grade_level, worksheet_list, documents, lang, verbose):
     previous_questions = []
     results = {}
@@ -137,7 +147,10 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
     for worksheet in worksheet_list:
         logger.info(f"Generating questions for [{worksheet.question_type}] type question") if verbose else None
         chain = worksheet_generator.compile(documents, question_type=worksheet.question_type)
-        for _ in range(worksheet.number):
+        attempts = 0
+        max_attempts = worksheet.number * 5  # 5 attempts per question
+        while len(generated_questions) < worksheet.number and attempts < max_attempts:        
+        # for _ in range(worksheet.number):
             attribute_collection = f"""
             1. Course type: {course_type}
             2. Grade level: {grade_level}
@@ -145,11 +158,20 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
             """
             result = chain.invoke(attribute_collection)
 
+            if result is None:
+                logger.warning("No question generated. Attempting again.") if verbose else None
+                continue
+
             if "model_config" in result:
                 del result["model_config"]
 
-            previous_questions.append(result["question"])
-            generated_questions.append(result)
+            if worksheet_generator.validate_result(result):
+                previous_questions.append(result["question"])
+                generated_questions.append(result)
+                logger.info("Valid question added") if verbose else None
+            else:
+                logger.warning(f"Invalid question format. Attempt {attempts + 1}/{max_attempts}") if verbose else None
+            attempts += 1
         results[worksheet.question_type] = generated_questions
         generated_questions = []
         previous_questions = []
