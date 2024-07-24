@@ -24,6 +24,11 @@
             "label": "File Type",
             "name": "file_type",
             "type": "string"
+        }, 
+        {
+            "label": "Language Code",
+            "name": "lang",
+            "type": "string"
         }
     ]
 }

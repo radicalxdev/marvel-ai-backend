@@ -64,11 +64,15 @@ class CourseTypeGenerator(BaseGenerator):
 class WorksheetGenerator(BaseGenerator):
     def __init__(self, prompt=None, model=None, parser=None, 
                  question_type: str=None, vectorstore_class=None, embedding_model=None, 
+                 lang="en",
                  verbose: bool = False):
         
+        self.lang = lang
         self.question_type = question_type
         self.vectorstore_class = vectorstore_class or self.get_default_config()["vectorstore_class"]
         self.embedding_model = embedding_model or self.get_default_config()["embedding_model"]
+        self.vectorstore, self.retriever, self.runner = None, None, None
+
         super().__init__(prompt, model, parser, verbose)
 
     def get_default_config(self):
@@ -87,51 +91,70 @@ class WorksheetGenerator(BaseGenerator):
             'true_false': TrueFalseQuestion,
             'multiple_choice_question': MultipleChoiceQuestion,
             'relate_concepts': RelateConceptsQuestion,
-            'math_exercises': MathExerciseQuestion
+            'math_exercises': MathExerciseQuestion,
+            'default': TrueFalseQuestion,
+
         }
         schema = schema_mapping.get(self.question_type)
         if schema is None:
             raise ValueError(f"Unsupported question type: {self.question_type}")
         return JsonOutputParser(pydantic_object=schema)
 
-    def compile(self, documents):
+    def compile(self, documents, question_type=None):
+        if question_type is not None:
+            self.question_type = question_type
+            self.parser = self.get_parser_for_question_type()
         prompt = PromptTemplate(
             template=self.prompt,
             input_variables=["attribute_collection"],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+            partial_variables={"format_instructions": self.parser.get_format_instructions(), 
+                               "lang": self.lang}
         )
+        if self.runner is None:
+            logger.info(f"Creating vectorstore from {len(documents)} documents") if self.verbose else None
+            self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+            logger.info(f"Vectorstore created") if self.verbose else None
 
-        if self.verbose:
-            logger.info(f"Creating vectorstore from {len(documents)} documents")
+            self.retriever = self.vectorstore.as_retriever()
+            logger.info(f"Retriever created successfully") if self.verbose else None
 
-        vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+            self.runner = RunnableParallel(
+                {"context": self.retriever, 
+                "attribute_collection": RunnablePassthrough()
+                }
+            )
 
-        if self.verbose: logger.info(f"Vectorstore created")
+        chain = self.runner | prompt | self.model | self.parser
 
-        retriever = vectorstore.as_retriever()
-        logger.info(f"Retriever created successfully")
-
-        runner = RunnableParallel(
-            {"context": retriever, 
-             "attribute_collection": RunnablePassthrough()
-            }
-        )
-
-        chain = runner | prompt | self.model | self.parser
 
         if self.verbose:
             logger.info(f"Chain compilation complete")
 
         return chain
 
-def worksheet_generator(course_type, grade_level, worksheet_list, documents, verbose):
+    def validate_result(self, result):
+        try:
+            logger.info(f"Validating question format") if self.verbose else None
+            schema = self.get_parser_for_question_type().pydantic_object
+            schema(**result)
+            return True
+        except Exception as e:
+            logger.warning(f"Invalid question format: {e}") if self.verbose else None
+            return False
+
+def worksheet_generator(course_type, grade_level, worksheet_list, documents, lang, verbose):
     previous_questions = []
     results = {}
     generated_questions = []
+    worksheet_generator = WorksheetGenerator(question_type="default", lang=lang, verbose=verbose)
     for worksheet in worksheet_list:
-        worksheet_generator = WorksheetGenerator(question_type=worksheet.question_type, verbose=verbose)
-        chain = worksheet_generator.compile(documents)
-        for _ in range(worksheet.number):
+        logger.info(f"Generating questions for [{worksheet.question_type}] type question") if verbose else None
+        chain = worksheet_generator.compile(documents, question_type=worksheet.question_type)
+        attempts = 0
+        max_attempts = worksheet.number * 5  # 5 attempts per question
+        while len(generated_questions) < worksheet.number and attempts < max_attempts:        
+        # for _ in range(worksheet.number):
+
             attribute_collection = f"""
             1. Course type: {course_type}
             2. Grade level: {grade_level}
@@ -139,11 +162,21 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, ver
             """
             result = chain.invoke(attribute_collection)
 
+            if result is None:
+                logger.warning("No question generated. Attempting again.") if verbose else None
+                continue
+
             if "model_config" in result:
                 del result["model_config"]
 
-            previous_questions.append(result["question"])
-            generated_questions.append(result)
+            if worksheet_generator.validate_result(result):
+                previous_questions.append(result["question"])
+                generated_questions.append(result)
+                logger.info("Valid question added") if verbose else None
+            else:
+                logger.warning(f"Invalid question format. Attempt {attempts + 1}/{max_attempts}") if verbose else None
+            attempts += 1
+
         results[worksheet.question_type] = generated_questions
         generated_questions = []
         previous_questions = []

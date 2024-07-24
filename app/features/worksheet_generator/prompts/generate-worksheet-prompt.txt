@@ -28,3 +28,6 @@ Do not repeat any previously generated questions.
 
 You must respond as a JSON object:
 {format_instructions}
+
+You must provide the questions and answers in response in "{lang}" language. 
+

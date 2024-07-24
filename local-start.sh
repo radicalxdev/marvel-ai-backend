@@ -2,15 +2,15 @@ source ./load_env.sh
 
 echo "Starting local server\n"
 
-export LANGCHAIN_TRACING_V2=true
+# export LANGCHAIN_TRACING_V2=true
 export LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
 export LANGCHAIN_API_KEY=$LANGSMITH_API_KEY
 export LANGCHAIN_PROJECT=$LANGSMITH_PROJECT
 export GOOGLE_API_KEY=$GOOGLE_API_KEY
 
-#export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/app/local-auth.json
-export ENV_TYPE=dev
-export PROJECT_ID=$GCP_PROJECT_ID
+export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/app/local-auth.json
+export ENV_TYPE="dev"
+export PROJECT_ID="ai-workspace-425101"
 export PYTHONPATH=$(pwd)/app
 
 echo "Loaded environment variables:"
