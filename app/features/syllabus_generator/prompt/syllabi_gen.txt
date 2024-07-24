@@ -8,10 +8,10 @@ Based on the provided inputs, generate a comprehensive syllabus that includes th
 
 1. Course Description: Provide a general overview and purpose of the course. This should give students and parents a clear understanding of what the course is about.
 2. Course Objectives: Outline the learning goals and outcomes expected by the end of the course. These should be clear, measurable, and relevant to the subject and grade level.
-3. Required Materials: List all books, tools, or supplies needed for the course. Ensure that the materials are appropriate for the grade level and subject.
-4. Grading Policy: Define how students' performance will be assessed. Include the criteria and weight for each component (e.g., exams, assignments, participation).
-5. Class Policies and Exceptions: Provide important rules and expectations for the course. Include attendance policies, late work policies, and any special considerations.
-6. Course Outline: Create a detailed weekly breakdown of the topics to be covered, ensuring that the number of weeks is proportional to the grade level. Divide the topics appropriately across the weeks, maintaining a logical progression suitable for the grade level and subject. Include grading policies and other relevant details.
+3. Required Materials: List all books, guides, tools, URL's or supplies needed for the course. Ensure that the materials are appropriate for the grade level and subject.
+4. Grading Policy: Define how students' performance will be assessed. Include the criteria and weight for each component based on the grade level(e.g., exams, assignments, participation).
+5. Class Policies and Exceptions: Provide general and most important rules and expectations for the course, including attendance and late work policies. Specify any penalties for absences or late submissions. Include any other important considerations students should be aware of.
+6. Course Outline: Create a detailed weekly breakdown of the topics to be covered, ensuring that the number of weeks is proportional to the grade level. Divide the topics logically across the weeks, maintaining a logical progression suitable for the grade level and subject. Include grading policies and other relevant details.
 
 *Notes for the AI model:*
 Ensure that the content is age-appropriate and aligns with the educational standards for the specified grade level and subject.

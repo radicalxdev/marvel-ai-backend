@@ -55,7 +55,7 @@ class Syllabus(BaseModel):
     subject: str = Field(description="Subject of the course")
     coursedescription: str = Field(description="Brief overview of the course")
     course_objectives: List[str] = Field(description="List of learning goals and outcomes")
-    required_materials: List[str] = Field(description="List of books, tools, or supplies needed")
+    required_materials: List[str] = Field(description="List of books, study materials, or tools needed")
     grading_policy: GradingPolicy = Field(description="Grading policy details")
     class_policies: ClassPolicies = Field(description="Class policies and exceptions")
     course_outline: CourseOutline = Field(description="Detailed course outline")
@@ -90,8 +90,8 @@ class Syllabus(BaseModel):
                         "attendance": "Students are expected to attend all classes.",
                         "late_work": "Late assignments will be accepted up to one week past the due date.",
                         "academic_integrity": "Plagiarism and cheating are strictly prohibited.",
-                        "participation": "Active participation in class discussions is required.",
-                        "special_considerations": "If you have any special considerations, please inform the instructor."
+                        "participation": "Active participation in class discussions is required."
+                        
                     },
                     "course_outline": {
                         "outline": [
@@ -109,7 +109,7 @@ class Syllabus(BaseModel):
 class SyllabusGenerator:
     def __init__(self, grade_level, subject, model=None, parser=None, prompt=None):
         feature_config = {
-            "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
+            "model": GoogleGenerativeAI(model="gemini-1.5-pro"),
             "parser": JsonOutputParser(pydantic_object=Syllabus),
             "prompt": read_text_file("prompt/syllabi_gen.txt")
         }
