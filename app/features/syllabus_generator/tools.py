@@ -1,12 +1,14 @@
-from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableParallel, RunnablePassthrough
-from langchain_core.output_parsers import JsonOutputParser
-from langchain_google_genai import GoogleGenerativeAI
-from app.services.logger import setup_logger
 import os
 from typing import List, Optional
 
+from app.services.logger import setup_logger
+from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnableParallel, RunnablePassthrough
+from langchain_google_genai import GoogleGenerativeAI
+
 logger = setup_logger(__name__)
+
 
 def read_text_file(file_path: str) -> str:
     """Read the content of a text file."""
@@ -15,13 +17,13 @@ def read_text_file(file_path: str) -> str:
     with open(absolute_file_path, "r") as file:
         return file.read()
 
+
 class SyllabusBuilder:
     def __init__(
         self,
         subject: str,
         grade_level: str,
         course_overview: str = "",
-        course_objectives: str = "",
         prompt: str = "",
         model=None,
         parser=None,
@@ -41,7 +43,6 @@ class SyllabusBuilder:
         self.subject = subject
         self.grade_level = grade_level
         self.course_overview = course_overview
-        self.course_objectives = course_objectives
         self.verbose = verbose
 
         self._validate_inputs()
@@ -54,15 +55,20 @@ class SyllabusBuilder:
             raise ValueError("Grade level must be provided")
         if not self.course_overview:
             raise ValueError("Course overview must be provided")
-        if not self.course_objectives:
-            raise ValueError("Course objectives must be provided")
 
     def compile(self) -> RunnableParallel:
         """Compile the prompt and return the runnable chain."""
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["subject", "grade_level", "course_overview", "course_objectives"],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()},
+            input_variables=[
+                "subject",
+                "grade_level",
+                "course_overview",
+                "course_objectives",
+            ],
+            partial_variables={
+                "format_instructions": self.parser.get_format_instructions()
+            },
         )
 
         chain = prompt | self.model | self.parser
@@ -76,19 +82,16 @@ class SyllabusBuilder:
         """Create syllabus by invoking the compiled chain."""
         if self.verbose:
             logger.info(
-                f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}, Course Overview: {self.course_overview}, Course Objectives: {self.course_objectives}"
+                f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}, Course Overview: {self.course_overview}"
             )
 
         chain = self.compile()
 
-        
         response = chain.invoke(
-                {
-                    "subject": self.subject,
-                    "grade_level": self.grade_level,
-                    "course_overview": self.course_overview,
-                    "course_objectives": self.course_objectives,
-                }
-            )
+            {
+                "subject": self.subject,
+                "grade_level": self.grade_level,
+                "course_overview": self.course_overview,
+            }
+        )
         return response
-
