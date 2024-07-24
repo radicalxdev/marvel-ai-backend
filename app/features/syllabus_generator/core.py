@@ -8,16 +8,20 @@ from app.api.error_utilities import LoaderError, ToolExecutorError
 logger = setup_logger()
 
 
-def executor(subject: str, grade_level: str, verbose=True, **kwargs):
+def executor(subject: str, grade_level: str,customisation:str, verbose=True, **kwargs):
     try:
         if verbose:
             logger.debug(f"Subject: {subject}, grade_level: {grade_level}")
 
         # Create and return the quiz questions
-        output = SyllabusBuilder(
-            subject, grade_level, verbose=verbose
-        ).create_syllabus()
-        print(output)
+        sb = SyllabusBuilder(
+            subject, grade_level, customisation, verbose=verbose
+        )
+        syllabus = sb.create_syllabus
+        print(syllabus)
+
+        updated_syllabus = sb.apply_customisation(syllabus)
+        print(updated_syllabus)
 
     except LoaderError as e:
         error_message = e
@@ -29,7 +33,7 @@ def executor(subject: str, grade_level: str, verbose=True, **kwargs):
         logger.error(error_message)
         raise ValueError(error_message)
 
-    return output
+    return updated_syllabus
 
 
 if __name__ == "__main__":

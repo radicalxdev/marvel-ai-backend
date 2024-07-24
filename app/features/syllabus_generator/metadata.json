@@ -12,7 +12,7 @@
         },
         {
             "label":"Customisation",
-            "name": "custom_info",
+            "name": "customisation",
             "type":"text"
         }
     ]

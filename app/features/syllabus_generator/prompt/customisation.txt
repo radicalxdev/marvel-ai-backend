@@ -1,0 +1,4 @@
+syllabus : {syllabus}
+customise only the necessary sections of the syllabus with the user requirements mentioned in {customisation} and leave other sections unchanged from its initial value. Add any additional information in a new field and name it "additional information" and apart from adding the new field do not change the initial structure of the syllabus.
+You must respond as a JSON object: 
+{format_instructions}

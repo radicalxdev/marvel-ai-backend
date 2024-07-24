@@ -68,10 +68,8 @@ class SyllabusBuilder:
         elif "grade" in self.grade_level:
             if int(self.grade_level.replace("grade ", "")) < 6:
                 self.grade_level_assessments = read_text_file("prompt/primary.txt")
-
             elif int(self.grade_level.replace("grade ", "")) < 9:
                 self.grade_level_assessments = read_text_file("prompt/middle.txt")
-
             else:
                 self.grade_level_assessments = read_text_file("prompt/highschool.txt")
 
@@ -80,7 +78,18 @@ class SyllabusBuilder:
 
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["subject", "grade_level", "grade_level_assesments","customisation"],
+            input_variables=["subject", "grade_level", "grade_level_assesments"],
+            partial_variables={
+                "format_instructions": self.parser.get_format_instructions()
+            },
+        )
+        return prompt
+    
+    def create_custom_promptTemp(self):
+        custom_prompt = read_text_file("prompt/customisation.txt")
+        prompt = PromptTemplate(
+            template=custom_prompt,
+            input_variables=["syllabus","customisation"],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
             },
@@ -88,8 +97,12 @@ class SyllabusBuilder:
         return prompt
 
     # Returns langchain chain for creating syllabus
-    def compile(self):
-        prompt = self.create_prompt_temp()
+    def compile(self,type:str):
+        if type=="syllabus":
+         prompt = self.create_prompt_temp()
+        elif type=="customisation":
+            prompt = self.create_custom_promptTemp()
+
         chain = prompt | self.model | self.parser
 
         if self.verbose:
@@ -151,7 +164,7 @@ class SyllabusBuilder:
                 f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}"
             )
 
-        chain = self.compile()
+        chain = self.compile("syllabus")
         max_attempts = 3
         response = ""
 
@@ -159,8 +172,25 @@ class SyllabusBuilder:
             {
                 "subject": self.subject,
                 "grade_level": self.grade_level,
-                "grade_level_assessments": self.grade_level_assessments,
-                "customisation":self.customisation
+                "grade_level_assessments": self.grade_level_assessments
+            }
+        )
+        return response
+    
+    def apply_customisation(self,syllabus):
+        if self.verbose:
+            logger.info(
+                f"Customising syllabus with {self.customisation}"
+            )
+
+        chain = self.compile("customisation")
+        max_attempts = 3
+        response = ""
+
+        response = chain.invoke(
+            {
+                "customisation" : self.customisation,
+                "syllabus":syllabus
             }
         )
         return response
@@ -235,7 +265,11 @@ class SyllabusModel(BaseModel):
     )
 
     # This can be expanded
-
+    additional_information: object = Field(
+        description="Includes any additional requirements inquired by the user. This may include additional resources or additional additional information",
+        examples=[{"additional_resources": [ "Campbell Biology", "Essential Cell Biology", "Cell Biology by the Numbers" ],
+                   "additional_information": ["This syllabus is designed for 10th-grade students. The language has been simplified and analogies and examples have been added to make the content more accessible."] }]
+    )
     model_config = {
         "json_schema_extra": {
             "examples": """
@@ -277,7 +311,21 @@ class SyllabusModel(BaseModel):
                         "C": "70-79%",
                         "D": "60-69%",
                         "F": "Below 60%",
-                    }
+                    },
+                    
+            },
+            "additional_information": {
+              "Visual aids":[
+                  Diagrams of the cardiovascular system , 
+                  Annotated electrocardiogram (ECG) readings , 
+                  Videos demonstrating ECG procedures and techniques ,
+                  Infographics on the cardiac cycle and conduction system ],
+             "Resources":[
+               {Textbook: "Electrocardiography for Healthcare Professionals" by Booth and O'Brien},
+                Online tutorials and interactive ECG simulations,
+                Access to ECG machines and practice materials in the laboratory,
+                Recommended articles and research papers on the latest ECG technologies and practices]
+
             }
             """
         }
