@@ -156,7 +156,7 @@ class URLLoader:
         self.expected_file_type = expected_file_type
         self.verbose = verbose
         self.loader = None
-
+    
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
