@@ -48,3 +48,23 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 app.include_router(router)
+
+
+
+### THE FOLLOWING ARE PARTS THAT WERE ADDED ###
+
+from fastapi import FastAPI, Request, Depends, HTTPException
+from app.features.syllabus_generator.core import executor
+
+# Include router from app/api/router.py
+app.include_router(router)
+
+# Define endpoint for syllabus generation
+@app.get("/features/syllabus/")
+def read_syllabus(grade: str, subject: str, description: str):
+    try:
+        syllabus = executor(grade, subject, description)
+        return syllabus
+    except Exception as e:
+        logger.error(f"Error generating syllabus: {str(e)}")
+        raise HTTPException(status_code=500, detail="An error occurred while generating the syllabus")
