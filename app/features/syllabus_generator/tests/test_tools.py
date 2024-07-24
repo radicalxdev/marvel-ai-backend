@@ -13,6 +13,22 @@ from app.features.syllabus_generator.tools import (
     final_output
 )
 
+@pytest.fixture(scope='function')
+def test_file():
+    # Setup a test file
+    test_file_name = 'test_file.txt'
+    test_content = 'Hello, world!'
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    test_file_path = os.path.join(script_dir, test_file_name)
+    
+    with open(test_file_path, 'w') as f:
+        f.write(test_content)
+
+    yield test_file_path, test_content
+
+    # Clean up the test file after the test
+    os.remove(test_file_path)
+
 def test_read_text_file(test_file):
     test_file_path, test_content = test_file
     result = read_text_file(test_file_path)
