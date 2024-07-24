@@ -7,6 +7,7 @@ import requests
 import os
 import json
 import time
+from docx import Document as DocxDocument
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -92,6 +93,32 @@ class BytesFilePDFLoader:
             
         return documents
 
+class BytesFileDocxLoader:
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            if file_type.lower() == "docx":
+                docx_document = DocxDocument(file)
+                full_text = []
+                
+                for paragraph in docx_document.paragraphs:
+                    full_text.append(paragraph.text)
+                
+                page_content = "\n".join(full_text)
+                metadata = {"source": file_type}
+                
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+            
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+        
+        return documents
+
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], expected_file_type="pdf"):
         self.file_paths = file_paths
@@ -123,10 +150,12 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
+    def __init__(self, file_loader=None, expected_file_type=["pdf","docx"], verbose=False):
+        self.Docxloader = BytesFileDocxLoader
+        self.Pdfloader = BytesFilePDFLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
+        self.loader = None
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
@@ -146,8 +175,14 @@ class URLLoader:
 
                     # Check file type
                     file_type = path.split(".")[-1]
-                    if file_type != self.expected_file_type:
+                    if file_type not in self.expected_file_type: # change
                         raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
+                    # load right file loader
+                    if file_type == "pdf":
+                        self.loader = self.Pdfloader
+                    elif file_type == "docx":
+                        self.loader = self.Docxloader
+                    
 
                     # Append to Queue
                     queued_files.append((file_content, file_type))
@@ -222,7 +257,7 @@ class RAGpipeline:
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
         
-        self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+        self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model) # here is the issue
 
         if self.verbose: logger.info(f"Vectorstore created")
         return self.vectorstore
@@ -347,6 +382,7 @@ class QuizBuilder:
 class QuestionChoice(BaseModel):
     key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
     value: str = Field(description="The text content of the choice")
+
 class QuizQuestion(BaseModel):
     question: str = Field(description="The question text")
     choices: List[QuestionChoice] = Field(description="A list of choices")
