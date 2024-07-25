@@ -65,7 +65,7 @@ def get_summary(file_url: str, file_type: str, verbose=True):
         logger.error(f"Unsupported file type: {file_type}")
         raise FileHandlerError(f"Unsupported file type", file_url) from e
 
-def generate_flashcards(summary: str, verbose=False) -> list:
+def generate_flashcards(summary: str, lang:str, verbose=False) -> list:
     # Receive the summary from the map reduce chain and generate flashcards
     parser = JsonOutputParser(pydantic_object=Flashcard)
     
@@ -76,14 +76,14 @@ def generate_flashcards(summary: str, verbose=False) -> list:
     
     cards_prompt = PromptTemplate(
         template=template,
-        input_variables=["summary", "examples"],
+        input_variables=["summary", "examples", "lang"],
         partial_variables={"format_instructions": parser.get_format_instructions()}
     )
     
     cards_chain = cards_prompt | model | parser
     
     try:
-        response = cards_chain.invoke({"summary": summary, "examples": examples})
+        response = cards_chain.invoke({"summary": summary, "examples": examples, "lang": lang})
     except Exception as e:
         logger.error(f"Failed to generate flashcards: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to generate flashcards from LLM")
@@ -452,7 +452,7 @@ file_loader_map = {
 
 llm_for_img = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
-def generate_concepts_from_img(img_url):
+def generate_concepts_from_img(img_url, lang):
     parser = JsonOutputParser(pydantic_object=Flashcard)
     message = HumanMessage(
     content=[
@@ -461,7 +461,8 @@ def generate_concepts_from_img(img_url):
                 "text": "Give me more than 5 key concepts of what you see in the image",
             },  # You can optionally provide text parts
             {"type": "image_url", "image_url": img_url},
-            {"type": "text", "text": f"In this format: {parser.get_format_instructions()}"}
+            {"type": "text", "text": f"In this format: {parser.get_format_instructions()}"},
+            {"type:": "text", "text": f"You must provide the concept, definition in {lang} language"}
         ]
     )
 
