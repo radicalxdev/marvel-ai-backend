@@ -38,6 +38,7 @@
         # Run this command, only after creating the virtual environment
         postVenvCreation = ''
           unset SOURCE_DATE_EPOCH
+          pip install --upgrade pip
           pip install -r requirements.txt
         '';
 
@@ -47,7 +48,6 @@
           # allow pip to install wheels
           unset SOURCE_DATE_EPOCH
           export PYTHONPATH=./app:$PYTHONPATH
-          pip install --upgrade pip
         '';
 
         # Dependency for NixOS
