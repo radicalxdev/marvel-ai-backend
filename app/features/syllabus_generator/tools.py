@@ -34,14 +34,14 @@ logger = setup_logger(__name__)
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
 
 # All functions and procedures program requires should be in tools.py
-def scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID):
+def scrap_data(grade,subject,GOOGLE_API_KEY,SEARCH_ENGINE_ID):
     # We use the google api to get the results of the search 'syllabus of {subject} {grade} level' then we extract the first link
     
     url = 'https://www.googleapis.com/customsearch/v1'
 
     params = {
         'q': f'syllabus of {subject} {grade} level',
-        'key': API_KEY,
+        'key': GOOGLE_API_KEY,
         'cx': SEARCH_ENGINE_ID
     }
 
@@ -49,9 +49,9 @@ def scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID):
     links = [item['link'] for item in response['items']]
     return links[0]
 
-def get_table_from_link(grade,subject,API_KEY,SEARCH_ENGINE_ID):
+def get_table_from_link(grade,subject,GOOGLE_API_KEY,SEARCH_ENGINE_ID):
     # we scrap the link to find the tables components and store them in listes
-    link = scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID)
+    link = scrap_data(grade,subject,GOOGLE_API_KEY,SEARCH_ENGINE_ID)
     response = requests.get(link)
     soup = BeautifulSoup(response.content, 'html.parser')
     
