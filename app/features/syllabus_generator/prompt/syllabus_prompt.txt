@@ -8,6 +8,7 @@ Follow these instructions to create a {subject} syllabus for your students:
 4. Generate a list of learning objectives to show a student's understanding.
 5. Create a dictionary of policies and exceptions that apply to the course.
 6. {grade_level_assessments}
+7. Generate a list of materials that are required by the students to successfully participate in the course. Materials could be things like books, tools or supplies. Use two key variables in the output of required_materials. One is recommended_books and another is required_items.
 
 You must respond as a JSON object: 
 {format_instructions}

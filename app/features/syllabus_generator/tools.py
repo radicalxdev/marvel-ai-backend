@@ -104,6 +104,7 @@ class SyllabusBuilder:
         """
         policies_and_exceptions_flag = False
         objectives_flag = False
+        required_materials_flag = False
 
         try:
             # Assuming reponse is already a dict
@@ -113,6 +114,7 @@ class SyllabusBuilder:
                     and "overview" in response
                     and "objectives" in response
                     and "policies_and_exceptions" in response
+                    and "required_materials" in response
                 ):
                     # Check objectives in correct format
                     objectives = response["objectives"]
@@ -129,6 +131,17 @@ class SyllabusBuilder:
                             if not isinstance(key, str) or not isinstance(value, str):
                                 return False
                         policies_and_exceptions_flag = True
+
+                    # Check required_materials in correct format
+                    required_materials = response['required_materials']
+                    if isinstance(required_materials, dict):
+                        for key, val in required_materials.items():
+                            if not isinstance(key, str) or not isinstance(val, list):
+                                return False
+                        required_keys = {'recommended_books', 'required_items'}
+                        if set(required_materials.keys()) != required_keys:
+                            return False
+                            
 
             if objectives_flag and policies_and_exceptions_flag:
                 if self.verbose:
@@ -248,6 +261,20 @@ class SyllabusModel(BaseModel):
                 },
             },
         ],
+    )
+
+    required_materials: Dict[str, Dict[str, List[str]]] = Field(
+        description="A list of materials required by the students to successfully participate in the course.",
+        examples=[
+            {
+                "recommended_books": ["book 1", "book 2", "book 3"],
+                "required_items": ["paint", "paintbrush", "pencil", "eraser", "notebooks" "sharpies", "crayons", "black ink pen", "ruler"]
+            },
+            {
+                "recommended_books": ["book 4", "book 5", "book 6"],
+                "required_items": ["calculator", "laptop", "pen", "protractor", "compass", "camera"]
+            }
+        ]
     )
 
     # This can be expanded
