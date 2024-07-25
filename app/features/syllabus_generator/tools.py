@@ -1,11 +1,15 @@
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_core.pydantic_v1 import BaseModel, Field, validator
+from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
+from langchain_core.pydantic_v1 import BaseModel, Field, validator, ValidationError
 from app.services.logger import setup_logger
-from app.services.tool_registry import ToolFile
+from app.api.error_utilities import InputValidationError, ToolExecutorError
 from app.services.logger import setup_logger
 import os
+import openai
+from google.auth import default, transport
 from typing import List,Dict
 
 logger = setup_logger(__name__)
@@ -17,7 +21,6 @@ def read_text_file(file_path):
     absolute_file_path = os.path.join(script_dir, file_path)
     with open(absolute_file_path, 'r') as file:
         return file.read()
-
 
 
 class GradingPolicy(BaseModel):
@@ -106,28 +109,38 @@ class Syllabus(BaseModel):
             ]
         }
 
+
+
 class SyllabusGenerator:
-    def __init__(self, grade_level, subject, model=None, parser=None, prompt=None):
+    def __init__(self, grade_level, subject, model = None, model2=None, parser=None, prompt=None):
         feature_config = {
             "model": GoogleGenerativeAI(model="gemini-1.5-pro"),
             "parser": JsonOutputParser(pydantic_object=Syllabus),
+            #"model2":ChatOpenAI(model="gpt-4o-mini-2024-07-18",temperature=0, api_key= "sk-proj-cDDlymO1rvsLAgHpFzrfT3BlbkFJPrxLNg3heluNxo3si"),
             "prompt": read_text_file("prompt/syllabi_gen.txt")
         }
         
         self.prompt = prompt or feature_config["prompt"]
         self.model = model or feature_config["model"]
+       # self.model2 = model2 or feature_config["model2"]
         self.parser = parser or feature_config["parser"]
         self.grade_level = grade_level
         self.subject = subject
 
     def compile(self):
-        prompt = PromptTemplate(
-            template=self.prompt,
-            input_variables=["grade_level", "subject"],
-            partial_variables={"instructions": self.parser.get_format_instructions()}
-        )
-
-        chain = prompt | self.model | self.parser
-        logger.debug(chain)
-
-        return chain.invoke({"grade_level": self.grade_level, "subject": self.subject})
+        try:
+            prompt = PromptTemplate(
+                template=self.prompt,
+                input_variables=["grade_level", "subject"],
+                partial_variables={"instructions": self.parser.get_format_instructions()}
+            )
+            chain = prompt | self.model | self.parser
+            logger.debug("Compilation chain created successfully")
+            return chain.invoke({"grade_level": self.grade_level, "subject": self.subject})
+        
+        except ValidationError as e:
+            logger.error(f"Validation error: {e}")
+            raise InputValidationError(f"Validation error: {e}") from e
+        except Exception as e:
+            logger.error(f"An error occurred during compilation: {e}")
+            raise ToolExecutorError(f"An error occurred during compilation: {e}") from e
