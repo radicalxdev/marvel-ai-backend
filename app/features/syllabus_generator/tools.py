@@ -23,6 +23,7 @@ class SyllabusRequestArgs:
                  start_date: str, 
                  assessment_methods: str, 
                  grading_scale: str,
+                 lang: str,
                  summary: str):
         
         self._grade_level = grade_level
@@ -34,6 +35,7 @@ class SyllabusRequestArgs:
         self._start_date = start_date
         self._assessment_methods = assessment_methods
         self._grading_scale = grading_scale
+        self._lang = lang
         self._summary = summary
 
     @property
@@ -73,6 +75,10 @@ class SyllabusRequestArgs:
         return self._grading_scale
     
     @property
+    def lang(self) -> str:
+        return self._lang
+    
+    @property
     def summary(self) -> str:
         return self._summary
     
@@ -87,6 +93,7 @@ class SyllabusRequestArgs:
             "start_date": self.start_date,
             "assessment_methods": self.assessment_methods,
             "grading_scale": self.grading_scale,
+            "lang": self.lang,
             "summary": self.summary
         }
     

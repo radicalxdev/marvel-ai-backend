@@ -17,6 +17,7 @@ def executor(grade_level: str,
             grading_scale: str,
             file_url: str,
             file_type: str,
+            lang: str = "en",
             verbose: bool = True):
     
     if verbose:
@@ -41,6 +42,7 @@ def executor(grade_level: str,
                                 start_date,
                                 assessment_methods,
                                 grading_scale,
+                                lang,
                                 summary)
         
         syllabus = generate_syllabus(request_args, verbose=verbose)
