@@ -1,10 +1,10 @@
-## Overview
+## Overview - Epic 7.1: Multiple Choice Assessments Generator
 
 ### Implemented Features
 
-Implemented support for more file types for the quizzify feature. Feature now supports all of the following file types: "xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png", "ppt", "html", youtube links, and google drive links.
+Implemented robust support for more file types for the quizzify feature. Feature now supports all of the following file types: "xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png", "ppt", "html", youtube videos, and google drive links.
 
-### Some sample json files for FastAPI testing
+### Some sample json files for FastAPI testing. Question numbers and topics are adjustable for testing purposes.
 
 1. xlsx testing json
     ``` javascript
