@@ -8,21 +8,30 @@ from app.api.error_utilities import LoaderError, ToolExecutorError
 logger = setup_logger()
 
 
-def executor(subject: str, grade_level: str, verbose=True, **kwargs):
+def executor(
+    subject: str, grade_level: str, course_overview: str, verbose: bool = True, **kwargs
+):
+    """Execute the syllabus generation process."""
     try:
         if verbose:
-            logger.debug(f"Subject: {subject}, grade_level: {grade_level}")
+            logger.debug(
+                f"Subject: {subject}, Grade Level: {grade_level}, Course Overview: {course_overview}"
+            )
 
-        # Create and return the quiz questions
-        output = SyllabusBuilder(
-            subject, grade_level, verbose=verbose
-        ).create_syllabus()
+        syllabus_builder = SyllabusBuilder(
+            subject, grade_level, course_overview, verbose=verbose
+        )
+        output = syllabus_builder.create_syllabus()
         print(output)
 
     except LoaderError as e:
-        error_message = e
-        logger.error(f"Error in RAGPipeline -> {error_message}")
-        raise ToolExecutorError(error_message.message)
+        error_message = f"Error in RAGPipeline -> {e}"
+        logger.error(error_message)
+        raise ToolExecutorError(error_message)
+
+    except ValueError as e:
+        logger.error(f"Error creating syllabus: {e}")
+        raise ValueError(f"Error creating syllabus: {e}")
 
     except Exception as e:
         error_message = f"Error in executor: {e}"
@@ -33,4 +42,8 @@ def executor(subject: str, grade_level: str, verbose=True, **kwargs):
 
 
 if __name__ == "__main__":
-    executor(subject="Multiplication", grade_level="K12")
+    executor(
+        subject="Data Structures",
+        grade_level="University",
+        course_overview="This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs.",
+    )

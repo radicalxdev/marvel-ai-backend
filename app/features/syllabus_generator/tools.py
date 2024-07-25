@@ -1,21 +1,19 @@
-from langchain_core.prompts import PromptTemplate
+import os
+from typing import Dict, List
+
+from app.services.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
+from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
-from app.services.logger import setup_logger
-from typing import List, Dict
-import os
 
 logger = setup_logger(__name__)
 
 
-def read_text_file(file_path):
-    # Get the directory containing the script file
+def read_text_file(file_path: str) -> str:
+    """Read the content of a text file."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-
-    # Combine the script directory with the relative file path
     absolute_file_path = os.path.join(script_dir, file_path)
-
     with open(absolute_file_path, "r") as file:
         return file.read()
 
@@ -23,14 +21,15 @@ def read_text_file(file_path):
 class SyllabusBuilder:
     def __init__(
         self,
-        # vectorstore,
         subject: str,
         grade_level: str,
+        course_overview: str = "",
         prompt: str = "",
         model=None,
         parser=None,
-        verbose=False,
+        verbose: bool = False,
     ):
+        """Initialize SyllabusBuilder with default configurations."""
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=SyllabusModel),
@@ -42,16 +41,18 @@ class SyllabusBuilder:
         self.parser = parser or default_config["parser"]
         self.grade_level_assessments = ""
 
-        # self.vectorstore = vectorstore
         self.subject = subject
         self.grade_level = grade_level.lower().strip()
+        self.course_overview = course_overview
         self.verbose = verbose
 
-        # if vectorstore is None:
-        # raise ValueError("Vectorestore must be provided")
-        if subject is None or len(subject) <= 2:
+        self._validate_inputs()
+
+    def _validate_inputs(self):
+        """Validate inputs to ensure all required fields are provided."""
+        if self.subject is None or len(self.subject) <= 2:
             raise ValueError("Subject must be provided")
-        if grade_level is None or len(grade_level) == 0:
+        if self.grade_level is None or len(self.grade_level) == 0:
             raise ValueError("Grade level must be provided")
 
     # custommises the prompt template based on the grade level provided
@@ -74,7 +75,12 @@ class SyllabusBuilder:
 
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["subject", "grade_level", "grade_level_assessments"],
+            input_variables=[
+                "subject",
+                "grade_level",
+                "grade_level_assessments",
+                "course_overview",
+            ],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
             },
@@ -140,9 +146,10 @@ class SyllabusBuilder:
             return False
 
     def create_syllabus(self):
+        """Create syllabus by invoking the compiled chain."""
         if self.verbose:
             logger.info(
-                f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}"
+                f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}, Course Overview: {self.course_overview}"
             )
 
         chain = self.compile()
@@ -155,6 +162,7 @@ class SyllabusBuilder:
                     "subject": self.subject,
                     "grade_level": self.grade_level,
                     "grade_level_assessments": self.grade_level_assessments,
+                    "course_overview": self.course_overview,
                 }
             )
             if self.verbose:
