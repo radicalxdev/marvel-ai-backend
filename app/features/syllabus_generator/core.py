@@ -13,7 +13,7 @@ env_path = Path(__file__).resolve().parents[2] / '.env'
 load_dotenv(dotenv_path=env_path)
 
 #Retrieve the value of the environment variable
-GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
+API_KEY = os.getenv('API_KEY')
 SEARCH_ENGINE_ID = os.getenv('SEARCH_ENGINE_ID')
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
@@ -31,7 +31,7 @@ def executor(grade_level: str, topic: str, context: str) -> str:
         str: The result or output of the tool's functionality.
     """
     try:
-        web_search = get_table_from_link(grade_level,topic,GOOGLE_API_KEY,SEARCH_ENGINE_ID)
+        web_search = get_table_from_link(grade_level,topic,API_KEY,SEARCH_ENGINE_ID)
         
         description = course_description(grade_level,topic,custom_info=context)
 
