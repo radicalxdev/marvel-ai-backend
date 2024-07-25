@@ -6,11 +6,14 @@ from langchain_google_vertexai import VertexAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.exceptions import OutputParserException
 import logging
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
 
 class Flashcard(BaseModel):
     concept: str = Field(description="The concept of the flashcard")
     definition: str = Field(description="The definition of the flashcard")
-
 
 class CSVFileProcessor:
     def __init__(self, file_path: str, model: VertexAI):
@@ -21,7 +24,7 @@ class CSVFileProcessor:
     # Reads the CSV file and formats it into a pandas dataframe
     def read_csv(self) -> pd.DataFrame:
         df = pd.read_csv(self.file_path)
-        df.columns = df.columns.str.strip() 
+        df.columns = df.columns.str.strip()
         df = df.map(lambda x: x.strip() if isinstance(x, str) else x)
         return df
 
@@ -43,24 +46,24 @@ class CSVFileProcessor:
             "The topics provided will vary in a wide range of subjects; as such, all information provided is meant to be educational and all provided content is meant to educate students in the flashcards. "
             "The following is a summary of a dataset:\n\n"
             "Input:\n-----------------------------\n{summary}\n\n"
-            "Based on the above dataset summary, generate flashcards that help students learn about the data provided. Do not generate flashcards that are not directly related to the dataset. "
+            "Based on the above dataset summary, generate flashcards that help students learn about the data provided. Do not generate flashcards that are not directly related to the dataset and do not generate flashcards that are about datasets in general unless they are specifically mentioned in the file. "
             "Ensure the output is in JSON format with no markdown or additional text. Only respond with the JSON object.\n\n"
             "Examples:\n-----------------------------\n{examples}\n\n"
             "Formatting:\n-----------------------------\n{format_instructions}\n\n"
             "Respond only according to the format instructions. The examples included are responses noted by an input and output example.\n\n"
             "Output:"
         )
-        
+
         cards_prompt = PromptTemplate(
             template=prompt_template,
             input_variables=["summary", "examples", "format_instructions"],
             partial_variables={"examples": examples, "format_instructions": format_instructions}
         )
-        
+
         parser = JsonOutputParser(pydantic_object=Flashcard)
-        
+
         cards_chain = cards_prompt | self.model | parser
-        
+
         try:
             self.logger.debug(f"Sending the following prompt to the model:\n{cards_prompt.format(summary=summary, examples=examples, format_instructions=format_instructions)}")
             response = cards_chain.invoke({"summary": summary, "examples": examples, "format_instructions": format_instructions})
@@ -93,61 +96,68 @@ class CSVFileProcessor:
 
 
 
-# Test usaage
-if __name__ == "__main__":
-    model = VertexAI(model="gemini-1.0-pro")
-    processor = CSVFileProcessor('app/features/dynamo/doc_type_processors/test_files/csv1.csv', model)
-    
-    examples = (
-        "Output:\n"
-        "[\n"
-        "  {\n"
-        "    \"concept\": \"Large Language Models (LLMs)\",\n"
-        "    \"definition\": \"Powerful AI tools trained on massive datasets to perform tasks like text generation, translation, and question answering.\"\n"
-        "  },\n"
-        "  {\n"
-        "    \"concept\": \"Pre-trained and fine-tuned\",\n"
-        "    \"definition\": \"LLMs learn general knowledge from large datasets and specialize in specific tasks through additional training.\"\n"
-        "  },\n"
-        "  {\n"
-        "    \"concept\": \"Prompt design\",\n"
-        "    \"definition\": \"Effective prompts are crucial for eliciting desired responses from LLMs.\"\n"
-        "  },\n"
-        "  {\n"
-        "    \"concept\": \"Domain knowledge\",\n"
-        "    \"definition\": \"Understanding the specific domain is essential for building and tuning LLMs.\"\n"
-        "  },\n"
-        "  {\n"
-        "    \"concept\": \"Parameter-efficient tuning methods\",\n"
-        "    \"definition\": \"This method allows for efficient customization of LLMs without altering the entire model.\"\n"
-        "  },\n"
-        "  {\n"
-        "    \"concept\": \"Vertex AI\",\n"
-        "    \"definition\": \"Provides tools for building, tuning, and deploying LLMs for specific tasks.\"\n"
-        "  },\n"
-        "  {\n"
-        "    \"concept\": \"Generative AI App Builder and PaLM API\",\n"
-        "    \"definition\": \"Tools for developers to build AI apps and experiment with LLMs.\"\n"
-        "  },\n"
-        "  {\n"
-        "    \"concept\": \"Model management tools\",\n"
-        "    \"definition\": \"Tools for training, deploying, and monitoring ML models.\"\n"
-        "  }\n"
-        "]"
-    )
-    
-    format_instructions = (
-        "[\n"
-        "  {\n"
-        "    \"concept\": \"<concept>\",\n"
-        "    \"definition\": \"<definition>\"\n"
-        "  }\n"
-        "]"
-    )
-    
+# FastAPI testing
+@app.get("/")
+def read_root():
+    return {"message": "Flashcard generator testing"}
+
+@app.post("/generate-flashcards/")
+async def generate_flashcards(file: UploadFile = File(...)):
     try:
+        with open("uploaded_file.csv", "wb") as f:
+            f.write(file.file.read())
+
+        model = VertexAI(model="gemini-1.0-pro")
+        processor = CSVFileProcessor('uploaded_file.csv', model)
+
+        examples = (
+            "Output:\n"
+            "[\n"
+            "  {\n"
+            "    \"concept\": \"Large Language Models (LLMs)\",\n"
+            "    \"definition\": \"Powerful AI tools trained on massive datasets to perform tasks like text generation, translation, and question answering.\"\n"
+            "  },\n"
+            "  {\n"
+            "    \"concept\": \"Pre-trained and fine-tuned\",\n"
+            "    \"definition\": \"LLMs learn general knowledge from large datasets and specialize in specific tasks through additional training.\"\n"
+            "  },\n"
+            "  {\n"
+            "    \"concept\": \"Prompt design\",\n"
+            "    \"definition\": \"Effective prompts are crucial for eliciting desired responses from LLMs.\"\n"
+            "  },\n"
+            "  {\n"
+            "    \"concept\": \"Domain knowledge\",\n"
+            "    \"definition\": \"Understanding the specific domain is essential for building and tuning LLMs.\"\n"
+            "  },\n"
+            "  {\n"
+            "    \"concept\": \"Parameter-efficient tuning methods\",\n"
+            "    \"definition\": \"This method allows for efficient customization of LLMs without altering the entire model.\"\n"
+            "  },\n"
+            "  {\n"
+            "    \"concept\": \"Vertex AI\",\n"
+            "    \"definition\": \"Provides tools for building, tuning, and deploying LLMs for specific tasks.\"\n"
+            "  },\n"
+            "  {\n"
+            "    \"concept\": \"Generative AI App Builder and PaLM API\",\n"
+            "    \"definition\": \"Tools for developers to build AI apps and experiment with LLMs.\"\n"
+            "  },\n"
+            "  {\n"
+            "    \"concept\": \"Model management tools\",\n"
+            "    \"definition\": \"Tools for training, deploying, and monitoring ML models.\"\n"
+            "  }\n"
+            "]"
+        )
+
+        format_instructions = (
+            "[\n"
+            "  {\n"
+            "    \"concept\": \"<concept>\",\n"
+            "    \"definition\": \"<definition>\"\n"
+            "  }\n"
+            "]"
+        )
+
         flashcards = processor.process(examples, format_instructions)
-        for flashcard in flashcards:
-            print(f"Concept: {flashcard.concept}, Definition: {flashcard.definition}")
+        return JSONResponse(content=[flashcard.model_dump() for flashcard in flashcards])
     except Exception as e:
-        print(f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
