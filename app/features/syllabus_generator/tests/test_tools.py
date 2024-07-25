@@ -1,8 +1,8 @@
 import pytest
 from langchain_core.prompts import PromptTemplate
-import os
-import json
 from app.features.syllabus_generator.tools import (
+    scrap_data,
+    get_table_from_link,
     read_text_file, 
     build_prompt, 
     course_description, 
@@ -13,7 +13,41 @@ from app.features.syllabus_generator.tools import (
     study_materials, 
     final_output
 )
+from dotenv import load_dotenv
+import os
+import re
+from pathlib import Path
+
+env_path = Path(__file__).resolve().parents[3] / '.env'
+
+# Load the .env file
+load_dotenv(dotenv_path=env_path)
+
+#Retrieve the value of the environment variable
+API_KEY = os.getenv('API_KEY')
+SEARCH_ENGINE_ID = os.getenv('SEARCH_ENGINE_ID')
+
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
+
+def is_valid_url(url):
+    pattern = re.compile(r'^https?://(www\.)?([\w\.-]+)(/[\w\-/]*)?$')
+    return bool(pattern.match(url))
+
+def test_scrap_data():
+    grade = 'university'
+    subject = 'Computer science'
+    
+    link = scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID)
+    assert (link and 
+            isinstance(link, str) and 
+            is_valid_url(link))
+    
+def test_get_table_from_link():
+    grade = 'university'
+    subject = 'Computer science'
+    
+    result = get_table_from_link(grade,subject,API_KEY,SEARCH_ENGINE_ID)
+    assert result and isinstance(result, str)
 
 def test_read_text_file():
     result = read_text_file('tests/TestExamples/text.txt')
@@ -42,7 +76,8 @@ def test_course_outline():
     subject = 'Computer science'
     description = read_text_file('tests/TestExamples/description.txt')
     objectives = read_text_file('tests/TestExamples/objectives.txt')
-    result = course_outline(grade,subject,description,objectives)
+    web_search = read_text_file('tests/TestExamples/search.txt')
+    result = course_outline(grade,subject,description,objectives,web_search)
     assert ( result and 
              isinstance(result, list) and 
              isinstance(result[0], dict) and 

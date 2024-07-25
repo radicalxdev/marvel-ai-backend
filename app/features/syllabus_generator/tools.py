@@ -6,7 +6,7 @@
 # from fastapi import UploadFile
 # from pypdf import PdfReader
 # from urllib.parse import urlparse
-# from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup
 import requests
 import os
 import json
@@ -20,7 +20,6 @@ import time
 # from langchain_core.pydantic_v1 import BaseModel, Field
 # from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.prompts import PromptTemplate
-from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_vertexai import VertexAI
 import json
 
@@ -50,9 +49,9 @@ def scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID):
     links = [item['link'] for item in response['items']]
     return links[0]
 
-def get_table_from_link(link):
+def get_table_from_link(grade,subject,API_KEY,SEARCH_ENGINE_ID):
     # we scrap the link to find the tables components and store them in listes
-    
+    link = scrap_data(grade,subject,API_KEY,SEARCH_ENGINE_ID)
     response = requests.get(link)
     soup = BeautifulSoup(response.content, 'html.parser')
     
@@ -108,43 +107,57 @@ def course_objectives(grade:str,subject:str,course_description:str,custom_info='
         temperature=0.3,
     )
     chain = prompt | model
-    response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_description':course_description})
     for _ in range(5):
-        try :
-            response = json.loads(response)
-            break
-        except :
-            continue
-    return response
+        try:
+            response = chain.invoke({"grade": grade, "subject": subject, "custom_info": custom_info, 'course_description': course_description})
+            response = json.loads(response)  # Attempt to parse response to JSON
+            return response
+        except json.JSONDecodeError:
+            print("Failed to parse response to JSON. Retrying...")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break  
+    return 
 
-def course_outline(grade:str,subject:str,course_description:str,course_objectives:str,custom_info='None') -> str: #link:str
-    # link = scrap_data(grade,subject)
-    # scraped_data = get_table_from_link(link)
+def course_outline(grade:str,subject:str,course_description:str,course_objectives:str,web_search:str,custom_info='None') -> str: #link:str
     Outline_prompt = build_prompt('prompts/course_outline.txt')
-    # Search_prompt = build_prompt('prompts/search_results.txt')
+    Search_prompt = build_prompt('prompts/search_results.txt')
     model = VertexAI(
         model_name='gemini-pro',
         temperature=0.3,
     )
     
-    # chain1 = Search_prompt | model
-    # search_results = chain1.invoke({"scraped_data":scraped_data})
+    chain1 = Search_prompt | model
+    search_results = chain1.invoke({'grade':grade,
+                                    'subject':subject,
+                                    'web_search':web_search
+                                    })
     
     chain2 = Outline_prompt | model
     response = chain2.invoke({'grade':grade,
                               'subject':subject,
                               'custom_info':custom_info,
-                              #'search_results':search_results,
+                              'search_results':search_results,
                               'course_objectives':course_objectives,
                               'course_description':course_description,
                               })
     for _ in range(5):
-        try :
-            response = json.loads(response)
-            break
-        except :
-            continue
-    return response
+        try:
+            response = chain2.invoke({'grade':grade,
+                              'subject':subject,
+                              'custom_info':custom_info,
+                              'search_results':search_results,
+                              'course_objectives':course_objectives,
+                              'course_description':course_description,
+                              })
+            response = json.loads(response)  # Attempt to parse response to JSON
+            return response
+        except json.JSONDecodeError:
+            print("Failed to parse response to JSON. Retrying...")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break  
+    return 
 
 def grading_policy(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
@@ -170,14 +183,17 @@ def rules_policies(grade:str,subject:str,course_outline:str,custom_info='None') 
         temperature=0.3,
     )
     chain = prompt | model
-    response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
     for _ in range(5):
-        try :
-            response = json.loads(response)
-            break
-        except :
-            continue
-    return response
+        try:
+            response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
+            response = json.loads(response)  # Attempt to parse response to JSON
+            return response
+        except json.JSONDecodeError:
+            print("Failed to parse response to JSON. Retrying...")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break  
+    return 
 
 def study_materials(grade:str,subject:str,course_outline:str,custom_info='None') -> str:
     #prompt = read_text_file('prompt/course_description.txt')
@@ -191,12 +207,16 @@ def study_materials(grade:str,subject:str,course_outline:str,custom_info='None')
     chain = prompt | model
     response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
     for _ in range(5):
-        try :
-            response = json.loads(response)
-            break
-        except :
-            continue
-    return response
+        try:
+            response = chain.invoke({"grade":grade,"subject":subject,"custom_info":custom_info,'course_outline':course_outline})
+            response = json.loads(response)  # Attempt to parse response to JSON
+            return response
+        except json.JSONDecodeError:
+            print("Failed to parse response to JSON. Retrying...")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            break  
+    return 
 
 def final_output(course_description:str,course_objectives:str,course_outline:str,grading_policy:str,rules_policies:str,study_materials:str) -> str:
     #prompt = read_text_file('prompt/course_description.txt')

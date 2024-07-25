@@ -1,4 +1,4 @@
-You are an expert syllabus generator. Your have to create a concise and hollistic course descriptionfor:
+You are an expert syllabus generator. Your have to create a concise and hollistic course description for:
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}

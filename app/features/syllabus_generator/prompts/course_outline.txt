@@ -2,12 +2,6 @@ You are an expert syllabus generator. Your have to create a detailed course outl
 Grade : {grade}
 Subject : {subject}
 Customized information : {custom_info}
------------------
-Course Description ( use as reference ):
-{course_description}
-------------------
-Course Objectives ( use as reference ):
-{course_objectives}
 
 *The outline should be well structured and detail all the syllabus
 
@@ -31,7 +25,6 @@ Example structure of the response:
     ...
 ]
 
-<<<<<<< HEAD:app/features/syllabus_generator/prompts/course_outline.txt
 Use as reference
 ------------------------
 Course Description :
@@ -40,7 +33,8 @@ Course Description :
 Course Objectives :
 {course_objectives}
 ------------------------
+Search results :
+{search_results}
+------------------------
 
 Answer: 
-=======
->>>>>>> ea87dc7aad2f9793895f95019f49cf03adfae8a5:app/features/syllabus_generator/prompt/course_outline.txt
