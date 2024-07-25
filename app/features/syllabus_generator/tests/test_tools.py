@@ -50,11 +50,12 @@ def test_get_table_from_link():
     assert result and isinstance(result, str)
 
 def test_read_text_file():
-    result = read_text_file('tests/TestExamples/text.txt')
+
+    result = read_text_file('app/features/syllabus_generator/tests/TestExamples/text.txt')
     assert result == 'this is a test string'
 
 def test_build_prompt():
-    result = build_prompt('tests/TestExamples/text.txt')
+    result = build_prompt('app/features/syllabus_generator/tests/TestExamples/text.txt')
     assert isinstance(result, PromptTemplate)
     
 def test_course_description():
@@ -65,7 +66,7 @@ def test_course_description():
     assert result and isinstance(result, str)
     
 def test_course_objectives():
-    description = read_text_file('tests/TestExamples/description.txt')
+    description = read_text_file('app/features/syllabus_generator/tests/TestExamples/description.txt')
     grade = 'university'
     subject = 'Computer science'
     result = course_objectives(grade,subject,description)
@@ -74,9 +75,9 @@ def test_course_objectives():
 def test_course_outline():
     grade = 'university'
     subject = 'Computer science'
-    description = read_text_file('tests/TestExamples/description.txt')
-    objectives = read_text_file('tests/TestExamples/objectives.txt')
-    web_search = read_text_file('tests/TestExamples/search.txt')
+    description = read_text_file('app/features/syllabus_generator/tests/TestExamples/description.txt')
+    objectives = read_text_file('app/features/syllabus_generator/tests/TestExamples/objectives.txt')
+    web_search = read_text_file('app/features/syllabus_generator/tests/TestExamples/search.txt')
     result = course_outline(grade,subject,description,objectives,web_search)
     assert ( result and 
              isinstance(result, list) and 
@@ -87,21 +88,21 @@ def test_course_outline():
 def test_grading_policy():
     grade = 'university'
     subject = 'Computer science'
-    outline = read_text_file('tests/TestExamples/outline.txt')
+    outline = read_text_file('app/features/syllabus_generator/tests/TestExamples/outline.txt')
     result = grading_policy(grade,subject,outline)
     assert result and isinstance(result, str)
     
 def test_rules_policies():
     grade = 'university'
     subject = 'Computer science'
-    outline = read_text_file('tests/TestExamples/outline.txt')
+    outline = read_text_file('app/features/syllabus_generator/tests/TestExamples/outline.txt')
     result = rules_policies(grade,subject,outline)
     assert result and isinstance(result, list)
     
 def test_study_materials():
     grade = 'university'
     subject = 'Computer science'
-    outline = read_text_file('tests/TestExamples/outline.txt')
+    outline = read_text_file('app/features/syllabus_generator/tests/TestExamples/outline.txt')
     result = study_materials(grade,subject,outline)
     assert ( result and 
              isinstance(result, list) and 
