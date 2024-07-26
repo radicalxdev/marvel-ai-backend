@@ -180,6 +180,9 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
         results[worksheet.question_type] = generated_questions
         generated_questions = []
         previous_questions = []
+
+    if verbose: logger.info(f"Deleting vectorstore")
+    worksheet_generator.vectorstore.delete_collection()
     return results
  
 class CourseTypeSchema(BaseModel):
