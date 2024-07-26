@@ -28,16 +28,3 @@ def executor(grade_level: int, topic: str, question_type: str, num_questions: in
         raise ValueError(error_message)
     
     return output
-grade_level = 5
-topic = "Mathematics"
-question_type = "fill-in-blank"
-num_questions = 5
-difficulty_level = "easy"
-verbose = True
-
-# Run the executor function
-try:
-    questions = executor(grade_level, topic, question_type, num_questions, difficulty_level, verbose)
-    print("Generated Questions:", questions)
-except ValueError as e:
-    print("An error occurred:", e)
