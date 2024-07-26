@@ -54,3 +54,16 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+class SyllabusGeneratorArgsModel(BaseModel):
+    grade_level: str
+    course: str
+    instructor_name: str
+    instructor_title: str
+    unit_time: str
+    unit_time_value: int
+    start_date: str
+    start_date: str
+    assessment_methods: str
+    grading_scale: str
+    file_url: str
+    file_type: str

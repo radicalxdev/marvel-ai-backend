@@ -6,6 +6,7 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from app.features.syllabus_generator.document_loaders import read_text_file
+from app.services.schemas import SyllabusGeneratorArgsModel
 
 from fastapi import HTTPException
 
@@ -14,26 +15,18 @@ logger = setup_logger(__name__)
 
 class SyllabusRequestArgs:
     def __init__(self, 
-                 grade_level: str, 
-                 course: str, 
-                 instructor_name: str, 
-                 instructor_title: str, 
-                 unit_time: str, 
-                 unit_time_value: int,
-                 start_date: str, 
-                 assessment_methods: str, 
-                 grading_scale: str,
+                 syllabus_generator_args: SyllabusGeneratorArgsModel,
                  summary: str):
         
-        self._grade_level = grade_level
-        self._course = course
-        self._instructor_name = instructor_name
-        self._instructor_title = instructor_title
-        self._unit_time = unit_time
-        self._unit_time_value = unit_time_value
-        self._start_date = start_date
-        self._assessment_methods = assessment_methods
-        self._grading_scale = grading_scale
+        self._grade_level = syllabus_generator_args.grade_level
+        self._course = syllabus_generator_args.course
+        self._instructor_name = syllabus_generator_args.instructor_name
+        self._instructor_title = syllabus_generator_args.instructor_title
+        self._unit_time = syllabus_generator_args.unit_time
+        self._unit_time_value = syllabus_generator_args.unit_time_value
+        self._start_date = syllabus_generator_args.start_date
+        self._assessment_methods = syllabus_generator_args.assessment_methods
+        self._grading_scale = syllabus_generator_args.grading_scale
         self._summary = summary
 
     @property
