@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, ValidationError
 import sys
 import os
 
-os.chdir('./app')
+os.chdir("./app")
 sys.path.append(os.getcwd())
 
 from services.logger import setup_logger
@@ -32,12 +32,11 @@ class SyllabusBuilder:
         # vectorstore,
         subject: str,
         grade_level: str,
-        customisation:str = "",
+        customisation: str = "",
         prompt: str = "",
         model=None,
         parser=None,
         verbose=False,
-        
     ):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
@@ -63,7 +62,7 @@ class SyllabusBuilder:
         if grade_level is None or len(grade_level) == 0:
             raise ValueError("Grade level must be provided")
 
-    #custommises the prompt template based on the grade level provided    
+    # custommises the prompt template based on the grade level provided
     def create_prompt_temp(self):
         if "k" in self.grade_level.lower().strip():
             self.grade_level_assessments = read_text_file("prompt/elementary.txt")
@@ -87,12 +86,12 @@ class SyllabusBuilder:
             },
         )
         return prompt
-    
+
     def create_custom_promptTemp(self):
         custom_prompt = read_text_file("prompt/customisation.txt")
         prompt = PromptTemplate(
             template=custom_prompt,
-            input_variables=["syllabus","customisation"],
+            input_variables=["syllabus", "customisation"],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
             },
@@ -100,11 +99,13 @@ class SyllabusBuilder:
         return prompt
 
     # Returns langchain chain for creating syllabus
-    def compile(self,type:str):
-        if type=="syllabus":
-         prompt = self.create_prompt_temp()
-        elif type=="customisation":
+    def compile(self, type: str):
+        if type == "syllabus":
+            prompt = self.create_prompt_temp()
+        elif type == "customisation":
             prompt = self.create_custom_promptTemp()
+        else:
+            raise ValueError(f"Invalid compile type: {type}")
 
         chain = prompt | self.model | self.parser
 
@@ -175,26 +176,21 @@ class SyllabusBuilder:
             {
                 "subject": self.subject,
                 "grade_level": self.grade_level,
-                "grade_level_assessments": self.grade_level_assessments
+                "grade_level_assessments": self.grade_level_assessments,
             }
         )
         return response
-    
-    def apply_customisation(self,syllabus):
+
+    def apply_customisation(self, syllabus):
         if self.verbose:
-            logger.info(
-                f"Customising syllabus with {self.customisation}"
-            )
+            logger.info(f"Customising syllabus with {self.customisation}")
 
         chain = self.compile("customisation")
         max_attempts = 3
         response = ""
 
         response = chain.invoke(
-            {
-                "customisation" : self.customisation,
-                "syllabus":syllabus
-            }
+            {"customisation": self.customisation, "syllabus": syllabus}
         )
         return response
 
@@ -270,8 +266,18 @@ class SyllabusModel(BaseModel):
     # This can be expanded
     additional_information: object = Field(
         description="Includes any additional requirements inquired by the user. This may include additional resources or additional additional information",
-        examples=[{"additional_resources": [ "Campbell Biology", "Essential Cell Biology", "Cell Biology by the Numbers" ],
-                   "additional_information": ["This syllabus is designed for 10th-grade students. The language has been simplified and analogies and examples have been added to make the content more accessible."] }]
+        examples=[
+            {
+                "additional_resources": [
+                    "Campbell Biology",
+                    "Essential Cell Biology",
+                    "Cell Biology by the Numbers",
+                ],
+                "additional_information": [
+                    "This syllabus is designed for 10th-grade students. The language has been simplified and analogies and examples have been added to make the content more accessible."
+                ],
+            }
+        ],
     )
     model_config = {
         "json_schema_extra": {
