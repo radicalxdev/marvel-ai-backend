@@ -10,15 +10,15 @@
         "inputs": [
             {
                 "name": "subject",
-                "value": "Biology"
+                "value": "Math"
             },
             {
                 "name": "grade_level",
                 "value": "grade 10"
             },
             {
-                "name": "custom_info",
-               "value": "I am a high school biology teacher creating a syllabus on cell biology. Include clear definitions of key terms like 'cell','organelle','mitosis,' and 'meiosis.' Highlight the terms 'cell membrane,''nucleus,' and 'mitochondria' in bold. Organize the content into sections titled 'Introduction,' 'Cell Structure,' 'Cell Function,' and 'Cell Division,' and simplify the language for 10th-grade students.Include simple examples and analogies,suggest visual aids (without actual images), and provide a list of additional resources for further reading."
+                "name": "customisation",
+               "value": "Focus more on Geometry"
             }
         ]
     }
