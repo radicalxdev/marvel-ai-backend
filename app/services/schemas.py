@@ -54,3 +54,14 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+class WorksheetQuestionModel(BaseModel):
+    question_type: str
+    number: int
+
+class WorksheetGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    worksheet_list: List[WorksheetQuestionModel]
+    file_url: str
+    file_type: str
+    lang: str
