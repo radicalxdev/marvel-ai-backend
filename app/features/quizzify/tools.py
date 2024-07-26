@@ -1,23 +1,20 @@
 from typing import List, Tuple, Dict, Any
-from io import BytesIO, StringIO
-from fastapi import UploadFile
-from pypdf import PdfReader
+# from io import BytesIO, StringIO
+# from fastapi import UploadFile
+# from pypdf import PdfReader
 from urllib.parse import urlparse
 from PIL import Image
-import urllib.request
+# import urllib.request
 import requests
 import os
-import json
-import time
 import pymupdf
 import re
 import pandas as pd
 import pytesseract
 
 from langchain_core.document_loaders import BaseLoader
-from langchain_community.document_loaders import PebbloSafeLoader
 from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter,CharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
 from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
 from langchain_core.prompts import PromptTemplate
@@ -32,14 +29,13 @@ from youtube_transcript_api import YouTubeTranscriptApi
 from services.logger import setup_logger
 from services.tool_registry import ToolFile
 from api.error_utilities import LoaderError
+from enum import Enum
 
 
 #PowerPoint Loader imports
 from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE
 import os
 
-import PIL
 from io import BytesIO
 from langchain_core.documents import Document
 from typing import List
@@ -118,32 +114,6 @@ class YouTubeTranscriptLoader(BaseLoader):
                 print(f"Error loading video {video_id}: {e}")
        
         return documents
-
-# class YoutubeLoaders:
-#     def __init__(self, verbose = False):
-#         self.verbose = verbose
-
-
-#     def load(self, tool_files: List[ToolFile]):
-#         documents = []
-#         youtube_files = []
-       
-#         for file in tool_files:
-#             url = file.url
-           
-
-
-#             if url.lower().startswith("https://youtu.be/"):
-#                 youtube_files.append(file)
-   
-#         yt_loader = YouTubeTranscriptLoader(verbose=self.verbose)
-#         docs = yt_loader.load(youtube_files)
-#         if self.verbose:
-#             print(f"Documents from YouTube loader: {len(docs)}")
-#         documents.extend(docs)
-#         if self.verbose:
-#             print(f"Total documents: {len(documents)}")
-#         return documents
 
 
 
@@ -300,14 +270,6 @@ class PowerPointLoader(BaseLoader):
                     # Extract text from each run in the paragraph
                     for run in paragraph.runs:
                         texts += run.text
-            '''elif shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
-                image = shape.image
-                image_blob = image.blob
-                image_file = PIL.Image.open(BytesIO(image_blob))
-                logger.info("Writing image in AI")
-                response = multimodal_model.generate_content(['Describe the picture', image_file])
-                logger.info(response.text)
-                texts += response.text'''
             text_concepts += texts
         return title, text_concepts
 
@@ -376,10 +338,22 @@ class LocalFileLoader(BaseLoader):
                 loader = self.loader_dict[file_type]
                 documents.extend(loader([file]).load())
         return documents
+
+class FileTypes(Enum):
+    PDF = 'pdf'
+    CSV = 'csv'
+    TXT = 'txt'
+    URL = "url"
+    PPTX = 'pptx'
+    DOCX = "docx"
+    XLS = "xls"
+    XLSX = "xlsx"
+    XML = 'xml'
+    HTML = 'html'  
     
 class URLLoader():
     def __init__(self, verbose=False):
-        self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png", "ppt", "html",]
+        # self.expected_file_types = ["xlsx", "pdf", "pptx", "csv", "docx","jpeg",'jpg',"png", "ppt", "html"]
         self.verbose = verbose
         self.loader_dict = {"xlsx":BytesFileXLSXLoader, "pdf":BytesFilePDFLoader, "pptx": PowerPointLoader, 
                         "csv": BytesFileCSVLoader, "docx": DocLoader,"jpeg": ImageLoader,
@@ -407,13 +381,16 @@ class URLLoader():
                 file_type = filename_part.split('.')[-1].lower()[:len(filename_part.split('.')[-1]) - 1]
 
         return (response,file_type)
-
+    
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
         documents = []
         youtube_files = []
         # any_success = False
         response = None
+
+        def check_file_type(file_type):
+            return any(file_type == member.value for member in FileTypes)
 
         for tool_file in tool_files:
             url = tool_file.url
@@ -422,11 +399,7 @@ class URLLoader():
             
             if url.lower().startswith("https://youtu.be/"):
                 youtube_files.append(tool_file)
-                
-            
-            
-            
-            
+                                           
             try:
                 match = re.search(regex,url)
                 if not match:
@@ -444,8 +417,11 @@ class URLLoader():
                     # file_type = path.rsplit(".")[-1]
                     if not file_type:
                         file_type = url.rsplit('.')[-1]
-                    if file_type not in self.expected_file_types:
-                        string = self.expected_file_types.join(", ")
+                    # if file_type not in self.expected_file_types:
+                    if not check_file_type(file_type):
+                        # string = self.expected_file_types.join(", ")
+                        filelist = [str(member.value) for member in FileTypes]
+                        string = ''.join(filelist)
                         raise LoaderError(f"Expected file types: {string}, but got: {file_type}")
 
                     # Append to Queue
@@ -475,6 +451,7 @@ class URLLoader():
             documents = []
             for file in queued_files: # run each file one by one
                 loader = self.loader_dict[file[1]]
+                # loader = self.loader_dict[FileTypes.file[1]]
                 file_loader = loader([file])
                 try:
                     documents.extend(file_loader.load())
