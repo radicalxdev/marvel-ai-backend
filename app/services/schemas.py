@@ -67,3 +67,4 @@ class SyllabusGeneratorArgsModel(BaseModel):
     grading_scale: str
     file_url: str
     file_type: str
+    lang: Optional[str] = "en"
