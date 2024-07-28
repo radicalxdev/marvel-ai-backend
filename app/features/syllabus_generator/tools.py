@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Dict, List
 
 from app.services.logger import setup_logger
@@ -6,6 +7,9 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
+
+# os.chdir("./app")
+# sys.path.append(os.getcwd())
 
 logger = setup_logger(__name__)
 
@@ -24,6 +28,7 @@ class SyllabusBuilder:
         subject: str,
         grade_level: str,
         course_overview: str = "",
+        customisation: str = "",
         prompt: str = "",
         model=None,
         parser=None,
@@ -40,6 +45,7 @@ class SyllabusBuilder:
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
         self.grade_level_assessments = ""
+        self.customisation = customisation
 
         self.subject = subject
         self.grade_level = grade_level.lower().strip()
@@ -63,10 +69,8 @@ class SyllabusBuilder:
         elif "grade" in self.grade_level:
             if int(self.grade_level.replace("grade ", "")) < 6:
                 self.grade_level_assessments = read_text_file("prompt/primary.txt")
-
             elif int(self.grade_level.replace("grade ", "")) < 9:
                 self.grade_level_assessments = read_text_file("prompt/middle.txt")
-
             else:
                 self.grade_level_assessments = read_text_file("prompt/highschool.txt")
 
@@ -80,6 +84,7 @@ class SyllabusBuilder:
                 "grade_level",
                 "grade_level_assessments",
                 "course_overview",
+                "customisation",
             ],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
@@ -87,9 +92,26 @@ class SyllabusBuilder:
         )
         return prompt
 
+    def create_custom_promptTemp(self):
+        custom_prompt = read_text_file("prompt/customisation.txt")
+        prompt = PromptTemplate(
+            template=custom_prompt,
+            input_variables=["syllabus", "customisation"],
+            partial_variables={
+                "format_instructions": self.parser.get_format_instructions()
+            },
+        )
+        return prompt
+
     # Returns langchain chain for creating syllabus
-    def compile(self):
-        prompt = self.create_prompt_temp()
+    def compile(self, type: str):
+        if type == "syllabus":
+            prompt = self.create_prompt_temp()
+        elif type == "customisation":
+            prompt = self.create_custom_promptTemp()
+        else:
+            raise ValueError(f"Invalid compile type: {type}")
+
         chain = prompt | self.model | self.parser
 
         if self.verbose:
@@ -169,7 +191,7 @@ class SyllabusBuilder:
                 f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}, Course Overview: {self.course_overview}"
             )
 
-        chain = self.compile()
+        chain = self.compile("syllabus")
         max_attempts = 3
         response = ""
 
@@ -180,22 +202,48 @@ class SyllabusBuilder:
                     "grade_level": self.grade_level,
                     "grade_level_assessments": self.grade_level_assessments,
                     "course_overview": self.course_overview,
+                    "customisation": self.customisation,
                 }
             )
-            if self.verbose:
-                logger.info(f"Generated reponse for attempt {attempt}")
 
             if self.validate_response(response):
                 if self.verbose:
-                    logger.info("Valid response formed")
+                    logger.info(f"Generated valid reponse for attempt {attempt}")
                 return response
             else:
                 logger.warn(
                     f"Invalid response format. Attempt {attempt} of {max_attempts}"
                 )
-        logger.error(
-            f"Failed to generate valid response within {max_attempts} attempts"
+            logger.error(
+                f"Failed to generate valid response within {max_attempts} attempts"
+            )
+        # return anyway cause you probably want to see it anyway
+        return response
+
+    def apply_customisation(self, syllabus):
+        if self.verbose:
+            logger.info(f"Customising syllabus with {self.customisation}")
+
+        chain = self.compile("customisation")
+        max_attempts = 3
+        response = ""
+
+        response = chain.invoke(
+            {"customisation": self.customisation, "syllabus": syllabus}
         )
+        for attempt in range(1, max_attempts + 1):
+            if self.validate_response(response):
+                if self.verbose:
+                    logger.info(f"Generated valid reponse for attempt {attempt}")
+                return response
+            else:
+                logger.warn(
+                    f"Invalid response format. Attempt {attempt} of {max_attempts}"
+                )
+            logger.error(
+                f"Failed to generate valid response within {max_attempts} attempts"
+            )
+        # return anyway cause you probably want to see it anyway
         return response
 
 
@@ -298,7 +346,21 @@ class SyllabusModel(BaseModel):
     )
 
     # This can be expanded
-
+    additional_information: Dict[str, List[str]] = Field(
+        description="Includes any additional requirements inquired by the user. This may include additional resources or additional additional information",
+        examples=[
+            {
+                "additional_resources": [
+                    "Campbell Biology",
+                    "Essential Cell Biology",
+                    "Cell Biology by the Numbers",
+                ],
+                "additional_information": [
+                    "This syllabus is designed for 10th-grade students. The language has been simplified and analogies and examples have been added to make the content more accessible."
+                ],
+            }
+        ],
+    )
     model_config = {
         "json_schema_extra": {
             "examples": """
@@ -340,7 +402,21 @@ class SyllabusModel(BaseModel):
                         "C": "70-79%",
                         "D": "60-69%",
                         "F": "Below 60%",
-                    }
+                    },
+                    
+            },
+            "additional_information": {
+              "Visual aids":[
+                  Diagrams of the cardiovascular system , 
+                  Annotated electrocardiogram (ECG) readings , 
+                  Videos demonstrating ECG procedures and techniques ,
+                  Infographics on the cardiac cycle and conduction system ],
+             "Resources":[
+               {Textbook: "Electrocardiography for Healthcare Professionals" by Booth and O'Brien},
+                Online tutorials and interactive ECG simulations,
+                Access to ECG machines and practice materials in the laboratory,
+                Recommended articles and research papers on the latest ECG technologies and practices]
+
             }
             """
         }

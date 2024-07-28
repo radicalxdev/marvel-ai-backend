@@ -162,4 +162,4 @@ cython_debug/
 
 **/env/
 **/key.txt
-**/local-auth.json
+**/local-auth.jsonauth-key.json

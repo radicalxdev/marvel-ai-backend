@@ -9,7 +9,12 @@ logger = setup_logger()
 
 
 def executor(
-    subject: str, grade_level: str, course_overview: str, verbose: bool = True, **kwargs
+    subject: str,
+    grade_level: str,
+    course_overview: str,
+    customisation: str,
+    verbose: bool = True,
+    **kwargs,
 ):
     """Execute the syllabus generation process."""
     try:
@@ -18,11 +23,14 @@ def executor(
                 f"Subject: {subject}, Grade Level: {grade_level}, Course Overview: {course_overview}"
             )
 
-        syllabus_builder = SyllabusBuilder(
-            subject, grade_level, course_overview, verbose=verbose
+        sb = SyllabusBuilder(
+            subject, grade_level, course_overview, customisation, verbose=verbose
         )
-        output = syllabus_builder.create_syllabus()
-        print(output)
+        syllabus = sb.create_syllabus()
+        print(syllabus)
+
+        # updated_syllabus = sb.apply_customisation(syllabus)
+        # print(updated_syllabus)
 
     except LoaderError as e:
         error_message = f"Error in RAGPipeline -> {e}"
@@ -38,7 +46,7 @@ def executor(
         logger.error(error_message)
         raise ValueError(error_message)
 
-    return output
+    return syllabus
 
 
 if __name__ == "__main__":
@@ -46,4 +54,5 @@ if __name__ == "__main__":
         subject="Data Structures",
         grade_level="University",
         course_overview="This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs.",
+        customisation="",
     )

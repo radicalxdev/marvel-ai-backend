@@ -10,5 +10,8 @@ Follow these instructions to create a {subject} syllabus for your students:
 6. {grade_level_assessments}
 7. Generate a list of materials that are required by the students to successfully participate in the course. Materials could be things like books, tools or supplies. Use two key variables in the output of required_materials. One is recommended_books and another is required_items.
 
+Use the provided additional notes to further tailor the syllabus as needed:
+        {customisation}
+
 You must respond as a JSON object: 
 {format_instructions}

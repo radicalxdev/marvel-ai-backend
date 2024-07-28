@@ -11,6 +11,11 @@
             "type": "text"
         },
         {
+            "label": "Customisation",
+            "name": "customisation",
+            "type": "text"
+        },
+        {
             "label": "Course Overview",
             "name": "course_overview",
             "type": "text"
