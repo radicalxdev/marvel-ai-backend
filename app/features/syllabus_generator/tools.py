@@ -404,6 +404,23 @@ class SyllabusModel(BaseModel):
                     },
                     
             },
+            "required_materials": {
+                "recommended_books": [
+                    "book 1", 
+                    "book 2", 
+                    "book 3"
+                ]
+                "required_items": [
+                    "paint",
+                    "paintbrush",
+                    "pencil",
+                    "eraser",
+                    "notebooks" "sharpies",
+                    "crayons",
+                    "black ink pen",
+                    "ruler",
+                ]
+            },
             "additional_information": {
               "Visual aids":[
                   Diagrams of the cardiovascular system , 
