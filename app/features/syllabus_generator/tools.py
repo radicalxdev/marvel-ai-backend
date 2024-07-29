@@ -8,9 +8,6 @@ from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
 
-# os.chdir("./app")
-# sys.path.append(os.getcwd())
-
 logger = setup_logger(__name__)
 
 
