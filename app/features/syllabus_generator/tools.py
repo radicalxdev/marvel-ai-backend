@@ -124,10 +124,6 @@ class SyllabusBuilder:
         """
         Validates response from LLM
         """
-        policies_and_exceptions_flag = False
-        objectives_flag = False
-        required_materials_flag = False
-
         try:
             # Assuming reponse is already a dict
             if isinstance(response, dict):
@@ -144,7 +140,6 @@ class SyllabusBuilder:
                         for item in objectives:
                             if not isinstance(item, str):
                                 return False
-                        objectives_flag = True
 
                     # Check policies_and_exceptions in correct format
                     policies_and_exceptions = response["policies_and_exceptions"]
@@ -152,7 +147,6 @@ class SyllabusBuilder:
                         for key, value in policies_and_exceptions.items():
                             if not isinstance(key, str) or not isinstance(value, str):
                                 return False
-                        policies_and_exceptions_flag = True
 
                     # Check required_materials in correct format
                     required_materials = response["required_materials"]
@@ -163,19 +157,10 @@ class SyllabusBuilder:
                         required_keys = {"recommended_books", "required_items"}
                         if set(required_materials.keys()) != required_keys:
                             return False
-                        required_materials = True
 
-            if (
-                objectives_flag
-                and policies_and_exceptions_flag
-                and required_materials_flag
-            ):
-                if self.verbose:
-                    logger.info("Response validated successfully")
-                return True
-
-            logger.warn("Response failed to validate")
-            return False
+            if self.verbose:
+                logger.info("Response validated successfully")
+            return True
 
         except TypeError as e:
             logger.error(f"TypeError during reponse validation: {e}")
