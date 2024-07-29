@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from app.services.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
@@ -59,7 +59,7 @@ class SyllabusBuilder:
         self.options = list(map(lambda x: x.strip().lower(), options))
 
         self.subject = subject
-        self.grade_level = grade_level.lower().strip()
+        self.grade_level = grade_level.strip().lower()
         self.course_overview = course_overview
         self.verbose = verbose
 
@@ -99,6 +99,7 @@ class SyllabusBuilder:
                 "grade_level_assessments",
                 "course_overview",
                 "customisation",
+                "options",
             ],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
@@ -247,11 +248,11 @@ class SyllabusBuilder:
 
 
 class SyllabusModel(BaseModel):
-    title: str = Field(description="The title for the whole course")
-    overview: str = Field(
+    title: Optional[str] = Field(description="The title for the whole course")
+    overview: Optional[str] = Field(
         description="A broad overview of what is expected of students and what they will learn"
     )
-    objectives: List[str] = Field(
+    objectives: Optional[List[str]] = Field(
         description="A list of specific tasks the student will be able to successfully do upon completion of the course",
         examples=[
             [
@@ -266,7 +267,7 @@ class SyllabusModel(BaseModel):
             ],
         ],
     )
-    policies_and_exceptions: Dict[str, str] = Field(
+    policies_and_exceptions: Optional[Dict[str, str]] = Field(
         description="Class policies, exceptions, important rules and any special consideration all students must be aware of. Each has a title and contents.",
         examples=[
             {
@@ -292,7 +293,7 @@ class SyllabusModel(BaseModel):
         ],
     )
 
-    grade_level_assessments: Dict[str, Dict[str, int | str]] = Field(
+    grade_level_assessments: Optional[Dict[str, Dict[str, int | str]]] = Field(
         description="assessment components and grade scale for completing the course. Assessment components being a dictionary of components and percentages, grade_scale being a dictionary of grades and percentage ranges",
         examples=[
             {
@@ -314,7 +315,7 @@ class SyllabusModel(BaseModel):
         ],
     )
 
-    required_materials: Dict[str, List[str]] = Field(
+    required_materials: Optional[Dict[str, List[str]]] = Field(
         description="A list of materials required by the students to successfully participate in the course.",
         examples=[
             {
@@ -345,7 +346,7 @@ class SyllabusModel(BaseModel):
     )
 
     # This can be expanded
-    additional_information: Dict[str, List[str]] = Field(
+    additional_information: Optional[Dict[str, List[str]]] = Field(
         description="Includes any additional requirements inquired by the user. This may include additional resources or additional additional information",
         examples=[
             {
