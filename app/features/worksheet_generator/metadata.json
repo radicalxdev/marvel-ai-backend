@@ -11,19 +11,14 @@
             "type": "text"
         },
         {
-            "label": "Question Type",
-            "name": "question_type",
-            "type": "text"
-        },
-        {
-            "label": "Number of Questions",
-            "name": "num_questions",
-            "type": "number"
-        },
-        {
             "label": "Difficulty Level",
             "name": "difficulty_level",
             "type": "text"
+        },
+        {
+            "label": "Question Types",
+            "name": "question_types",
+            "type": "list"
         }
     ]
 }
