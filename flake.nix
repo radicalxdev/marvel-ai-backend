@@ -47,7 +47,7 @@
         postShellHook = ''
           # allow pip to install wheels
           unset SOURCE_DATE_EPOCH
-          export PYTHONPATH=./app:$PYTHONPATH
+          export PYTHONPATH=$(pwd):$(pwd)/app:$PYTHONPATH
         '';
 
         # Dependency for NixOS
