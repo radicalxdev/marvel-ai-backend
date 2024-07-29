@@ -342,14 +342,14 @@ class LocalFileLoader(BaseLoader):
 class FileTypes(Enum):
     PDF = 'pdf'
     CSV = 'csv'
-    TXT = 'txt'
-    URL = "url"
     PPTX = 'pptx'
+    PPT = 'ppt'
     DOCX = "docx"
-    XLS = "xls"
     XLSX = "xlsx"
-    XML = 'xml'
-    HTML = 'html'  
+    HTML = 'html'
+    JPEG = 'jpeg'
+    JPG = 'jpg'
+    PNG = 'png'  
     
 class URLLoader():
     def __init__(self, verbose=False):
