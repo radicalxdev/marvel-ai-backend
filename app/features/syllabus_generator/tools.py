@@ -19,6 +19,18 @@ def read_text_file(file_path: str) -> str:
         return file.read()
 
 
+ALLOWED_OPTIONS = {
+    "all",
+    "title",
+    "overview",
+    "objectives",
+    "required_materials",
+    "additional_information",
+    "policies_and_exceptions",
+    "grade_level_assessments",
+}
+
+
 class SyllabusBuilder:
     def __init__(
         self,
@@ -26,6 +38,7 @@ class SyllabusBuilder:
         grade_level: str,
         course_overview: str = "",
         customisation: str = "",
+        options: List[str] = ["all"],
         prompt: str = "",
         model=None,
         parser=None,
@@ -43,6 +56,7 @@ class SyllabusBuilder:
         self.parser = parser or default_config["parser"]
         self.grade_level_assessments = ""
         self.customisation = customisation
+        self.options = list(map(lambda x: x.strip().lower(), options))
 
         self.subject = subject
         self.grade_level = grade_level.lower().strip()
@@ -57,6 +71,9 @@ class SyllabusBuilder:
             raise ValueError("Subject must be provided")
         if self.grade_level is None or len(self.grade_level) == 0:
             raise ValueError("Grade level must be provided")
+        for item in self.options:
+            if item not in ALLOWED_OPTIONS:
+                raise ValueError("Invalid options provided")
 
     # custommises the prompt template based on the grade level provided
     def create_prompt_temp(self) -> PromptTemplate:

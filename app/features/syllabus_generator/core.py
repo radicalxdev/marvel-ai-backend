@@ -1,3 +1,4 @@
+from typing import List
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders.text import TextLoader
 from app.services.tool_registry import ToolFile
@@ -13,6 +14,7 @@ def executor(
     grade_level: str,
     course_overview: str,
     customisation: str,
+    options: List[str],
     verbose: bool = True,
     **kwargs,
 ):
@@ -54,5 +56,6 @@ if __name__ == "__main__":
         subject="Data Structures",
         grade_level="University",
         course_overview="This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs.",
+        options=["all"],
         customisation="",
     )
