@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 from unittest.mock import MagicMock, mock_open, patch
 
-import pytest
+from dotenv import find_dotenv, load_dotenv
 from features.syllabus_generator.tools import (
     SyllabusBuilder,
     SyllabusModel,
@@ -14,6 +14,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
+
+load_dotenv(find_dotenv())
 
 default_config = {
     "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
