@@ -9,6 +9,36 @@
             "label": "Subject",
             "name": "subject", 
             "type": "text"
+        },
+        {
+            "label":"Additional Objectives",
+            "name": "additional_objectives",
+            "type": "text",
+            "optional": true
+        },
+        {
+            "label":"Additional Required Materials",
+            "name": "additional_materials",
+            "type": "text" ,
+            "optional": true
+        },
+        {
+            "label":"Additional Grading Policy",
+            "name": "additional_gradingpolicy",
+            "type": "text" ,
+            "optional": true
+        },
+        {
+            "label":"Additional Class Policy",
+            "name": "additional_classpolicy",
+            "type": "text" ,
+            "optional": true
+        },
+        {
+            "label":"Custom Course Outline",
+            "name": "custom_courseoutline",
+            "type": "text" ,
+            "optional": true
         }
     ]
 }

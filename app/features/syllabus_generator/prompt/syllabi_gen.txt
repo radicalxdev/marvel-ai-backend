@@ -2,6 +2,11 @@ You are an advanced AI model tasked with creating a detailed syllabus for an edu
 User Input:
 1. Grade Level (K-12 or university): {grade_level}
 2. Subject: {subject}
+3. Additional Objectives: {additional_objectives}
+4. Additional Materials: {additional_materials}
+5. Additional Grading Policy:{additional_gradingpolicy}
+6. Additional Class Policy:{additional_classpolicy}
+7. Custom Course Outline:{custom_courseoutline}
 
 Output Requirements:
 Based on the provided inputs, generate a comprehensive syllabus that includes the following sections:

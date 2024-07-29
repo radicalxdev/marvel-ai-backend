@@ -1,0 +1,41 @@
+{
+    "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+      "tool_id": 2,
+      "inputs": [
+        {
+          "name": "grade_level",
+          "value": "eighth"
+        },
+        {
+          "name": "subject",
+          "value": "biology"
+        },
+        {
+          "name": "additional_objectives",
+          "value": "Understand the concepts of food chain"
+        },
+        {
+          "name": "additional_materials",
+          "value": ""
+        },
+        {
+          "name": "additional_gradingpolicy",
+          "value": ""
+        },
+        {
+          "name": "additional_classpolicy",
+          "value": ""
+        },
+        {
+          "name": "custom_courseoutline",
+          "value": ""
+        }
+      ]
+    }
+  }
