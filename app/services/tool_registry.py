@@ -20,3 +20,8 @@ class ToolFile(BaseModel):
     filePath: Optional[str] = None
     url: str
     filename: Optional[str] = None
+
+# Model class for question
+class ToolQuestionType(BaseModel):
+    question_type: str
+    num_questions: int

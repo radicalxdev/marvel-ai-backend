@@ -1,10 +1,11 @@
-from typing import List, Dict, Any
+from typing import List, Tuple, Dict, Any
 import os
 
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from abc import ABC, abstractmethod
 
 from app.services.logger import setup_logger
@@ -23,7 +24,34 @@ def read_text_file(file_path):
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
-# Abstract class for the question builder functionality
+# Class for the worksheet generation functionality
+class WorksheetGenerator:
+    def __init__(self, grade_level, topic, question_types, prompt=None, model=None, parser=None, verbose=False):
+        self.grade_level = grade_level
+        self.topic = topic
+        self.question_types = question_types
+        self.verbose = verbose
+        
+        if grade_level is None: raise ValueError("Grade level must be provided")
+        if topic is None: raise ValueError("Topic must be provided")
+        if question_types is None: raise ValueError("At lease one question type must be provided")
+
+    def create_worksheet(self):
+        params = {"grade_level": self.grade_level, "topic": self.topic, "verbose": self.verbose}
+
+        worksheet = []
+
+        for question_type in self.question_types:
+            if self.verbose: logger.info(f"Generating {question_type['question_type']} questions")
+
+            #generating the question list
+            question_list = create_question_builder(question_type['question_type'], **params).create_questions(question_type['num_questions'])
+            worksheet.append(question_list)
+
+        # Return the generated worksheet(list of lists that include questions of each type requested)
+        return worksheet
+
+# Abstract class for the question building functionality
 class QuestionBuilder(ABC):
     @abstractmethod
     def __init__(self):
@@ -33,7 +61,7 @@ class QuestionBuilder(ABC):
         # Return the generated response
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["grade_level", "topic", "difficulty_level"],
+            input_variables=["grade_level", "topic"],
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )
 
@@ -41,7 +69,6 @@ class QuestionBuilder(ABC):
         filled_prompt = prompt.format(
             grade_level=self.grade_level,
             topic=self.topic,
-            difficulty_level=self.difficulty_level,
         )
 
         if self.verbose:
@@ -75,7 +102,7 @@ class QuestionBuilder(ABC):
         pass
 
 class MultiChoiceQuestionBuilder(QuestionBuilder):
-    def __init__(self, grade_level, topic, difficulty_level, prompt=None, model=None, parser=None, verbose=False):
+    def __init__(self, grade_level, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=MultiChoiceQuestion),
@@ -88,12 +115,10 @@ class MultiChoiceQuestionBuilder(QuestionBuilder):
         
         self.grade_level = grade_level
         self.topic = topic
-        self.difficulty_level = difficulty_level
         self.verbose = verbose
         
         if grade_level is None: raise ValueError("Grade level must be provided")
         if topic is None: raise ValueError("Topic must be provided")
-        if difficulty_level is None: raise ValueError("Difficulty level must be provided")
 
     def transform_json_dict(self, input_data: Dict) -> Dict:
         # Validate and parse the input data to ensure it matches the MultiChoiceQuestion schema
@@ -132,7 +157,7 @@ class MultiChoiceQuestionBuilder(QuestionBuilder):
         return [{"key": k, "value": v} for k, v in choices.items()]
     
     def create_questions(self, num_questions: int = 5) -> List[Dict]:
-        if self.verbose: logger.info(f"Creating {num_questions} questions")
+        if self.verbose: logger.info(f"Generating {num_questions} questions")
         
         if num_questions > 10:
             return {"message": "error", "data": "Number of questions cannot exceed 10"}       
@@ -144,8 +169,15 @@ class MultiChoiceQuestionBuilder(QuestionBuilder):
         while len(generated_questions) < num_questions and attempts < max_attempts:
             #response = chain.invoke(self.topic)
             response = self.generate_question()
+
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
+
+            if response is None:
+                if self.verbose:
+                    logger.warning(f"Invalid null response. Attempt {attempts + 1} of {max_attempts}")
+                attempts += 1
+                continue
 
             response = self.transform_json_dict(response)
 
@@ -171,7 +203,7 @@ class MultiChoiceQuestionBuilder(QuestionBuilder):
         return generated_questions[:num_questions]
     
 class FillInBlankQuestionBuilder(QuestionBuilder):
-    def __init__(self, grade_level, topic, difficulty_level, prompt=None, model=None, parser=None, verbose=False):
+    def __init__(self, grade_level, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=FillInBlankQuestion),
@@ -184,12 +216,10 @@ class FillInBlankQuestionBuilder(QuestionBuilder):
         
         self.grade_level = grade_level
         self.topic = topic
-        self.difficulty_level = difficulty_level
         self.verbose = verbose
         
         if grade_level is None: raise ValueError("Grade level must be provided")
         if topic is None: raise ValueError("Topic must be provided")
-        if difficulty_level is None: raise ValueError("Difficulty level must be provided")
 
     def transform_json_dict(self, input_data: Dict) -> Dict:
         # Validate and parse the input data to ensure it matches the FillInBlankQuestion schema
@@ -216,7 +246,7 @@ class FillInBlankQuestionBuilder(QuestionBuilder):
             return False
     
     def create_questions(self, num_questions: int = 5) -> List[Dict]:
-        if self.verbose: logger.info(f"Creating {num_questions} questions")
+        if self.verbose: logger.info(f"Generating {num_questions} questions")
         
         if num_questions > 10:
             return {"message": "error", "data": "Number of questions cannot exceed 10"}       
@@ -228,20 +258,33 @@ class FillInBlankQuestionBuilder(QuestionBuilder):
         while len(generated_questions) < num_questions and attempts < max_attempts:
             #response = chain.invoke(self.topic)
             response = self.generate_question()
+
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
 
-            response = self.transform_json_dict(response)
-            # Directly check if the response format is valid
-            if self.validate_response(response):
-                generated_questions.append(response)
+            if response is None:
                 if self.verbose:
-                    logger.info(f"Valid question added: {response}")
-                    logger.info(f"Total generated questions: {len(generated_questions)}")
-            else:
+                    logger.warning(f"Invalid null response. Attempt {attempts + 1} of {max_attempts}")
+                attempts += 1
+                continue
+
+            #fix for the bug in Pydantic schema use, where the response contain properties key
+            if (not 'properties' in response):
+                response = self.transform_json_dict(response)
+
+                # Directly check if the response format is valid
+                if self.validate_response(response):
+                    generated_questions.append(response)
+                    if self.verbose:
+                        logger.info(f"Valid question added: {response}")
+                        logger.info(f"Total generated questions: {len(generated_questions)}")
+                else:
+                    if self.verbose:
+                        logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
+            else: 
                 if self.verbose:
                     logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
-            
+
             # Move to the next attempt regardless of success to ensure progress
             attempts += 1
 
@@ -253,7 +296,7 @@ class FillInBlankQuestionBuilder(QuestionBuilder):
         return generated_questions[:num_questions]
     
 class OpenEndedQuestionBuilder(QuestionBuilder):
-    def __init__(self, grade_level, topic, difficulty_level, prompt=None, model=None, parser=None, verbose=False):
+    def __init__(self, grade_level, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=OpenEndedQuestion),
@@ -266,12 +309,10 @@ class OpenEndedQuestionBuilder(QuestionBuilder):
         
         self.grade_level = grade_level
         self.topic = topic
-        self.difficulty_level = difficulty_level
         self.verbose = verbose
         
         if grade_level is None: raise ValueError("Grade level must be provided")
         if topic is None: raise ValueError("Topic must be provided")
-        if difficulty_level is None: raise ValueError("Difficulty level must be provided")
 
     def transform_json_dict(self, input_data: Dict) -> Dict:
         # Validate and parse the input data to ensure it matches the OpenEndedQuestion schema
@@ -301,7 +342,7 @@ class OpenEndedQuestionBuilder(QuestionBuilder):
             return False
     
     def create_questions(self, num_questions: int = 5) -> List[Dict]:
-        if self.verbose: logger.info(f"Creating {num_questions} questions")
+        if self.verbose: logger.info(f"Generating {num_questions} questions")
         
         if num_questions > 10:
             return {"message": "error", "data": "Number of questions cannot exceed 10"}       
@@ -312,8 +353,27 @@ class OpenEndedQuestionBuilder(QuestionBuilder):
 
         while len(generated_questions) < num_questions and attempts < max_attempts:
             response = self.generate_question()
+
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
+
+            if response is None:
+                if self.verbose:
+                    logger.warning(f"Invalid null response. Attempt {attempts + 1} of {max_attempts}")
+                attempts += 1
+                continue
+
+            #fix for the bug in Pydantic schema use, where the response contain properties key
+            if 'properties' in response:
+                # question generation is sucessful
+                if isinstance(response['properties']['model_config']['default']['json_schema_extra']['examples'], list):
+                    response = response['properties']['model_config']['default']['json_schema_extra']['examples'][0]
+                # question generation is unsuccessful
+                else:
+                    if self.verbose:
+                        logger.warning(f"Invalid response format. Attempt {attempts + 1} of {max_attempts}")
+                    attempts += 1
+                    continue
 
             response = self.transform_json_dict(response)
 
@@ -374,7 +434,6 @@ class MultiChoiceQuestion(BaseModel):
               }
           """
         }
-
       }
     
 class FillInBlankQuestion(BaseModel):
@@ -386,11 +445,10 @@ class FillInBlankQuestion(BaseModel):
             "examples": """ 
                 {
                 "question": "The Capital of France is _.",
-                "answer": "Paris",
+                "answer": "Paris"
                 }
             """
         }
-
     }
         
 class OpenEndedQuestion(BaseModel):
@@ -406,5 +464,4 @@ class OpenEndedQuestion(BaseModel):
                 }
             """
         }
-
     }
