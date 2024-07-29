@@ -1,7 +1,7 @@
 You are an expert syllabus generator. Your have to create a grading policy for:
 Grade : {grade}
 Subject : {subject}
-Customized information : {custom_info}
+Syllabus type : {Syllabus_type}
 
 *The grading policy should be suitable and relevant
 the response should be only the grading policy without any titles or something else

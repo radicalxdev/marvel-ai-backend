@@ -1,18 +1,18 @@
 {
     "inputs": [
         {
-            "label": "Grade",
-            "name": "grade_level",
+            "label": "grade",
+            "name": "grade",
             "type": "text"
         },
         {
-            "label": "Subject",
-            "name": "topic",
+            "label": "subject",
+            "name": "subject",
             "type": "text"
         },
         {
-            "label": "Custom Info",
-            "name": "context",
+            "label": "Syllabus_type",
+            "name": "Syllabus_type",
             "type": "text"
         }
     ]
