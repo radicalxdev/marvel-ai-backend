@@ -18,3 +18,4 @@ pytube
 python-dotenv
 pytest
 langchain_google_vertexai
+lxml
