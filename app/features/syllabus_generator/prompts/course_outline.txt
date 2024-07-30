@@ -1,7 +1,7 @@
 You are an expert syllabus generator. Your have to create a detailed course outline or:
 Grade : {grade}
 Subject : {subject}
-Customized information : {custom_info}
+Syllabus type : {Syllabus_type}
 
 *The outline should be well structured and detail all the syllabus
 

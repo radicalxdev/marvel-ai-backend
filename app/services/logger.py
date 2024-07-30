@@ -1,8 +1,10 @@
 import logging
 import os
+from dotenv import load_dotenv
 
-# Global variable to track logger configuration state
-logger_configured = False
+# Load environment variables from .env file
+dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+load_dotenv(dotenv_path)
 
 def setup_logger(name=__name__):
     """
@@ -17,14 +19,12 @@ def setup_logger(name=__name__):
     Returns:
     logging.Logger: Configured logger.
     """
-    global logger_configured
     env_type = os.environ.get('ENV_TYPE', 'undefined')
     project = os.environ.get('PROJECT_ID', 'undefined')
 
     # Obtain a reference to the logger
     logger = logging.getLogger(name)
     
-    # Check if the logger is already configured
     if not logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -34,3 +34,5 @@ def setup_logger(name=__name__):
         logger.propagate = True
 
     return logger
+
+logger = setup_logger()

@@ -160,5 +160,6 @@ cython_debug/
 #.idea/
 
 **/env/
+**/myenv/
 **/key.txt
 **/local-auth.json

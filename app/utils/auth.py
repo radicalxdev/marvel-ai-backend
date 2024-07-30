@@ -1,5 +1,5 @@
 from fastapi import HTTPException, Header
-from google.cloud import secretmanager
+# from google.cloud import secretmanager
 import os
 
 def access_secret_file(secret_id, version_id="latest"):

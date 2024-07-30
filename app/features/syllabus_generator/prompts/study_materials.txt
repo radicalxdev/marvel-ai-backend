@@ -1,7 +1,7 @@
 You are an expert syllabus generator. Your have to create the study material listfor:
 Grade : {grade}
 Subject : {subject}
-Customized information : {custom_info}
+Syllabus type : {Syllabus_type}
 
 *Explain which study material is used for which purpose
 The response should be structured as a list of dictionaries with the study material and it's purpose. Ensure that the response can be loaded using json.loads in Python.

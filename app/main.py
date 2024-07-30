@@ -1,4 +1,3 @@
-from fastapi import FastAPI, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,9 +5,9 @@ from contextlib import asynccontextmanager
 from app.api.router import router
 from app.services.logger import setup_logger
 from app.api.error_utilities import ErrorResponse
-
-import os
 from dotenv import load_dotenv, find_dotenv
+from fastapi import FastAPI, Request ,HTTPException
+from app.features.syllabus_generator.core import executor
 
 load_dotenv(find_dotenv())
 
@@ -48,3 +47,33 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 app.include_router(router)
+
+
+
+### THE FOLLOWING ARE PARTS THAT WERE ADDED ###
+
+@app.post("/get_syllabus")
+async def get_syllabus(grade: str, subject: str, Syllabus_type:str):
+    try:
+        if not grade or not subject:
+            raise HTTPException(status_code=400, detail="Both 'grade' and 'subject' are required")
+        
+        logger.info(f"Received request for grade={grade}, subject={subject}, Syllabus_type={Syllabus_type}")
+        result = executor(grade, subject, Syllabus_type)
+        logger.info("Response generated successfully")
+        return result
+    except ValueError as e:
+        logger.error(f"Error generating syllabus: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating syllabus: {e}")
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    
+# @app.post("/get_syllabus")
+# def get_syllabus(grade: str, subject: str) :
+#     try:
+#         syllabus = executor(grade, subject)
+#         return syllabus
+#     except Exception as e:
+#         logger.error(f"Error generating syllabus: {str(e)}")
+#         raise HTTPException(status_code=500, detail="An error occurred while generating the syllabus")

@@ -98,7 +98,6 @@ def validate_input_type(input_name: str, input_value: Any, expected_type: str):
 
 def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, str]]) -> bool:
     validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}
-    
     # Check for missing inputs
     check_missing_inputs(request_data, validate_inputs)
 
