@@ -50,7 +50,6 @@ def test_get_table_from_link():
     assert result and isinstance(result, str)
 
 def test_read_text_file():
-
     result = read_text_file('tests/TestExamples/text.txt')
     assert result == 'this is a test string'
 
