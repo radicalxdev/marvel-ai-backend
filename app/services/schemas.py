@@ -64,4 +64,4 @@ class WorksheetGeneratorArgs(BaseModel):
     worksheet_list: List[WorksheetQuestionModel]
     file_url: str
     file_type: str
-    lang: str
+    lang: Optional[str] = "en"
