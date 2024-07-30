@@ -25,3 +25,5 @@ For the course's content and detail, please guide with this summary: {summary}
 
 You must respond as a JSON object:
 {format_instructions}
+
+You must provide the questions and answers in response in "{lang}" language.

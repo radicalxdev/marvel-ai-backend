@@ -27,6 +27,7 @@ class SyllabusRequestArgs:
         self._start_date = syllabus_generator_args.start_date
         self._assessment_methods = syllabus_generator_args.assessment_methods
         self._grading_scale = syllabus_generator_args.grading_scale
+        self._lang = syllabus_generator_args.lang
         self._summary = summary
 
     @property
@@ -66,6 +67,10 @@ class SyllabusRequestArgs:
         return self._grading_scale
     
     @property
+    def lang(self) -> str:
+        return self._lang
+    
+    @property
     def summary(self) -> str:
         return self._summary
     
@@ -80,6 +85,7 @@ class SyllabusRequestArgs:
             "start_date": self.start_date,
             "assessment_methods": self.assessment_methods,
             "grading_scale": self.grading_scale,
+            "lang": self.lang,
             "summary": self.summary
         }
     
