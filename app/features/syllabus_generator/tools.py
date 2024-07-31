@@ -31,7 +31,7 @@ class SyllabusGenerator:
                  model = None,  parser=None, prompt=None):
         
         feature_config = {
-            "model": GoogleGenerativeAI(model="gemini-1.5-pro",google_api_key="AIzaSyDNQUuqHBHDd_z2tjMDQ9te8H6DaWbsmr0"),
+            "model": GoogleGenerativeAI(model="gemini-1.5-pro"), # add google_api_key while testing
             "parser": JsonOutputParser(pydantic_object=Syllabus),
             "prompt": read_text_file("prompt/syllabi_gen.txt")
         }
