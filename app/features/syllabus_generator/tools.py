@@ -1,5 +1,5 @@
 from langchain_core.pydantic_v1 import BaseModel, Field
-from typing import List, Dict
+from typing import List, Dict,Optional
 from app.services.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
@@ -7,6 +7,7 @@ from langchain_core.prompts import PromptTemplate
 from fastapi import HTTPException
 
 logger = setup_logger(__name__)
+
 
 class SyllabusRequestArgs(BaseModel):
     subject_topic: str
@@ -20,11 +21,16 @@ class SyllabusRequestArgs(BaseModel):
     class_policies: str
     instructor_name: str
     instructor_title: str
-    file_type: str
+    file_type: Optional[str] = None
     file_url: str
+    important_dates: Optional[str] = None
+    learning_outcomes: Optional[str] = None
+    class_schedule: Optional[str] = None
+    instructor_contact: Optional[str] = None
+    additional_customizations: Optional[str] = None
 
     def to_dict(self) -> dict:
-        return self.dict()
+        return self.dict(exclude_unset=True)
 
 class SyllabusGeneratorPipeline:
     def __init__(self, prompt=None, parser=None, model=None, verbose=False):
@@ -78,11 +84,11 @@ class SyllabusGeneratorPipeline:
 
             chain = prompt | self.model | self.parser
 
-            if self.verbose: logger.info(f"Chain compilation complete")
+            if self.verbose: logger.info("Chain compilation complete")
 
         except Exception as e:
             logger.error(f"Failed to compile LLM chain: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to compile LLM chain")
+            raise HTTPException(status_code=500, detail="Failed to compile LLM chain")
 
         return chain
 
@@ -140,7 +146,6 @@ class SyllabusSchema(BaseModel):
     learning_resources: List[LearningResource] = Field(description="The learning resources of the course")
     course_schedule: List[CourseScheduleItem] = Field(description="The course schedule")
 
-
 def generate_syllabus(request_args: SyllabusRequestArgs, verbose=True) -> Dict:
     try:
         pipeline = SyllabusGeneratorPipeline(verbose=verbose)
@@ -148,7 +153,6 @@ def generate_syllabus(request_args: SyllabusRequestArgs, verbose=True) -> Dict:
         output = chain.invoke(request_args.to_dict())
     except Exception as e:
         logger.error(f"Failed to generate syllabus: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate syllabus from LLM")
+        raise HTTPException(status_code=500, detail="Failed to generate syllabus from LLM")
     
     return output
-

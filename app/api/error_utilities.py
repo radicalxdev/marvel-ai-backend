@@ -29,6 +29,12 @@ class ToolExecutorError(Exception):
         self.message = message
         super().__init__(self.message)
 
+class SyllabusGeneratorError(Exception):
+    """Raised when an error occurs specifically in the syllabus generator."""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+
 class ErrorResponse(BaseModel):
     """Base model for error responses."""
     status: int

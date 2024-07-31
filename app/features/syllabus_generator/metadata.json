@@ -3,73 +3,73 @@
         {
             "label": "Grade Level",
             "name": "grade_level",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Important Dates",
             "name": "important_dates",
-            "type": "text"
+            "type": "string"
         },
 
         {
             "label": "Subject",
             "name": "subject",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Course Description",
             "name": "course_description",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Learning Outcomes",
             "name": "learning_outcomes",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Course Objectives",
             "name": "course_objectives",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Class Schedule",
             "name": "class_schedule",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Required Materials",
             "name": "required_materials",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Grading Policy",
             "name": "grading_policy",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Course Outline",
             "name": "course_outline",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Class Policies",
             "name": "class_policies",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Instructor Name",
             "name": "instructor_name",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Instructor Title",
             "name": "instructor_title",
-            "type": "text"
+            "type": "string"
         },
         {
             "label": "Instructor Contact",
             "name": "instructor_contact",
-            "type": "text"
+            "type": "string"
         },
         
         {
@@ -85,7 +85,7 @@
         {
             "label": "Additional Customizations",
             "name": "additional_customizations",
-            "type": "text"
+            "type": "string"
         }
     ]
 }

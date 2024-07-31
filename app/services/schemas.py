@@ -3,7 +3,6 @@ from typing import Optional, List, Any
 from enum import Enum
 from services.tool_registry import BaseTool
 
-
 class User(BaseModel):
     id: str
     fullName: str
@@ -54,3 +53,23 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+
+class SyllabusGeneratorArgsModel(BaseModel):
+    subject_topic: str
+    grade_level: str
+    subject: str
+    course_description: str
+    course_objectives: str
+    required_materials: str
+    grading_policy: str
+    course_outline: str
+    class_policies: str
+    instructor_name: str
+    instructor_title: str
+    file_type: Optional[str] = None
+    file_url: str
+    important_dates: Optional[str] = None
+    learning_outcomes: Optional[str] = None
+    class_schedule: Optional[str] = None
+    instructor_contact: Optional[str] = None
+    additional_customizations: Optional[str] = None

@@ -32,13 +32,11 @@ def load_tool_metadata(tool_id):
         logger.error(f"No tool configuration found for tool_id: {tool_id}")
         raise HTTPException(status_code=404, detail="Tool configuration not found")
     
-    # Ensure the base path is relative to the current file's directory
     base_dir = os.path.dirname(os.path.abspath(__file__))
     logger.debug(f"Base directory: {base_dir}")
     
-    # Construct the directory path
-    module_dir_path = os.path.join(base_dir, '..', *tool_config['path'].split('.')[:-1])  # Go one level up and then to the path
-    module_dir_path = os.path.abspath(module_dir_path)  # Get absolute path
+    module_dir_path = os.path.join(base_dir, '..', *tool_config['path'].split('.')[:-1])  
+    module_dir_path = os.path.abspath(module_dir_path) 
     logger.debug(f"Module directory path: {module_dir_path}")
     
     file_path = os.path.join(module_dir_path, tool_config['metadata_file'])
@@ -82,7 +80,7 @@ def validate_file_input(input_name: str, input_value: Any):
             logger.error(error_message)
             raise InputValidationError(error_message)
         try:
-            ToolFile.model_validate(file_obj, from_attributes=True)  # This will raise a validation error if the structure is incorrect
+            ToolFile.model_validate(file_obj, from_attributes=True) 
         except ValidationError:
             error_message = f"Each item in the input `{input_name}` must be a valid ToolFile where a URL is provided"
             logger.error(error_message)
@@ -99,13 +97,11 @@ def validate_input_type(input_name: str, input_value: Any, expected_type: str):
 def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, str]]) -> bool:
     validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}
     
-    # Check for missing inputs
     check_missing_inputs(request_data, validate_inputs)
 
-    # Validate each input in request data against validate definitions
     for input_name, input_value in request_data.items():
         if input_name not in validate_inputs:
-            continue  # Skip validation for extra inputs not defined in validate_inputs
+            continue  
 
         expected_type = validate_inputs[input_name]
         validate_input_type(input_name, input_value, expected_type)
@@ -116,7 +112,7 @@ def convert_files_to_tool_files(inputs: Dict[str, Any]) -> Dict[str, Any]:
     if 'files' in inputs:
         inputs['files'] = [ToolFile(**file_object) for file_object in inputs['files']]
     return inputs
-
+from app.services.schemas import SyllabusGeneratorArgsModel
 def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str, Any]:
     inputs = prepare_input_data(input_data)
     validate_inputs(inputs, validate_data)
@@ -132,8 +128,9 @@ def execute_tool(tool_id, request_inputs_dict):
         
         execute_function = get_executor_by_name(tool_config['path'])
         request_inputs_dict['verbose'] = True
+        syllabus_args = SyllabusGeneratorArgsModel(**request_inputs_dict)
         
-        return execute_function(**request_inputs_dict)
+        return execute_function(syllabus_args)
     
     except VideoTranscriptError as e:
         logger.error(f"Failed to execute tool due to video transcript error: {str(e)}")
