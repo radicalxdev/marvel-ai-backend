@@ -23,18 +23,15 @@ def read_text_file(file_path):
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
-
-
-
 class SyllabusGenerator:
-    def __init__(self, grade_level, subject, num_weeks, start_date=None,
-                 additional_objectives=None,additional_materials=None,
-                 additional_grading_policy=None,additional_class_policy=None,
-                 custom_course_outline=None,
+    def __init__(self, grade_level, subject, num_weeks, start_date,
+                 additional_objectives,additional_materials,
+                 additional_grading_policy,additional_class_policy,
+                 custom_course_outline,
                  model = None,  parser=None, prompt=None):
         
         feature_config = {
-            "model": GoogleGenerativeAI(model="gemini-1.5-pro"),
+            "model": GoogleGenerativeAI(model="gemini-1.5-pro",google_api_key="AIzaSyDNQUuqHBHDd_z2tjMDQ9te8H6DaWbsmr0"),
             "parser": JsonOutputParser(pydantic_object=Syllabus),
             "prompt": read_text_file("prompt/syllabi_gen.txt")
         }
@@ -85,7 +82,7 @@ class SyllabusGenerator:
                 "grade_level": self.grade_level,
                 "subject": self.subject,
                 "num_weeks": self.num_weeks,
-                "start_date": self.start_date.isoformat() if self.start_date else None,
+                "start_date": self.start_date,
                 "additional_objectives": self.additional_objectives,
                 "additional_materials": self.additional_materials,
                 "additional_grading_policy": self.additional_grading_policy,
@@ -94,8 +91,7 @@ class SyllabusGenerator:
             }
 
             # Invoke the chain with the input dictionary
-            output = chain.invoke(input_dict)
-            print(output)
+            output = chain.invoke(input_dict)            
             return output
 
         except ValidationError as e:
