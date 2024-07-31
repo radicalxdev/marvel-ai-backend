@@ -9,11 +9,14 @@ google-cloud-secret-manager
 google-cloud-logging
 google-auth
 google-cloud-storage
+langchain_google_vertexai
 firebase-admin
 chroma
 pypdf
 fpdf
+lxml
 youtube-transcript-api
 pytube
 python-dotenv
 pytest
+pandas

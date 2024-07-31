@@ -18,8 +18,8 @@ grade = 'university'
 subject = 'Computer science'
 Syllabus_type = 'Exam-based'
 
-Test_Engine = Search_engine(grade,subject,Syllabus_type,API_KEY,SEARCH_ENGINE_ID)
-Test_Generator = Syllabus_generator(grade,subject,API_KEY,SEARCH_ENGINE_ID)
+Test_Engine = Search_engine(grade,subject,API_KEY,SEARCH_ENGINE_ID)
+Test_Generator = Syllabus_generator(grade,subject,Syllabus_type,API_KEY,SEARCH_ENGINE_ID)
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
 

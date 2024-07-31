@@ -65,7 +65,7 @@ class Syllabus_generator :
         
     def read_text_file(self,filepath):
         
-        with open(f"{self.path}/{filepath}", 'r') as file:
+        with open(f"{self.path}{filepath}", 'r') as file:
             return file.read()
         
     def build_prompt(self,filepath):
@@ -210,7 +210,7 @@ class Syllabus_generator :
         }
         
         if verbose :
-            for section_name,section_content in response:
+            for section_name,section_content in response.items():
                 print("\n"+"*"*100)
                 print(f"The results of {section_name} are :\n {section_content}")
                 
