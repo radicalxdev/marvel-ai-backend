@@ -6,20 +6,16 @@ from typing import Optional
 
 logger = setup_logger()
 
-def executor(grade_level: str, subject: str,additional_objectives: Optional[str] = None ,
-             additional_materials: Optional[str] = None, additional_gradingpolicy: Optional[str] = None,
-             additional_classpolicy: Optional[str] = None, custom_courseoutline: Optional[str] = None, verbose = True):
+def executor(grade_level: str, subject: str, num_weeks: int,
+             start_date: Optional[str] = None, additional_objectives: Optional[str] = None ,
+             additional_materials: Optional[str] = None, additional_grading_policy: Optional[str] = None,
+             additional_class_policy: Optional[str] = None, custom_course_outline: Optional[str] = None,verbose = True):
     try:
-        additional_objectives = additional_objectives if additional_objectives else None
-        additional_materials = additional_materials if additional_materials else None
-        additional_gradingpolicy = additional_gradingpolicy if additional_gradingpolicy else None
-        additional_classpolicy = additional_classpolicy if additional_classpolicy else None
-        custom_courseoutline = custom_courseoutline if custom_courseoutline else None
-
-        generator = SyllabusGenerator(grade_level, subject,additional_objectives,
-                                      additional_materials,additional_gradingpolicy,
-                                      additional_classpolicy,custom_courseoutline)
-        result = generator.compile()
+        generator = SyllabusGenerator(grade_level, subject,num_weeks,start_date, 
+                                    additional_objectives, additional_materials,additional_grading_policy,
+                                    additional_class_policy,custom_course_outline)
+        
+        result = generator.generate()
         if verbose:
             print(result)
         return result
