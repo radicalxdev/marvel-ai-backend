@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Form
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Any, Optional
 from app.services.schemas import ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
 from app.utils.auth import key_check
 from app.services.logger import setup_logger
 from app.api.error_utilities import InputValidationError, ErrorResponse
 from app.api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
 from app.features.dynamo.core import executor as dynamo_executor
+import json
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -17,12 +18,35 @@ def read_root():
     return {"Hello": "World"}
 
 @router.post("/submit-tool", response_model=Union[ToolResponse, ErrorResponse])
-async def submit_tool(data: ToolRequest, _ = Depends(key_check)):     
-    try: 
-        request_data = data.tool_data
-        requested_tool = load_tool_metadata(request_data.tool_id)
-        request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
-        result = execute_tool(request_data.tool_id, request_inputs_dict)
+async def submit_tool(
+    data: Optional[str] = Form(None),
+    youtube_url: str = Form(""),
+    files: List[UploadFile] = File(None),
+    max_flashcards: int = Query(10),
+    _ = Depends(key_check)
+):     
+    try:
+        result = {}
+
+        if data:
+            data_dict = json.loads(data)
+            tool_request = ToolRequest(**data_dict)
+        
+            request_data = tool_request.tool_data
+            requested_tool = load_tool_metadata(request_data.tool_id)
+            request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
+        
+            result = execute_tool(request_data.tool_id, request_inputs_dict)
+        
+        # Handle additional features 
+        if youtube_url or files:
+            try:
+                flashcards = dynamo_executor(youtube_url=youtube_url, files=files, verbose=True, max_flashcards=max_flashcards)
+                result['flashcards'] = flashcards
+            except Exception as e:
+                logger.error(f"Error processing content: {e}")
+                raise HTTPException(status_code=500, detail="Failed to process content.")
+        
         return ToolResponse(data=result)
     
     except InputValidationError as e:
@@ -37,6 +61,13 @@ async def submit_tool(data: ToolRequest, _ = Depends(key_check)):
         return JSONResponse(
             status_code=e.status_code,
             content=jsonable_encoder(ErrorResponse(status=e.status_code, message=e.detail))
+        )
+    
+    except Exception as e:
+        logger.error(f"Error processing request: {e}")
+        return JSONResponse(
+            status_code=500,
+            content=jsonable_encoder(ErrorResponse(status=500, message="Internal Server Error"))
         )
 
 @router.post("/chat", response_model=ChatResponse)
@@ -56,26 +87,3 @@ async def chat(request: ChatRequest, _ = Depends(key_check)):
     )
     
     return ChatResponse(data=[formatted_response]) 
-
-@router.post("/upload-content", response_model=List[Dict])
-async def upload_content(youtube_url: str = Form(""), files: List[UploadFile] = File(None), max_flashcards: int = Query(10), _ = Depends(key_check)):
-    try:
-        logger.info(f"Received YouTube URL: {youtube_url}")
-        logger.info(f"Received files: {files}")
-        logger.info(f"files type: {type(files)}")
-        if files:
-            for file in files:
-                logger.info(f"File name: {file.filename}, File type: {type(file)}")
-        else:
-            logger.info("No files received")
-
-        logger.info(f"Received max_flashcards: {max_flashcards}")
-
-        flashcards = dynamo_executor(youtube_url=youtube_url, files=files, verbose=True, max_flashcards=max_flashcards)
-        return flashcards
-    except ValueError as e:
-        logger.error(f"ValueError: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        logger.error(f"Error processing content: {e}")
-        raise HTTPException(status_code=500, detail="Failed to process content.")
