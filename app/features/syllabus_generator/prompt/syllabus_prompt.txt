@@ -4,7 +4,6 @@ Follow these instructions to create a {subject} syllabus for your students:
 
 1. Take into account {course_overview}.
 2. Generate a comprehensive overview of the course.
-3. Generate a range of topics that should be mastered by students.
 3. Generate a list of learning objectives to show a student's understanding.
 4. Create a dictionary of policies and exceptions that apply to the course.
 5. {grade_level_assessments}
