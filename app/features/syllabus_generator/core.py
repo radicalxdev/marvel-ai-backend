@@ -52,10 +52,19 @@ def executor(
 
 
 if __name__ == "__main__":
-    executor(
+    s = SyllabusBuilder(
         subject="Data Structures",
         grade_level="University",
         course_overview="This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs.",
         options=["all"],
         customisation="",
     )
+    t = s.create_prompt_temp()
+    print(t)
+    # executor(
+    #     subject="Data Structures",
+    #     grade_level="University",
+    #     course_overview="This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs.",
+    #     options=["all"],
+    #     customisation="",
+    # )
