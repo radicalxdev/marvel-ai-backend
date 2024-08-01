@@ -7,7 +7,8 @@ import requests
 import os
 import json
 import time
-from docx import Document as DocxDocument
+from docx import Document as DocxDocument # new
+import csv # new
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -119,6 +120,61 @@ class BytesFileDocxLoader:
         
         return documents
 
+class BytesFileCSVLoader:
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            if file_type.lower() == "csv":
+                csv_content = self._read_csv(file)
+                metadata = {"source": file_type}
+                
+                doc = Document(page_content=csv_content, metadata=metadata)
+                documents.append(doc)
+            
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+        
+        return documents
+    
+    def _read_csv(self, file: BytesIO) -> str:
+        file.seek(0)
+        csv_reader = csv.reader(file.read().decode('utf-8').splitlines())
+        csv_content = []
+        
+        for row in csv_reader:
+            csv_content.append(", ".join(row))
+        
+        return "\n".join(csv_content)
+
+class BytesFileTxtLoader:
+    def __init__(self, files: List[Tuple[BytesIO, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for file, file_type in self.files:
+            if file_type.lower() == "txt":
+                txt_content = self._read_txt(file)
+                metadata = {"source": file_type}
+                
+                doc = Document(page_content=txt_content, metadata=metadata)
+                documents.append(doc)
+            
+            else:
+                raise ValueError(f"Unsupported file type: {file_type}")
+        
+        return documents
+    
+    def _read_txt(self, file: BytesIO) -> str:
+        file.seek(0)
+        txt_content = file.read().decode('utf-8')
+        return txt_content
+
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], expected_file_type="pdf"):
         self.file_paths = file_paths
@@ -150,9 +206,11 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type=["pdf","docx"], verbose=False):
+    def __init__(self, file_loader=None, expected_file_type=["pdf","docx","csv","txt"], verbose=False):
         self.Docxloader = BytesFileDocxLoader
         self.Pdfloader = BytesFilePDFLoader
+        self.Csvloader = BytesFileCSVLoader
+        self.Txtloader = BytesFileTxtLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
         self.loader = None
@@ -182,6 +240,10 @@ class URLLoader:
                         self.loader = self.Pdfloader
                     elif file_type == "docx":
                         self.loader = self.Docxloader
+                    elif file_type == "csv":
+                        self.loader = self.Csvloader
+                    elif file_type == "txt":
+                        self.loader = self.Txtloader
                     
 
                     # Append to Queue
