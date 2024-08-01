@@ -20,14 +20,14 @@ def read_text_file(file_path: str) -> str:
 
 
 ALLOWED_OPTIONS = {
-    "all",
-    "title",
-    "overview",
-    "objectives",
-    "required_materials",
-    "additional_information",
-    "policies_and_exceptions",
-    "grade_level_assessments",
+    "all": None,
+    "title": "Include a title for the syllabus.",
+    "overview": "Generate a comprehensive overview of the course.",
+    "objectives": "Generate a list of learning objectives to show a student's understanding.",
+    "required_materials": "Generate a list of materials that are required by the students to successfully participate in the course. Materials could be things like books, tools or supplies. Use two key variables in the output of required_materials. One is recommended_books and another is required_items.",
+    "additional_information": "Include any additional information that could be useful to the student",
+    "policies_and_exceptions": "Create a dictionary of policies and exceptions that apply to the course.",
+    "grade_level_assessments": "{grade_level_assessments}",
 }
 
 
