@@ -1,16 +1,16 @@
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser
-from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
+#from langchain_ollama import ChatOllama
+#from langchain_openai import ChatOpenAI
 from langchain_core.pydantic_v1 import BaseModel, Field, validator, ValidationError
 from app.services.logger import setup_logger
 from app.api.error_utilities import InputValidationError, ToolExecutorError
 from app.services.logger import setup_logger
 from datetime import datetime, timedelta
 import os
-import openai
-from google.auth import default, transport
+#import openai
+#from google.auth import default, transport
 from typing import List,Dict, Optional
 
 logger = setup_logger(__name__)
@@ -53,6 +53,7 @@ class SyllabusGenerator:
     def compile(self):
         try:
             input_variables = ["grade_level", "subject", "num_weeks"]
+            #optional start date
             if self.start_date:
                 input_variables.append("start_date")
 
@@ -75,7 +76,7 @@ class SyllabusGenerator:
 
     def generate(self):
         try:
-            # Build the chain
+            
             chain = self.compile()
             # Create input dictionary for the chain
             input_dict = {
@@ -89,7 +90,6 @@ class SyllabusGenerator:
                 "additional_class_policy": self.additional_class_policy,
                 "custom_course_outline": self.custom_course_outline                
             }
-
             # Invoke the chain with the input dictionary
             output = chain.invoke(input_dict)            
             return output
@@ -176,8 +176,9 @@ class Syllabus(BaseModel):
                     "additional_objectives":"",
                     "required_materials": [
                         "Biology textbook by Campbell",
-                        "Lab notebook",
-                        "Safety goggles"
+                        "Book:On the Origin of Species by Charles Darwin"
+                        "https://www.khanacademy.org/science/ms-biology/x0c5bb03129646fd6:cells-and-organisms",
+                        "Lab notebook"
                     ],
                     "additional_materials":"",
                     "grading_policy": {
@@ -188,7 +189,7 @@ class Syllabus(BaseModel):
                         "projects": 10,
                         "other": 5   
                     },
-                    "additional_gradingpolicy":"",
+                    "additional_grading_policy":"",
                     "class_policies": {
                         "attendance": "Students are expected to attend all classes.",
                         "late_work": "Late assignments will be accepted up to one week past the due date.",
@@ -197,7 +198,7 @@ class Syllabus(BaseModel):
                         "special_considerations": "Extra credit available for special projects."
                         
                     },
-                    "additional_classpolicy":"",
+                    "additional_class_policy":"",
                     "course_outline": {
                         "outline": [
                             {"week": 1, "date": "2023-01-09", "topic": "Introduction to Biology" },
@@ -207,7 +208,8 @@ class Syllabus(BaseModel):
                             {"week": 36, "date": "2023-09-18", "topic": "Final Review and Exam Preparation"}
                         ]
                     },
-                    "custom_courseoutline":""
+                    "custom_course_outline":""
                 }
             ]
         }
+        
