@@ -29,9 +29,6 @@ async def submit_tool(
         result = {}
 
         if data:
-            data_dict = json.loads(data)
-            tool_request = ToolRequest(**data_dict)
-        
             request_data = tool_request.tool_data
             requested_tool = load_tool_metadata(request_data.tool_id)
             request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
