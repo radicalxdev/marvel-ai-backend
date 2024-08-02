@@ -14,7 +14,7 @@ import os
 logger = setup_logger(__name__)
 
 # AI Model
-model = VertexAI(model="gemini-1.0-pro", project="dynamo-425102")
+model = VertexAI(model="gemini-1.0-pro")
 
 
 def read_text_file(file_path):
