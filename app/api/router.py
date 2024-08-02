@@ -19,7 +19,7 @@ def read_root():
 
 @router.post("/submit-tool", response_model=Union[ToolResponse, ErrorResponse])
 async def submit_tool(
-    data: Optional[str] = Form(None),
+    data: Optional[str] = Form(""),
     youtube_url: str = Form(""),
     files: List[UploadFile] = File(None),
     max_flashcards: int = Query(10),
