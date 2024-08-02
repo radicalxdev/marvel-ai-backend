@@ -1,5 +1,5 @@
 from langchain_core.pydantic_v1 import BaseModel, Field
-from typing import List, Dict,Optional
+from typing import List, Dict, Optional
 from app.services.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
@@ -7,7 +7,6 @@ from langchain_core.prompts import PromptTemplate
 from fastapi import HTTPException
 
 logger = setup_logger(__name__)
-
 
 class SyllabusRequestArgs(BaseModel):
     subject_topic: str
@@ -21,8 +20,6 @@ class SyllabusRequestArgs(BaseModel):
     class_policies: str
     instructor_name: str
     instructor_title: str
-    file_type: Optional[str] = None
-    file_url: str
     important_dates: Optional[str] = None
     learning_outcomes: Optional[str] = None
     class_schedule: Optional[str] = None
@@ -33,7 +30,7 @@ class SyllabusRequestArgs(BaseModel):
         return self.dict(exclude_unset=True)
 
 class SyllabusGeneratorPipeline:
-    def __init__(self, prompt=None, parser=None, model=None, verbose=False):
+    def __init__(self, prompt=None, customization_prompt=None, parser=None, model=None, verbose=False):
         default_config = {
             "prompt": (
                 "Generate a syllabus based on the following details:\n"
@@ -48,21 +45,27 @@ class SyllabusGeneratorPipeline:
                 "Class Policies: {class_policies}\n"
                 "Instructor Name: {instructor_name}\n"
                 "Instructor Title: {instructor_title}\n"
-                "File Type: {file_type}\n"
-                "File URL: {file_url}\n"
+                "Instructor Contact: {instructor_contact}\n" 
                 "Output in JSON format as per the SyllabusSchema."
+            ),
+            "customization_prompt": (
+                "Modify the following JSON structure based on these additional customizations:\n"
+                "Additional Customizations: {additional_customizations}\n"
+                "JSON to modify: {initial_json}\n"
+                "Output the modified JSON structure."
             ),
             "parser": JsonOutputParser(pydantic_object=SyllabusSchema),
             "model": GoogleGenerativeAI(model="gemini-1.5-pro")
         }
         self.prompt = prompt or default_config["prompt"]
+        self.customization_prompt = customization_prompt or default_config["customization_prompt"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
         self.verbose = verbose
 
     def compile(self):
         try:
-            prompt = PromptTemplate(
+            initial_prompt = PromptTemplate(
                 template=self.prompt,
                 input_variables=[
                     "subject_topic",
@@ -76,21 +79,26 @@ class SyllabusGeneratorPipeline:
                     "class_policies",
                     "instructor_name",
                     "instructor_title",
-                    "file_type",
-                    "file_url"
+                    "instructor_contact"
                 ],
                 partial_variables={"format_instructions": self.parser.get_format_instructions()}
             )
 
-            chain = prompt | self.model | self.parser
+            customization_prompt = PromptTemplate(
+                template=self.customization_prompt,
+                input_variables=["additional_customizations", "initial_json"]
+            )
+
+            initial_chain = initial_prompt | self.model | self.parser
+            customization_chain = customization_prompt | self.model | self.parser
 
             if self.verbose: logger.info("Chain compilation complete")
+
+            return initial_chain, customization_chain
 
         except Exception as e:
             logger.error(f"Failed to compile LLM chain: {e}")
             raise HTTPException(status_code=500, detail="Failed to compile LLM chain")
-
-        return chain
 
 class CourseInformation(BaseModel):
     course_title: str = Field(description="The course title")
@@ -149,10 +157,22 @@ class SyllabusSchema(BaseModel):
 def generate_syllabus(request_args: SyllabusRequestArgs, verbose=True) -> Dict:
     try:
         pipeline = SyllabusGeneratorPipeline(verbose=verbose)
-        chain = pipeline.compile()
-        output = chain.invoke(request_args.to_dict())
+        initial_chain, customization_chain = pipeline.compile()
+        
+        initial_output = initial_chain.invoke(request_args.to_dict())
+        
+        if request_args.additional_customizations:
+            import json
+            initial_json = json.dumps(initial_output)
+            final_output = customization_chain.invoke({
+                "additional_customizations": request_args.additional_customizations,
+                "initial_json": initial_json
+            })
+        else:
+            final_output = initial_output
+        
     except Exception as e:
         logger.error(f"Failed to generate syllabus: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate syllabus from LLM")
     
-    return output
+    return final_output

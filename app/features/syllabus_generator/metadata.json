@@ -71,17 +71,6 @@
             "name": "instructor_contact",
             "type": "string"
         },
-        
-        {
-            "label": "File Type",
-            "name": "file_type",
-            "type": "string"
-        },
-        {
-            "label": "File URL",
-            "name": "file_url",
-            "type": "string"
-        },
         {
             "label": "Additional Customizations",
             "name": "additional_customizations",

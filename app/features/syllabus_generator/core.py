@@ -6,9 +6,6 @@ from app.services.schemas import SyllabusGeneratorArgsModel
 logger = setup_logger(__name__)
 
 def executor(syllabus_args: SyllabusGeneratorArgsModel, verbose: bool = True):
-    if verbose:
-        logger.info(f"File URL loaded: {syllabus_args.file_url}")
-
     try:
         request_args = SyllabusRequestArgs(**syllabus_args.dict(exclude_unset=True))
         syllabus = generate_syllabus(request_args, verbose=verbose)

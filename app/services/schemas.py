@@ -66,8 +66,6 @@ class SyllabusGeneratorArgsModel(BaseModel):
     class_policies: str
     instructor_name: str
     instructor_title: str
-    file_type: Optional[str] = None
-    file_url: str
     important_dates: Optional[str] = None
     learning_outcomes: Optional[str] = None
     class_schedule: Optional[str] = None
