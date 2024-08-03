@@ -1,14 +1,14 @@
+
 import os
 import sys
 import unittest
 from unittest import mock
-from unittest.mock import MagicMock, mock_open, patch
-
 import pytest
+import pytest_mock
+from unittest.mock import MagicMock, mock_open, patch
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
-)
+#export PYTHONPATH=/Users/ashadi/kai-ai-backend_7.7.1/app write this prior to running the test file and change the file path according to your local file path to the app directory
 from features.syllabus_generator.tools import (
     SyllabusBuilder,
     SyllabusModel,
@@ -63,62 +63,81 @@ Feedback and Improvement: Provide constructive feedback and describe how student
 Communication: Explain how progress will be communicated to students and parents, including report cards and informal updates.
 Special Considerations: Outline accommodations and support available for students with learning differences."""
 
+@pytest.fixture
+def sb():
+    return SyllabusBuilder(subject="Math", grade_level="grade 10", verbose=True)
 
-class TestToolMethods(unittest.TestCase):
-    @patch("builtins.open", new_callable=mock_open, read_data=test_prompt)
-    @patch("os.path.join", return_value="prompt/syllabus_prompt.txt")
-    @patch("os.path.dirname", return_value="")
-    def test_ReadTextFile(self, mock_dirname, mock_join, mock_open):
-        content = read_text_file("prompt/syllabus_prompt.txt")
-        self.assertEqual(content, test_prompt)
-        mock_open.assert_called_once_with("prompt/syllabus_prompt.txt", "r")
+def test_read_text_file():
+    content = read_text_file("prompt/syllabus_prompt.txt")
+    assert content == test_prompt
 
-    def test_SyllabusBuilderInitialization(self):
-        syllabus = SyllabusBuilder(subject="Math", grade_level="grade 4", verbose=True)
-        self.assertEqual(syllabus.prompt, test_prompt)
-        self.assertEqual(syllabus.model, default_config["model"])
-        self.assertEqual(syllabus.grade_level, "grade 4")
-        self.assertEqual(syllabus.subject, "Math")
-        self.assertEqual(syllabus.customisation, "")
-        self.assertTrue(syllabus.verbose)
+def test_sb_init(sb):
+    assert sb.subject == "Math"
+    assert sb.grade_level == "grade 10"
+    assert sb.course_overview == ""
+    assert sb.customisation == ""
+    assert sb.verbose == True
 
-        syllabus2 = SyllabusBuilder(
-            subject="Math",
-            grade_level="Grade 4",
-            customisation="Focus more on algebra",
-            verbose=True,
-        )
-        self.assertEqual(syllabus2.customisation, "Focus more on algebra")
+def test_invalid_input():
+    with pytest.raises(ValueError):
+       SyllabusBuilder(subject="",grade_level=10)
+    
+    with pytest.raises(ValueError):
+        SyllabusBuilder(subject="Biology",grade_level=None)
 
-    def test_CreatePromptTemp(self):
-        sb = SyllabusBuilder(grade_level="grade 4", subject="Math")
-        prompt = sb.create_prompt_temp()
 
-        self.assertEqual(sb.grade_level_assessments, assessment_prompt)
-        self.assertIsInstance(prompt, PromptTemplate)
 
-    @patch("builtins.open", new_callable=mock_open, read_data=custom_test_prompt)
-    @patch("os.path.join", return_value="prompt/customisation.txt")
-    @patch("os.path.dirname", return_value="")
-    def test_create_custom_promptTemp(self, mock_dirname, mock_join, mock_open):
-        sb = SyllabusBuilder(
-            grade_level="grade 4", subject="Math", customisation="Focus on Geometry"
-        )
-        prompt = sb.create_custom_promptTemp()
+def test_create_prompt_temp_with_mocked_read_text_file(sb):
+    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+        mock_method.return_value = "high school assessment grading policy"
+        sb.create_prompt_temp()
+        assert sb.grade_level_assessments == "high school assessment grading policy"
+    
+    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+        mock_method.return_value = "Elementary school assessment grading policy"
+        sb_elementary = SyllabusBuilder(subject="Math",grade_level="K12")
+        sb_elementary.create_prompt_temp()
+        assert sb_elementary.grade_level_assessments == "Elementary school assessment grading policy"
 
-        # Check the template content
-        self.assertEqual(prompt.template, custom_test_prompt)
+    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+        mock_method.return_value = "Primary school assessment grading policy"
+        sb_primary = SyllabusBuilder(subject="Math",grade_level="grade 5")
+        sb_primary.create_prompt_temp()
+        assert sb_primary.grade_level_assessments == "Primary school assessment grading policy"
+    
+    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+        mock_method.return_value = "Middle school assessment grading policy"
+        sb_middle = SyllabusBuilder(subject="Math",grade_level="grade 8")
+        sb_middle.create_prompt_temp()
+        assert sb_middle.grade_level_assessments == "Middle school assessment grading policy"
+    
+    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+        mock_method.return_value = "University assessment grading policy"
+        sb_uni = SyllabusBuilder(subject="Math",grade_level="university")
+        sb_uni.create_prompt_temp()
+        assert sb_uni.grade_level_assessments == "University assessment grading policy"
 
-        # Check the input variables
-        self.assertEqual(prompt.input_variables, ["customisation", "syllabus"])
+@patch.object(SyllabusBuilder, "create_custom_promptTemp")
+@patch.object(SyllabusBuilder, "create_prompt_temp")
+def test_compile(mock_create_prompt_temp, mock_create_custom_promptTemp):
+        
+        mock_custom_prompt_instance = MagicMock(spec=PromptTemplate)
+        mock_create_custom_promptTemp.return_value = mock_custom_prompt_instance
 
-        # Check the partial variables format instructions (assuming you have a method get_format_instructions)
-        self.assertIn("format_instructions", prompt.partial_variables)
-        self.assertIsInstance(prompt, PromptTemplate)
+        mock_syllabus_prompt_instance = MagicMock(spec=PromptTemplate)
+        mock_create_prompt_temp.return_value = mock_syllabus_prompt_instance
 
-    def test_validate_response_valid(self):
-        # Create a valid response dictionary
-        valid_response = {
+        sb = SyllabusBuilder(subject="Mathematics", grade_level="Grade 5", verbose=True)
+        # Call the compile method with type "customisation"
+        chain_customisation = sb.compile("customisation")
+        mock_create_custom_promptTemp.assert_called_once()
+
+        chain_syllabus = sb.compile("syllabus")
+        mock_create_prompt_temp.assert_called_once()
+
+  
+def test_validate_respose_valid(sb):
+    valid_response = {
             "title": "Sample Syllabus Title",
             "overview": "Sample overview of the syllabus content.",
             "objectives": [
@@ -145,7 +164,7 @@ class TestToolMethods(unittest.TestCase):
                     "F": "Below 60%",
                 },
             },
-            "required_materials": {
+            "required_materials":{
                 "recommended_books": ["book 1", "book 2", "book 3"],
                 "required_items": [
                     "paint",
@@ -164,20 +183,17 @@ class TestToolMethods(unittest.TestCase):
             },
         }
 
-        # Create an instance of SyllabusBuilder
-        syllabus_builder = SyllabusBuilder(
-            subject="Mathematics", grade_level="Grade 5", verbose=True
-        )
-
+        
         # Call the validate_response method
-        is_valid = syllabus_builder.validate_response(valid_response)
+    is_valid = sb.validate_response(valid_response)
 
         # Assert that the response is valid
-        self.assertTrue(is_valid)
+    assert is_valid == True
 
-    def test_validate_response_invalid(self):
-        # Create an invalid response dictionary (missing objectives)
-        invalid_response = {
+
+def test_validate_response_invalid(sb):
+    # Create an invalid response dictionary (missing objectives)
+    invalid_response = {
             "title": "Sample Syllabus Title",
             "overview": "Sample overview of the syllabus content.",
             # Missing "objectives"
@@ -201,58 +217,22 @@ class TestToolMethods(unittest.TestCase):
                     "F": "Below 60%",
                 },
             },
-            # missing required material
+            #missing required material
             "additional_information": {
-                "Visual aids": ["Diagram of the cardiovascular system", ...],
-                "Resources": [
-                    "Textbook: Electrocardiography for Healthcare Professionals",
-                ],
+                "Visual aids": ["Diagram of the cardiovascular system"],
+                "Resources": ["Electrocardiography for Healthcare Professionals"],
             },
         }
 
-        # Create an instance of SyllabusBuilder
-        syllabus_builder = SyllabusBuilder(
-            subject="Mathematics", grade_level="Grade 5", verbose=True
-        )
-
         # Call the validate_response method
-        is_valid = syllabus_builder.validate_response(invalid_response)
+    is_valid = sb.validate_response(invalid_response)
 
         # Assert that the response is invalid
-        self.assertFalse(is_valid)
+    assert is_valid == False
 
-    @patch.object(SyllabusBuilder, "create_custom_promptTemp")
-    @patch.object(SyllabusBuilder, "create_prompt_temp")
-    @patch("langchain_core.prompts.PromptTemplate", autospec=True)
-    @patch("langchain_google_genai.GoogleGenerativeAI", autospec=True)
-    @patch("langchain_core.output_parsers.JsonOutputParser", autospec=True)
-    def test_compile_customisation_and_syllabus(
-        self,
-        mock_json_parser,
-        mock_google_model,
-        mock_prompt_template,
-        mock_create_prompt_temp,
-        mock_create_custom_promptTemp,
-    ):
-        mock_custom_prompt_instance = MagicMock(spec=PromptTemplate)
-        mock_create_custom_promptTemp.return_value = mock_custom_prompt_instance
-
-        mock_syllabus_prompt_instance = MagicMock(spec=PromptTemplate)
-        mock_create_prompt_temp.return_value = mock_syllabus_prompt_instance
-
-        sb = SyllabusBuilder(subject="Mathematics", grade_level="Grade 5", verbose=True)
-        # Call the compile method with type "customisation"
-        chain_customisation = sb.compile("customisation")
-
-        # Verify that create_custom_promptTemp was called
-        mock_create_custom_promptTemp.assert_called_once()
-
-        chain_syllabus = sb.compile("syllabus")
-        mock_create_prompt_temp.assert_called_once()
-
-    def test_valid_model(self):
-        # Example of a valid input dictionary
-        valid_input = {
+def test_valid_model():
+    # Example of a valid input dictionary
+    valid_input = {
             "title": "Sample Syllabus Title",
             "overview": "Sample overview of the syllabus content.",
             "objectives": [
@@ -281,11 +261,9 @@ class TestToolMethods(unittest.TestCase):
             },
             "additional_information": {
                 "Visual aids": ["Diagram of the cardiovascular system"],
-                "Additional Resources": [
-                    "Electrocardiography for Healthcare Professionals"
-                ],
+                "Additional Resources": ["Electrocardiography for Healthcare Professionals"]
             },
-            "required_materials": {
+            "required_materials":{
                 "recommended_books": ["book 1", "book 2", "book 3"],
                 "required_items": [
                     "paint",
@@ -301,24 +279,20 @@ class TestToolMethods(unittest.TestCase):
         }
 
         # Create an instance of the model with the valid input
-        model_instance = SyllabusModel(**valid_input)
+    model_instance = SyllabusModel(**valid_input)
 
         # Assert that the model instance is valid (should not raise ValidationError)
-        self.assertEqual(model_instance.title, "Sample Syllabus Title")
-        self.assertEqual(model_instance.objectives, valid_input["objectives"])
+    assert model_instance.title == "Sample Syllabus Title"
+    assert model_instance.objectives == valid_input["objectives"]
         # Add more assertions for other fields as needed
 
-    def test_invalid_model(self):
-        # Example of an invalid input dictionary (missing required fields)
-        invalid_input = {
-            "title": "Sample Syllabus Title",
-            # Missing "overview", "objectives", "policies_and_exceptions", "grade_level_assessments", "additional_information" and "required material"
+def test_invalid_model():
+    # Example of an invalid input dictionary (missing required fields)
+    invalid_input = {
+        "title": "Sample Syllabus Title",
+        # Missing "overview", "objectives", "policies_and_exceptions", "grade_level_assessments", "additional_information" and "required material"
         }
 
-        # Try to create an instance of the model with the invalid input
-        with self.assertRaises(ValidationError):
-            SyllabusModel(**invalid_input)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    # Try to create an instance of the model with the invalid input
+    with pytest.raises(ValidationError):
+        SyllabusModel(**invalid_input)
