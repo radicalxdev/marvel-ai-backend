@@ -54,10 +54,11 @@ class Search_engine :
 
 class Syllabus_generator :
     
-    def __init__(self,grade,subject,Syllabus_type,API_KEY,SEARCH_ENGINE_ID,path=""):
+    def __init__(self,grade,subject,Syllabus_type,instructions,API_KEY,SEARCH_ENGINE_ID,path=""):
         self.grade = grade
         self.subject = subject
         self.Syllabus_type = Syllabus_type
+        self.instructions = instructions
         self.model = VertexAI(model_name='gemini-pro',temperature=0.1)
         self.path = path
         Engine = Search_engine(grade,subject,API_KEY,SEARCH_ENGINE_ID)
@@ -97,7 +98,7 @@ class Syllabus_generator :
         prompt = self.build_prompt('prompts/course_description.txt')
         chain = prompt | self.model
         
-        response = chain.invoke({"grade":self.grade,"subject":self.subject,"Syllabus_type":self.Syllabus_type})
+        response = chain.invoke({"grade":self.grade,"subject":self.subject,"Syllabus_type":self.Syllabus_type,"instructions":self.instructions})
         return response
 
     def course_objectives(self,course_description:str) -> str:
@@ -110,7 +111,8 @@ class Syllabus_generator :
                             'grade' : self.grade, 
                             'subject' : self.subject, 
                             'Syllabus_type' : self.Syllabus_type, 
-                            'course_description': course_description
+                            'course_description': course_description,
+                            "instructions":self.instructions
                         })
         
         return self.Validator(response)
@@ -125,7 +127,8 @@ class Syllabus_generator :
                                    'grade' : self.grade,
                                     'subject' : self.subject,
                                     'Syllabus_type' : self.Syllabus_type,
-                                    'web_search' : self.web_search
+                                    'web_search' : self.web_search,
+                                    "instructions":self.instructions
                                })
 
         chain2 = Outline_prompt | self.model
@@ -137,6 +140,7 @@ class Syllabus_generator :
                              'search_results' : search_results,
                              'course_objectives' : course_objectives,
                              'course_description' : course_description,
+                             "instructions":self.instructions
                          })
         
         return self.Validator(response)

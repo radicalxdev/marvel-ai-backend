@@ -8,9 +8,9 @@ the response should be only the rules without any titles or something else
 
 Example structure of the response:
 [
-    "<Rule 1 here ...>",
-    "<Rule 2 here ...>",
-    "<Rule 3 here ...>",
+    "1) <Rule 1 here ...>",
+    "2) <Rule 2 here ...>",
+    "3) <Rule 3 here ...>",
     ...
 ]
 

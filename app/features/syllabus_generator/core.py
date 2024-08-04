@@ -38,7 +38,11 @@ def executor(tool_id: int, inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
             grade = input_mapping.get("grade")
             subject = input_mapping.get("subject")
             syllabus_type = input_mapping.get("Syllabus_type")
-            
+            instructions = input_mapping.get('instructions')
+            if instructions is None:
+                instructions = 'None'
+
+            # instruction is an optional parameter
             if not grade or not subject or not syllabus_type:
                 raise ValueError("Missing required parameters: 'grade', 'subject', or 'Syllabus_type'")
             
@@ -46,6 +50,7 @@ def executor(tool_id: int, inputs: List[Dict[str, Any]]) -> Dict[str, Any]:
             Generator = Syllabus_generator(grade=grade,
                                            subject=subject, 
                                            Syllabus_type=syllabus_type, 
+                                           instructions=instructions,
                                            API_KEY=API_KEY, 
                                            SEARCH_ENGINE_ID=SEARCH_ENGINE_ID, 
                                            path="app/features/syllabus_generator/")

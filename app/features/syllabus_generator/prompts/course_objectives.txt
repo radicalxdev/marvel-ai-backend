@@ -2,15 +2,16 @@ You are an expert syllabus generator. Your have to create a concise and hollisti
 Grade : {grade}
 Subject : {subject}
 Syllabus type : {Syllabus_type}
+Specific Instructions/Information : {instructions}
 
 *The response should be structured as a list. Ensure that the response can be loaded using json.loads in Python.
 the response should be only the objectives without any titles or something else.
 
 Example structure of the response:
 [
-    "<Objective 1 here ...>",
-    "<Objective 2 here ...>",
-    "<Objective 3 here ...>",
+    "1) <Objective 1 here ...>",
+    "2) <Objective 2 here ...>",
+    "3) <Objective 3 here ...>",
     ...
 ]
 
