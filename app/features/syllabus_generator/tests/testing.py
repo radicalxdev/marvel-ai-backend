@@ -4,11 +4,10 @@ import unittest
 from unittest import mock
 from unittest.mock import MagicMock, mock_open, patch
 
-import pytest
-
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
 )
+from dotenv import load_dotenv
 from features.syllabus_generator.tools import (
     SyllabusBuilder,
     SyllabusModel,
@@ -18,6 +17,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
+
+load_dotenv()
 
 default_config = {
     "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
@@ -92,7 +93,7 @@ class TestToolMethods(unittest.TestCase):
 
     def test_CreatePromptTemp(self):
         sb = SyllabusBuilder(grade_level="grade 4", subject="Math")
-        prompt = sb.create_prompt_temp()
+        prompt = sb._create_prompt_temp()
 
         self.assertEqual(sb.grade_level_assessments, assessment_prompt)
         self.assertIsInstance(prompt, PromptTemplate)
@@ -104,7 +105,7 @@ class TestToolMethods(unittest.TestCase):
         sb = SyllabusBuilder(
             grade_level="grade 4", subject="Math", customisation="Focus on Geometry"
         )
-        prompt = sb.create_custom_promptTemp()
+        prompt = sb._create_custom_promptTemp()
 
         # Check the template content
         self.assertEqual(prompt.template, custom_test_prompt)
@@ -170,7 +171,7 @@ class TestToolMethods(unittest.TestCase):
         )
 
         # Call the validate_response method
-        is_valid = syllabus_builder.validate_response(valid_response)
+        is_valid = syllabus_builder._validate_response(valid_response)
 
         # Assert that the response is valid
         self.assertTrue(is_valid)
@@ -216,7 +217,7 @@ class TestToolMethods(unittest.TestCase):
         )
 
         # Call the validate_response method
-        is_valid = syllabus_builder.validate_response(invalid_response)
+        is_valid = syllabus_builder._validate_response(invalid_response)
 
         # Assert that the response is invalid
         self.assertFalse(is_valid)
@@ -242,12 +243,12 @@ class TestToolMethods(unittest.TestCase):
 
         sb = SyllabusBuilder(subject="Mathematics", grade_level="Grade 5", verbose=True)
         # Call the compile method with type "customisation"
-        chain_customisation = sb.compile("customisation")
+        chain_customisation = sb._compile("customisation")
 
         # Verify that create_custom_promptTemp was called
         mock_create_custom_promptTemp.assert_called_once()
 
-        chain_syllabus = sb.compile("syllabus")
+        chain_syllabus = sb._compile("syllabus")
         mock_create_prompt_temp.assert_called_once()
 
     def test_valid_model(self):

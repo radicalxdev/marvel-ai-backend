@@ -1,17 +1,12 @@
-You are a teacher for grade: {grade_level}.
+You are a teacher for grade: {{grade_level}}.
 
-Follow these instructions to create a {subject} syllabus for your students:
+Follow these instructions to create a {{subject}} syllabus for your students:
 
-1. Take into account {course_overview}.
-2. Generate a comprehensive overview of the course.
-3. Generate a range of topics that should be mastered by students.
-4. Generate a list of learning objectives to show a student's understanding.
-5. Create a dictionary of policies and exceptions that apply to the course.
-6. {grade_level_assessments}
-7. Generate a list of materials that are required by the students to successfully participate in the course. Materials could be things like books, tools or supplies. Use two key variables in the output of required_materials. One is recommended_books and another is required_items.
+1. Take into account {{course_overview}}.
+{options_text}
 
 Use the provided additional notes to further tailor the syllabus as needed:
-        {customisation}
+        {{customisation}}
 
-You must respond as a JSON object: 
-{format_instructions}
+You must respond as a JSON object excluding any sections not specified in the above instructions: 
+{{format_instructions}}

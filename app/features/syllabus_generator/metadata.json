@@ -19,6 +19,11 @@
             "label": "Course Overview",
             "name": "course_overview",
             "type": "text"
+        },
+        {
+            "label": "Options",
+            "name": "options",
+            "type": "list"
         }
     ]
 }
