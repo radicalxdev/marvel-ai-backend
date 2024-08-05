@@ -149,7 +149,8 @@ class Syllabus_generator :
                                    'grade' : self.grade,
                                     'subject' : self.subject,
                                     'Syllabus_type' : self.Syllabus_type,
-                                    'web_search' : self.web_search
+                                    'web_search' : self.web_search,
+                                    "instructions":self.instructions
                                })
 
         chain2 = Outline_prompt | self.model
@@ -162,6 +163,7 @@ class Syllabus_generator :
                              'search_results' : search_results,
                              'course_objectives' : course_objectives,
                              'course_description' : course_description,
+                             "instructions":self.instructions
                          })
 
         return self.Validator(response)

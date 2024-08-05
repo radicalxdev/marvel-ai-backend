@@ -14,6 +14,11 @@
             "label": "Syllabus_type",
             "name": "Syllabus_type",
             "type": "text"
+        },
+        {
+            "label": "instructions",
+            "name": "instructions",
+            "type": "text"
         }
     ]
 }

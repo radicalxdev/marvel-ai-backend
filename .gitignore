@@ -164,3 +164,4 @@ cython_debug/
 **/key.txt
 **/local-auth.json
 .vscode
+.DS_Store

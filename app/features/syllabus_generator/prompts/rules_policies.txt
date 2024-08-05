@@ -29,5 +29,4 @@ Use as reference
 Course Outline :
 {course_outline}
 ------------------------
-
 Answer:

@@ -3,6 +3,7 @@ Grade : {grade}
 Subject : {subject}
 Syllabus type : {Syllabus_type}
 Specific Instructions/Information : {instructions}
+Specific Instructions/Information : {instructions}
 
 *The outline should be well structured and detail all the syllabus
 

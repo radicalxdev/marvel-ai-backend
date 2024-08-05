@@ -6,5 +6,4 @@ Specific Instructions/Information : {instructions}
 
 *Respond with brief summary convering key aspects of the course
 the response should be only the description without any titles or something else
-
 Answer:

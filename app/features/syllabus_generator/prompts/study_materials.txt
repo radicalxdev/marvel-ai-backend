@@ -4,8 +4,11 @@ Subject : {subject}
 Syllabus type : {Syllabus_type}
 
 *Explain which study material is used for which purpose
+*Don't be generic give exact materials and their purpose unique to the syllabus
+ 
 The response should be structured as a list of dictionaries with the study material and it's purpose. Ensure that the response can be loaded using json.loads in Python.
 the response should be only the study materials without any titles or something else
+Ensure that responses are crafted to create a welcoming and supportive atmosphere for students, fostering an engaging and inclusive learning environment.
 
 Example structure of the response:
 [
