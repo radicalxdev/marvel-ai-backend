@@ -31,6 +31,10 @@ ALLOWED_OPTIONS = {
     "grade_level_assessments": "{grade_level_assessments}",
 }
 
+# Options that can be added to prompt
+USABLE_OPTIONS = ALLOWED_OPTIONS.copy()
+USABLE_OPTIONS.pop("all", None)
+
 
 class SyllabusBuilder:
     def __init__(
@@ -72,12 +76,23 @@ class SyllabusBuilder:
             raise ValueError("Subject must be provided")
         if self.grade_level is None or len(self.grade_level) == 0:
             raise ValueError("Grade level must be provided")
+        if self.options is None or len(self.options) == 0:
+            raise ValueError("Options must be provided")
+
+        # Guarantee options only contains "all" or doesn't contain it at all
+        seen_all = False
         for item in self.options:
+            if seen_all:
+                raise ValueError(
+                    "Invalid options provided: 'all' option already specified"
+                )
             if item not in ALLOWED_OPTIONS:
                 raise ValueError("Invalid options provided")
+            if item == "all":
+                seen_all = True
 
     # custommises the prompt template based on the grade level provided
-    def create_prompt_temp(self) -> PromptTemplate:
+    def _create_prompt_temp(self) -> PromptTemplate:
         if "k" in self.grade_level.lower().strip():
             self.grade_level_assessments = read_text_file("prompt/elementary.txt")
 
@@ -92,6 +107,21 @@ class SyllabusBuilder:
         else:
             self.grade_level_assessments = read_text_file("prompt/university.txt")
 
+        options_text = ""
+        for num, item in enumerate(self.options, 2):
+            # join the optional commands with "\n" to add to prompt
+            if item == "all":
+                options_text = "\n".join(
+                    [
+                        f"{i}: {text}"
+                        for i, (_, text) in enumerate(USABLE_OPTIONS.items(), 2)
+                    ]
+                )
+                break
+            options_text += f"{num}: {USABLE_OPTIONS[item]}\n"
+
+        self.prompt = self.prompt.format(options_text=options_text)
+
         prompt = PromptTemplate(
             template=self.prompt,
             input_variables=[
@@ -100,7 +130,6 @@ class SyllabusBuilder:
                 "grade_level_assessments",
                 "course_overview",
                 "customisation",
-                "options",
             ],
             partial_variables={
                 "format_instructions": self.parser.get_format_instructions()
@@ -108,7 +137,7 @@ class SyllabusBuilder:
         )
         return prompt
 
-    def create_custom_promptTemp(self):
+    def _create_custom_promptTemp(self):
         custom_prompt = read_text_file("prompt/customisation.txt")
         prompt = PromptTemplate(
             template=custom_prompt,
@@ -120,13 +149,13 @@ class SyllabusBuilder:
         return prompt
 
     # Returns langchain chain for creating syllabus
-    def compile(self, type: str):
-        if type == "syllabus":
-            prompt = self.create_prompt_temp()
-        elif type == "customisation":
-            prompt = self.create_custom_promptTemp()
+    def _compile(self, case: str):
+        if case == "syllabus":
+            prompt = self._create_prompt_temp()
+        elif case == "customisation":
+            prompt = self._create_custom_promptTemp()
         else:
-            raise ValueError(f"Invalid compile type: {type}")
+            raise ValueError(f"Invalid compile type: {case}")
 
         chain = prompt | self.model | self.parser
 
@@ -136,7 +165,8 @@ class SyllabusBuilder:
         return chain
 
     # Probably a better way to do this
-    def validate_response(self, response: Dict) -> bool:
+    # TODO: UPDATE THIS
+    def _validate_response(self, response: Dict) -> bool:
         """
         Validates response from LLM
         """
@@ -192,7 +222,7 @@ class SyllabusBuilder:
                 f"Creating syllabus. Subject: {self.subject}, Grade: {self.grade_level}, Course Overview: {self.course_overview}"
             )
 
-        chain = self.compile("syllabus")
+        chain = self._compile("syllabus")
         max_attempts = 3
         response = ""
 
@@ -207,7 +237,7 @@ class SyllabusBuilder:
                 }
             )
 
-            if self.validate_response(response):
+            if self._validate_response(response):
                 if self.verbose:
                     logger.info(f"Generated valid reponse for attempt {attempt}")
                 return response
@@ -225,7 +255,7 @@ class SyllabusBuilder:
         if self.verbose:
             logger.info(f"Customising syllabus with {self.customisation}")
 
-        chain = self.compile("customisation")
+        chain = self._compile("customisation")
         max_attempts = 3
         response = ""
 
@@ -233,7 +263,7 @@ class SyllabusBuilder:
             {"customisation": self.customisation, "syllabus": syllabus}
         )
         for attempt in range(1, max_attempts + 1):
-            if self.validate_response(response):
+            if self._validate_response(response):
                 if self.verbose:
                     logger.info(f"Generated valid reponse for attempt {attempt}")
                 return response

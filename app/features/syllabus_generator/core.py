@@ -5,6 +5,7 @@ from app.services.tool_registry import ToolFile
 from services.logger import setup_logger
 from app.features.syllabus_generator.tools import SyllabusBuilder
 from app.api.error_utilities import LoaderError, ToolExecutorError
+from dotenv import load_dotenv
 
 logger = setup_logger()
 
@@ -26,7 +27,12 @@ def executor(
             )
 
         sb = SyllabusBuilder(
-            subject, grade_level, course_overview, customisation, verbose=verbose
+            subject,
+            grade_level,
+            course_overview,
+            customisation,
+            options,
+            verbose=verbose,
         )
         syllabus = sb.create_syllabus()
         print(syllabus)
@@ -52,14 +58,15 @@ def executor(
 
 
 if __name__ == "__main__":
+    load_dotenv()
     s = SyllabusBuilder(
         subject="Data Structures",
         grade_level="University",
         course_overview="This course covers the fundamental concepts and applications of data structures in computer science. Students will explore various data structures such as arrays, linked lists, stacks, queues, trees, and graphs.",
-        options=["all"],
+        options=["title", "overview"],
         customisation="",
     )
-    t = s.create_prompt_temp()
+    t = s.create_syllabus()
     print(t)
     # executor(
     #     subject="Data Structures",
