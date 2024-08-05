@@ -251,7 +251,7 @@ class SyllabusBuilder:
         # return anyway cause you probably want to see it anyway
         return response
 
-    def apply_customisation(self, syllabus):
+    def _apply_customisation(self, syllabus):
         if self.verbose:
             logger.info(f"Customising syllabus with {self.customisation}")
 
