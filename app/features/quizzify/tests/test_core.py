@@ -317,7 +317,7 @@ def test_executor_gslides_url_invalid():
 
 def test_executor_gpdfs_url_valid():
     quizzify_args = QuizzifyArgs(
-        topic = "college",
+        topic = "doc",
         n_questions = 1,
         file_url = "https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
         file_type = "gpdf"
