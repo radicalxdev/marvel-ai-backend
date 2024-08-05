@@ -22,3 +22,7 @@ pytest
 pandas
 langchain_google_vertexai
 lxml
+docx
+python-docx
+reportlab
+dotenv

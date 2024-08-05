@@ -2,6 +2,7 @@ You are an expert syllabus generator. Your have to create a detailed course outl
 Grade : {grade}
 Subject : {subject}
 Syllabus type : {Syllabus_type}
+Specific Instructions/Information : {instructions}
 
 *The outline should be well structured and detail all the syllabus
 
@@ -11,16 +12,14 @@ the response should be only the outline without any titles or something else
 Example structure of the response:
 [
     {{
-        "week": 1, 
-        "topic": "<The topic for week 1 ...>"
+        "duration": "<X weeks>",
+        "topic": "<The topic for week 1 ...>",
+        "subtopics" : ["<subtopic 1 here ...>", ... ]
     }},
     {{
-        "week": 2, 
-        "topic": "<The topic for week 2 ...>"
-    }},
-    {{
-        "week": 3, 
-        "topic": "<The topic for week 3 ...>"
+        "duration": "<Y weeks>",
+        "topic": "<The topic for week 2 ...>",
+        "subtopics" : ["<subtopic 1 here ...>", ... ]
     }},
     ...
 ]
@@ -37,4 +36,4 @@ Search results :
 {search_results}
 ------------------------
 
-Answer: 
+Answer:
