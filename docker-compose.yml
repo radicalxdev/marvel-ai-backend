@@ -1,0 +1,30 @@
+# Docker-Compose can set the default environment, which means this file and "Dockerfile" could make everyone understand which things you did in the virtual environment.
+# In the future, I'm not sure whether the Radical AI will employ the DevOps method, but here, you can add you motion below the services.
+# The service could be test the individual module or function, intergretion testing, and so on.
+
+version: '3.8'
+
+services:
+
+# Below that is the example of testing.
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./app:/code/app
+    environment:
+      - ENV_TYPE=dev
+      - GOOGLE_API_KEY=
+      - PYTHONPATH=/code
+    command: ["pytest", 
+              "--log-cli-level=INFO",
+                "app/features/worksheet_generator/tests",
+                "app/features/quizzify/tests/test_loaders.py",  
+                "app/features/worksheet_generator/tests/test_core.py",
+                "app/features/worksheet_generator/tests/test_tools.py",
+                "app/features/worksheet_generator/tests/test_quizbuilder.py",
+                "app/features/worksheet_generator/tests/test_RAGpipeline.py"
+              ]
+
+

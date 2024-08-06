@@ -24,12 +24,16 @@ relative_path = "features/worksheet_generator"
 
 logger = setup_logger(__name__)
 
+# Read text file
 def read_text_file(file_path):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     absolute_file_path = os.path.join(script_dir, file_path)
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
+
+
+# Reason:?????? WHY??
 class RAGRunnable:
     def __init__(self, func):
         self.func = func
@@ -42,6 +46,7 @@ class RAGRunnable:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
+# Reason:?????? WHY??
 class UploadPDFLoader:
     def __init__(self, files: List[UploadFile]):
         self.files = files
@@ -58,6 +63,7 @@ class UploadPDFLoader:
                     documents.append(doc)
         return documents
 
+# Reason:?????? WHY??
 class BytesFilePDFLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
@@ -77,6 +83,7 @@ class BytesFilePDFLoader:
                 raise ValueError(f"Unsupported file type: {file_type}")
         return documents
 
+# Reason:?????? WHY??
 class URLLoader:
     def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
         self.loader = file_loader or BytesFilePDFLoader
@@ -117,6 +124,7 @@ class URLLoader:
             raise LoaderError("Unable to load any files from URLs")
         return documents
 
+# Reason:?????? WHY??
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
         default_config = {
@@ -179,7 +187,7 @@ class RAGpipeline:
         pipeline = self.load_PDFs | self.split_loaded_documents | self.create_vectorstore
         return pipeline(documents)
 
-
+# Reason:?????? WHY??
 class QuizBuilder:
     def __init__(self, vectorstore, topic, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
@@ -269,16 +277,17 @@ class QuizBuilder:
 
         return generated_questions[:num_questions]
 
+# Reason:?????? WHY??
 class QuestionChoice(BaseModel):
     key: str = Field(description="A unique identifier for the choice using letters A, B, C, D, etc.")
     value: str = Field(description="The text content of the choice")
-
+# Reason:?????? WHY??
 class QuizQuestion(BaseModel):
     question: str = Field(description="The question text")
     choices: List[QuestionChoice] = Field(description="A list of choices")
     answer: str = Field(description="The correct answer")
     explanation: str = Field(description="An explanation of why the answer is correct")
-
+# Reason:?????? WHY??
 class TextOrPDFLoader:
     def __init__(self, text: str = None, file: UploadFile = None):
         self.text = text
@@ -294,7 +303,7 @@ class TextOrPDFLoader:
             return content
         else:
             raise ValueError("No text or file provided for question generation")
-
+# Reason:?????? WHY??
 class QuestionGenerator:
     def __init__(self, model: GoogleGenerativeAI = GoogleGenerativeAI(model="gemini-1.0-pro"), verbose=False):
         self.model = model
@@ -318,6 +327,10 @@ class QuestionGenerator:
 
         return response
 
+
+
+# Reason:?????? WHY????????????
+# Right now, we haven't start to build API. We just build the function. Why code this?
 app = FastAPI()
 
 @app.post("/generate-questions")
