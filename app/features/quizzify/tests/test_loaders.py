@@ -41,7 +41,7 @@ def test_load_pdf_from_url(mock_get, url_loader):
 @patch('requests.get')
 def test_load_pdf_from_url(mock_get):
     # Simulate reading a local PDF file or use mock PDF content
-    pdf_file_path = "features/quizzify/tests/test.pdf"
+    pdf_file_path = "/code/app/features/quizzify/tests/test.pdf"
     with open(pdf_file_path, 'rb') as pdf_file:
         pdf_content = pdf_file.read()
 
