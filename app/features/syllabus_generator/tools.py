@@ -91,6 +91,57 @@ class SyllabusBuilder:
             if item == "all":
                 seen_all = True
 
+    # Probably a better way to do this
+    # TODO: UPDATE THIS
+    def _validate_response(self, response: Dict) -> bool:
+        """
+        Validates response from LLM
+        """
+        try:
+            # Assuming reponse is already a dict
+            if isinstance(response, dict):
+                if (
+                    "title" in response
+                    and "overview" in response
+                    and "objectives" in response
+                    and "policies_and_exceptions" in response
+                    and "required_materials" in response
+                ):
+                    # Check objectives in correct format
+                    objectives = response["objectives"]
+                    if isinstance(objectives, list):
+                        for item in objectives:
+                            if not isinstance(item, str):
+                                return False
+
+                    # Check policies_and_exceptions in correct format
+                    policies_and_exceptions = response["policies_and_exceptions"]
+                    if isinstance(policies_and_exceptions, dict):
+                        for key, value in policies_and_exceptions.items():
+                            if not isinstance(key, str) or not isinstance(value, str):
+                                return False
+
+                    # Check required_materials in correct format
+                    required_materials = response["required_materials"]
+                    if isinstance(required_materials, dict):
+                        for key, val in required_materials.items():
+                            if not isinstance(key, str) or not isinstance(val, list):
+                                return False
+                        required_keys = {"recommended_books", "required_items"}
+                        if set(required_materials.keys()) != required_keys:
+                            return False
+
+            if self.verbose:
+                logger.info("Response validated successfully")
+            return True
+
+        except TypeError as e:
+            logger.error(f"TypeError during reponse validation: {e}")
+            return False
+        except ValidationError as e:
+            logger.warn(f"ValidationError during response validation: {e}")
+            return False
+
     # custommises the prompt template based on the grade level provided
     def _create_prompt_temp(self) -> PromptTemplate:
         if "k" in self.grade_level.lower().strip():
@@ -163,57 +214,6 @@ class SyllabusBuilder:
             logger.info("Chain compilation complete")
 
         return chain
-
-    # Probably a better way to do this
-    # TODO: UPDATE THIS
-    def _validate_response(self, response: Dict) -> bool:
-        """
-        Validates response from LLM
-        """
-        try:
-            # Assuming reponse is already a dict
-            if isinstance(response, dict):
-                if (
-                    "title" in response
-                    and "overview" in response
-                    and "objectives" in response
-                    and "policies_and_exceptions" in response
-                    and "required_materials" in response
-                ):
-                    # Check objectives in correct format
-                    objectives = response["objectives"]
-                    if isinstance(objectives, list):
-                        for item in objectives:
-                            if not isinstance(item, str):
-                                return False
-
-                    # Check policies_and_exceptions in correct format
-                    policies_and_exceptions = response["policies_and_exceptions"]
-                    if isinstance(policies_and_exceptions, dict):
-                        for key, value in policies_and_exceptions.items():
-                            if not isinstance(key, str) or not isinstance(value, str):
-                                return False
-
-                    # Check required_materials in correct format
-                    required_materials = response["required_materials"]
-                    if isinstance(required_materials, dict):
-                        for key, val in required_materials.items():
-                            if not isinstance(key, str) or not isinstance(val, list):
-                                return False
-                        required_keys = {"recommended_books", "required_items"}
-                        if set(required_materials.keys()) != required_keys:
-                            return False
-
-            if self.verbose:
-                logger.info("Response validated successfully")
-            return True
-
-        except TypeError as e:
-            logger.error(f"TypeError during reponse validation: {e}")
-            return False
-        except ValidationError as e:
-            logger.warn(f"ValidationError during response validation: {e}")
-            return False
 
     def create_syllabus(self):
         """Create syllabus by invoking the compiled chain."""

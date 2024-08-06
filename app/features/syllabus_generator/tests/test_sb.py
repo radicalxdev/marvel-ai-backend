@@ -12,6 +12,7 @@ sys.path.insert(
 )
 
 # export PYTHONPATH=/Users/ashadi/kai-ai-backend_7.7.1/app write this prior to running the test file and change the file path according to your local file path to the app directory
+from dotenv import load_dotenv
 from features.syllabus_generator.tools import (
     SyllabusBuilder,
     SyllabusModel,
@@ -22,12 +23,51 @@ from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from pydantic import BaseModel, Field, ValidationError
 
+load_dotenv()
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+)
+
+# export PYTHONPATH=/Users/ashadi/kai-ai-backend_7.7.1/app write this prior to running the test file and change the file path according to your local file path to the app directory
+
 default_config = {
     "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
     "parser": JsonOutputParser(pydantic_object=SyllabusModel),
 }
 
-test_prompt = """You are a teacher for grade: {grade_level}.
+TEST_PROMPT_PATH = os.path.join(
+    os.path.dirname(__file__), "../prompt/syllabus_prompt.txt"
+)
+
+
+@pytest.fixture
+def get_test_prompt():
+    with open(TEST_PROMPT_PATH) as f:
+        return f.read()
+
+
+# test_prompt = """You are a teacher for grade: {grade_level}.
+#
+# Follow these instructions to create a {subject} syllabus for your students:
+#
+# 1. Take into account {course_overview}.
+# 2. Generate a comprehensive overview of the course.
+# 3. Generate a range of topics that should be mastered by students.
+# 4. Generate a list of learning objectives to show a student's understanding.
+# 5. Create a dictionary of policies and exceptions that apply to the course.
+# 6. {grade_level_assessments}
+# 7. Generate a list of materials that are required by the students to successfully participate in the course. Materials could be things like books, tools or supplies. Use two key variables in the output of required_materials. One is recommended_books and another is required_items.
+#
+# Use the provided additional notes to further tailor the syllabus as needed:
+#         {customisation}
+#
+#
+# You must respond as a JSON object:
+# {format_instructions}
+# """
+
+test_prompt = """
+You are a teacher for grade: {grade_level}.
 
 Follow these instructions to create a {subject} syllabus for your students:
 
@@ -42,9 +82,9 @@ Follow these instructions to create a {subject} syllabus for your students:
 Use the provided additional notes to further tailor the syllabus as needed:
         {customisation}
 
-
 You must respond as a JSON object: 
 {format_instructions}
+
 """
 
 custom_test_prompt = """syllabus : {syllabus}
@@ -74,6 +114,10 @@ def sb():
 
 def test_read_text_file():
     content = read_text_file("prompt/syllabus_prompt.txt")
+    print(content)
+    with open(TEST_PROMPT_PATH) as f:
+        p = f.read()
+        print(p)
     assert content == test_prompt
 
 
@@ -82,7 +126,7 @@ def test_sb_init(sb):
     assert sb.grade_level == "grade 10"
     assert sb.course_overview == ""
     assert sb.customisation == ""
-    assert sb.verbose == True
+    assert sb.verbose is True
 
 
 def test_invalid_input():
@@ -102,7 +146,7 @@ def test_create_prompt_temp_with_mocked_read_text_file(sb):
     with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "Elementary school assessment grading policy"
         sb_elementary = SyllabusBuilder(subject="Math", grade_level="K12")
-        sb_elementary.create_prompt_temp()
+        sb_elementary._create_prompt_temp()
         assert (
             sb_elementary.grade_level_assessments
             == "Elementary school assessment grading policy"
@@ -111,7 +155,7 @@ def test_create_prompt_temp_with_mocked_read_text_file(sb):
     with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "Primary school assessment grading policy"
         sb_primary = SyllabusBuilder(subject="Math", grade_level="grade 5")
-        sb_primary.create_prompt_temp()
+        sb_primary._create_prompt_temp()
         assert (
             sb_primary.grade_level_assessments
             == "Primary school assessment grading policy"
@@ -120,7 +164,7 @@ def test_create_prompt_temp_with_mocked_read_text_file(sb):
     with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "Middle school assessment grading policy"
         sb_middle = SyllabusBuilder(subject="Math", grade_level="grade 8")
-        sb_middle.create_prompt_temp()
+        sb_middle._create_prompt_temp()
         assert (
             sb_middle.grade_level_assessments
             == "Middle school assessment grading policy"
@@ -129,7 +173,7 @@ def test_create_prompt_temp_with_mocked_read_text_file(sb):
     with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "University assessment grading policy"
         sb_uni = SyllabusBuilder(subject="Math", grade_level="university")
-        sb_uni.create_prompt_temp()
+        sb_uni._create_prompt_temp()
         assert sb_uni.grade_level_assessments == "University assessment grading policy"
 
 
@@ -144,10 +188,10 @@ def test_compile(mock_create_prompt_temp, mock_create_custom_promptTemp):
 
     sb = SyllabusBuilder(subject="Mathematics", grade_level="Grade 5", verbose=True)
     # Call the compile method with type "customisation"
-    chain_customisation = sb.compile("customisation")
+    chain_customisation = sb._compile("customisation")
     mock_create_custom_promptTemp.assert_called_once()
 
-    chain_syllabus = sb.compile("syllabus")
+    chain_syllabus = sb._compile("syllabus")
     mock_create_prompt_temp.assert_called_once()
 
 
@@ -314,3 +358,7 @@ def test_invalid_model():
     # Try to create an instance of the model with the invalid input
     with pytest.raises(ValidationError):
         SyllabusModel(**invalid_input)
+
+
+if __name__ == "__main__":
+    print(get_test_prompt())
