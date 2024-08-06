@@ -239,8 +239,13 @@ class RAGpipeline:
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
-        
-        self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+
+
+        logger.info("Before self.vectorstore_class.from_documents")
+        print(documents)
+
+        self.vectorstore = self.vectorstore_class.from_documents(documents[:-1], self.embedding_model)
+        logger.info("AFTER self.vectorstore_class.from_documents")
 
         if self.verbose: logger.info(f"Vectorstore created")
         return self.vectorstore

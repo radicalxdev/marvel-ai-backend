@@ -19,13 +19,17 @@ def read_root():
 async def submit_tool( data: ToolRequest, _ = Depends(key_check)):     
     try: 
         # Unpack GenericRequest for tool data
+        print("Before request_data")
         request_data = data.tool_data
         
+        print("Before load_tool_metadata")
         requested_tool = load_tool_metadata(request_data.tool_id)
-        
+        print("Before finalize_inputs")
         request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
-
+        print("Before execute_tool")
         result = execute_tool(request_data.tool_id, request_inputs_dict)
+
+        print("Before ToolResponse")
         
         return ToolResponse(data=result)
     

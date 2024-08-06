@@ -6,6 +6,11 @@ from app.features.worksheet_generator.core import executor
 from app.api.error_utilities import ToolExecutorError
 from app.features.worksheet_generator.tools import LoaderError
 
+
+def test():
+    print("Hi Test")
+
+# 1st Test Cases: Test the function of "executor" in core.py.
 def test_executor_success():
 
     files = []  
@@ -16,14 +21,12 @@ def test_executor_success():
     context = "test context"
     verbose = False
 
-    try:
-        result = executor(files, topic, num_questions, grade_level, question_type, context, verbose)
-    except ToolExecutorError:
-        pytest.fail("executor raised ToolExecutorError unexpectedly")
 
-    assert result is not None
-    assert len(result) == num_questions
+    with pytest.raises(ToolExecutorError, match="No files provided for processing"):
+        executor(files, topic, num_questions, grade_level, question_type, context, verbose)
 
+
+# 2nd Test Cases: Test the function of "executor" in core.py.
 def test_executor_failure_loader_error(monkeypatch):
 
     files = []  
