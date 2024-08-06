@@ -23,3 +23,7 @@ pandas
 langchain_google_vertexai
 html5lib
 beautifulsoup4
+docx
+python-docx
+reportlab
+dotenv

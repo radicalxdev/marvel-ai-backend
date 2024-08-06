@@ -21,5 +21,4 @@ Course Description :
 {course_description}
 ------------------------
 
-Answer: 
-
+Answer:

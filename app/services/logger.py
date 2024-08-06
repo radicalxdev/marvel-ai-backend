@@ -1,10 +1,9 @@
 import logging
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv,find_dotenv
 
 # Load environment variables from .env file
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', '.env')
-load_dotenv(dotenv_path)
+load_dotenv(find_dotenv())
 
 def setup_logger(name=__name__):
     """
@@ -24,7 +23,7 @@ def setup_logger(name=__name__):
 
     # Obtain a reference to the logger
     logger = logging.getLogger(name)
-    
+
     if not logger.handlers:
         handler = logging.StreamHandler()
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -34,5 +33,3 @@ def setup_logger(name=__name__):
         logger.propagate = True
 
     return logger
-
-logger = setup_logger()
