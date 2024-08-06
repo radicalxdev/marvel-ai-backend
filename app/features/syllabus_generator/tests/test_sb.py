@@ -1,14 +1,17 @@
-
 import os
 import sys
 import unittest
 from unittest import mock
+from unittest.mock import MagicMock, mock_open, patch
+
 import pytest
 import pytest_mock
-from unittest.mock import MagicMock, mock_open, patch
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
-#export PYTHONPATH=/Users/ashadi/kai-ai-backend_7.7.1/app write this prior to running the test file and change the file path according to your local file path to the app directory
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+)
+
+# export PYTHONPATH=/Users/ashadi/kai-ai-backend_7.7.1/app write this prior to running the test file and change the file path according to your local file path to the app directory
 from features.syllabus_generator.tools import (
     SyllabusBuilder,
     SyllabusModel,
@@ -63,13 +66,16 @@ Feedback and Improvement: Provide constructive feedback and describe how student
 Communication: Explain how progress will be communicated to students and parents, including report cards and informal updates.
 Special Considerations: Outline accommodations and support available for students with learning differences."""
 
+
 @pytest.fixture
 def sb():
     return SyllabusBuilder(subject="Math", grade_level="grade 10", verbose=True)
 
+
 def test_read_text_file():
     content = read_text_file("prompt/syllabus_prompt.txt")
     assert content == test_prompt
+
 
 def test_sb_init(sb):
     assert sb.subject == "Math"
@@ -78,220 +84,232 @@ def test_sb_init(sb):
     assert sb.customisation == ""
     assert sb.verbose == True
 
+
 def test_invalid_input():
     with pytest.raises(ValueError):
-       SyllabusBuilder(subject="",grade_level=10)
-    
-    with pytest.raises(ValueError):
-        SyllabusBuilder(subject="Biology",grade_level=None)
+        SyllabusBuilder(subject="", grade_level=10)
 
+    with pytest.raises(ValueError):
+        SyllabusBuilder(subject="Biology", grade_level=None)
 
 
 def test_create_prompt_temp_with_mocked_read_text_file(sb):
-    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+    with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "high school assessment grading policy"
         sb.create_prompt_temp()
         assert sb.grade_level_assessments == "high school assessment grading policy"
-    
-    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
-        mock_method.return_value = "Elementary school assessment grading policy"
-        sb_elementary = SyllabusBuilder(subject="Math",grade_level="K12")
-        sb_elementary.create_prompt_temp()
-        assert sb_elementary.grade_level_assessments == "Elementary school assessment grading policy"
 
-    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+    with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
+        mock_method.return_value = "Elementary school assessment grading policy"
+        sb_elementary = SyllabusBuilder(subject="Math", grade_level="K12")
+        sb_elementary.create_prompt_temp()
+        assert (
+            sb_elementary.grade_level_assessments
+            == "Elementary school assessment grading policy"
+        )
+
+    with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "Primary school assessment grading policy"
-        sb_primary = SyllabusBuilder(subject="Math",grade_level="grade 5")
+        sb_primary = SyllabusBuilder(subject="Math", grade_level="grade 5")
         sb_primary.create_prompt_temp()
-        assert sb_primary.grade_level_assessments == "Primary school assessment grading policy"
-    
-    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+        assert (
+            sb_primary.grade_level_assessments
+            == "Primary school assessment grading policy"
+        )
+
+    with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "Middle school assessment grading policy"
-        sb_middle = SyllabusBuilder(subject="Math",grade_level="grade 8")
+        sb_middle = SyllabusBuilder(subject="Math", grade_level="grade 8")
         sb_middle.create_prompt_temp()
-        assert sb_middle.grade_level_assessments == "Middle school assessment grading policy"
-    
-    with patch('features.syllabus_generator.tools.read_text_file') as mock_method:
+        assert (
+            sb_middle.grade_level_assessments
+            == "Middle school assessment grading policy"
+        )
+
+    with patch("features.syllabus_generator.tools.read_text_file") as mock_method:
         mock_method.return_value = "University assessment grading policy"
-        sb_uni = SyllabusBuilder(subject="Math",grade_level="university")
+        sb_uni = SyllabusBuilder(subject="Math", grade_level="university")
         sb_uni.create_prompt_temp()
         assert sb_uni.grade_level_assessments == "University assessment grading policy"
+
 
 @patch.object(SyllabusBuilder, "create_custom_promptTemp")
 @patch.object(SyllabusBuilder, "create_prompt_temp")
 def test_compile(mock_create_prompt_temp, mock_create_custom_promptTemp):
-        
-        mock_custom_prompt_instance = MagicMock(spec=PromptTemplate)
-        mock_create_custom_promptTemp.return_value = mock_custom_prompt_instance
+    mock_custom_prompt_instance = MagicMock(spec=PromptTemplate)
+    mock_create_custom_promptTemp.return_value = mock_custom_prompt_instance
 
-        mock_syllabus_prompt_instance = MagicMock(spec=PromptTemplate)
-        mock_create_prompt_temp.return_value = mock_syllabus_prompt_instance
+    mock_syllabus_prompt_instance = MagicMock(spec=PromptTemplate)
+    mock_create_prompt_temp.return_value = mock_syllabus_prompt_instance
 
-        sb = SyllabusBuilder(subject="Mathematics", grade_level="Grade 5", verbose=True)
-        # Call the compile method with type "customisation"
-        chain_customisation = sb.compile("customisation")
-        mock_create_custom_promptTemp.assert_called_once()
+    sb = SyllabusBuilder(subject="Mathematics", grade_level="Grade 5", verbose=True)
+    # Call the compile method with type "customisation"
+    chain_customisation = sb.compile("customisation")
+    mock_create_custom_promptTemp.assert_called_once()
 
-        chain_syllabus = sb.compile("syllabus")
-        mock_create_prompt_temp.assert_called_once()
+    chain_syllabus = sb.compile("syllabus")
+    mock_create_prompt_temp.assert_called_once()
 
-  
+
 def test_validate_respose_valid(sb):
     valid_response = {
-            "title": "Sample Syllabus Title",
-            "overview": "Sample overview of the syllabus content.",
-            "objectives": [
-                "Define the key terms associated with...",
-                "Describe the cardiac cycle...",
+        "title": "Sample Syllabus Title",
+        "overview": "Sample overview of the syllabus content.",
+        "objectives": [
+            "Define the key terms associated with...",
+            "Describe the cardiac cycle...",
+        ],
+        "policies_and_exceptions": {
+            "attendance_requirements": "Sample attendance requirements...",
+            "make_up_work": "Sample make-up work policy...",
+        },
+        "grade_level_assessments": {
+            "assessment_components": {
+                "assignments": 20,
+                "exams": 25,
+                "projects": 25,
+                "presentations": 15,
+                "participation": 15,
+            },
+            "grade_scale": {
+                "A": "90-100%",
+                "B": "80-89%",
+                "C": "70-79%",
+                "D": "60-69%",
+                "F": "Below 60%",
+            },
+        },
+        "required_materials": {
+            "recommended_books": ["book 1", "book 2", "book 3"],
+            "required_items": [
+                "paint",
+                "paintbrush",
+                "pencil",
+                "eraser",
+                "notebooks" "sharpies",
+                "crayons",
+                "black ink pen",
+                "ruler",
             ],
-            "policies_and_exceptions": {
-                "attendance_requirements": "Sample attendance requirements...",
-                "make_up_work": "Sample make-up work policy...",
-            },
-            "grade_level_assessments": {
-                "assessment_components": {
-                    "assignments": 20,
-                    "exams": 25,
-                    "projects": 25,
-                    "presentations": 15,
-                    "participation": 15,
-                },
-                "grade_scale": {
-                    "A": "90-100%",
-                    "B": "80-89%",
-                    "C": "70-79%",
-                    "D": "60-69%",
-                    "F": "Below 60%",
-                },
-            },
-            "required_materials":{
-                "recommended_books": ["book 1", "book 2", "book 3"],
-                "required_items": [
-                    "paint",
-                    "paintbrush",
-                    "pencil",
-                    "eraser",
-                    "notebooks" "sharpies",
-                    "crayons",
-                    "black ink pen",
-                    "ruler",
-                ],
-            },
-            "additional_information": {
-                "Visual aids": ["Diagram of the cardiovascular system", ...],
-                "Resources": ["Electrocardiography for Healthcare Professionals"],
-            },
-        }
+        },
+        "additional_information": {
+            "Visual aids": ["Diagram of the cardiovascular system", ...],
+            "Resources": ["Electrocardiography for Healthcare Professionals"],
+        },
+    }
 
-        
-        # Call the validate_response method
+    # Call the validate_response method
     is_valid = sb.validate_response(valid_response)
 
-        # Assert that the response is valid
+    # Assert that the response is valid
     assert is_valid == True
 
 
 def test_validate_response_invalid(sb):
     # Create an invalid response dictionary (missing objectives)
     invalid_response = {
-            "title": "Sample Syllabus Title",
-            "overview": "Sample overview of the syllabus content.",
-            # Missing "objectives"
-            "policies_and_exceptions": {
-                "attendance_requirements": "Sample attendance requirements...",
-                "make_up_work": "Sample make-up work policy...",
+        "title": "Sample Syllabus Title",
+        "overview": "Sample overview of the syllabus content.",
+        # Missing "objectives"
+        "policies_and_exceptions": {
+            "attendance_requirements": "Sample attendance requirements...",
+            "make_up_work": "Sample make-up work policy...",
+        },
+        "grade_level_assessments": {
+            "assessment_components": {
+                "assignments": 20,
+                "exams": 25,
+                "projects": 25,
+                "presentations": 15,
+                "participation": 15,
             },
-            "grade_level_assessments": {
-                "assessment_components": {
-                    "assignments": 20,
-                    "exams": 25,
-                    "projects": 25,
-                    "presentations": 15,
-                    "participation": 15,
-                },
-                "grade_scale": {
-                    "A": "90-100%",
-                    "B": "80-89%",
-                    "C": "70-79%",
-                    "D": "60-69%",
-                    "F": "Below 60%",
-                },
+            "grade_scale": {
+                "A": "90-100%",
+                "B": "80-89%",
+                "C": "70-79%",
+                "D": "60-69%",
+                "F": "Below 60%",
             },
-            #missing required material
-            "additional_information": {
-                "Visual aids": ["Diagram of the cardiovascular system"],
-                "Resources": ["Electrocardiography for Healthcare Professionals"],
-            },
-        }
+        },
+        # missing required material
+        "additional_information": {
+            "Visual aids": ["Diagram of the cardiovascular system"],
+            "Resources": ["Electrocardiography for Healthcare Professionals"],
+        },
+    }
 
-        # Call the validate_response method
+    # Call the validate_response method
     is_valid = sb.validate_response(invalid_response)
 
-        # Assert that the response is invalid
+    # Assert that the response is invalid
     assert is_valid == False
+
 
 def test_valid_model():
     # Example of a valid input dictionary
     valid_input = {
-            "title": "Sample Syllabus Title",
-            "overview": "Sample overview of the syllabus content.",
-            "objectives": [
-                "Define the key terms associated with...",
-                "Describe the cardiac cycle...",
+        "title": "Sample Syllabus Title",
+        "overview": "Sample overview of the syllabus content.",
+        "objectives": [
+            "Define the key terms associated with...",
+            "Describe the cardiac cycle...",
+        ],
+        "policies_and_exceptions": {
+            "attendance_requirements": "Sample attendance requirements...",
+            "make_up_work": "Sample make-up work policy...",
+        },
+        "grade_level_assessments": {
+            "assessment_components": {
+                "assignments": 20,
+                "exams": 25,
+                "projects": 25,
+                "presentations": 15,
+                "participation": 15,
+            },
+            "grade_scale": {
+                "A": "90-100%",
+                "B": "80-89%",
+                "C": "70-79%",
+                "D": "60-69%",
+                "F": "Below 60%",
+            },
+        },
+        "additional_information": {
+            "Visual aids": ["Diagram of the cardiovascular system"],
+            "Additional Resources": [
+                "Electrocardiography for Healthcare Professionals"
             ],
-            "policies_and_exceptions": {
-                "attendance_requirements": "Sample attendance requirements...",
-                "make_up_work": "Sample make-up work policy...",
-            },
-            "grade_level_assessments": {
-                "assessment_components": {
-                    "assignments": 20,
-                    "exams": 25,
-                    "projects": 25,
-                    "presentations": 15,
-                    "participation": 15,
-                },
-                "grade_scale": {
-                    "A": "90-100%",
-                    "B": "80-89%",
-                    "C": "70-79%",
-                    "D": "60-69%",
-                    "F": "Below 60%",
-                },
-            },
-            "additional_information": {
-                "Visual aids": ["Diagram of the cardiovascular system"],
-                "Additional Resources": ["Electrocardiography for Healthcare Professionals"]
-            },
-            "required_materials":{
-                "recommended_books": ["book 1", "book 2", "book 3"],
-                "required_items": [
-                    "paint",
-                    "paintbrush",
-                    "pencil",
-                    "eraser",
-                    "notebooks" "sharpies",
-                    "crayons",
-                    "black ink pen",
-                    "ruler",
-                ],
-            },
-        }
+        },
+        "required_materials": {
+            "recommended_books": ["book 1", "book 2", "book 3"],
+            "required_items": [
+                "paint",
+                "paintbrush",
+                "pencil",
+                "eraser",
+                "notebooks" "sharpies",
+                "crayons",
+                "black ink pen",
+                "ruler",
+            ],
+        },
+    }
 
-        # Create an instance of the model with the valid input
+    # Create an instance of the model with the valid input
     model_instance = SyllabusModel(**valid_input)
 
-        # Assert that the model instance is valid (should not raise ValidationError)
+    # Assert that the model instance is valid (should not raise ValidationError)
     assert model_instance.title == "Sample Syllabus Title"
     assert model_instance.objectives == valid_input["objectives"]
-        # Add more assertions for other fields as needed
+    # Add more assertions for other fields as needed
+
 
 def test_invalid_model():
     # Example of an invalid input dictionary (missing required fields)
     invalid_input = {
         "title": "Sample Syllabus Title",
         # Missing "overview", "objectives", "policies_and_exceptions", "grade_level_assessments", "additional_information" and "required material"
-        }
+    }
 
     # Try to create an instance of the model with the invalid input
     with pytest.raises(ValidationError):
