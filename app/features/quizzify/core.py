@@ -13,11 +13,16 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
 
         # Instantiate RAG pipeline with default values
         pipeline = RAGpipeline(verbose=verbose)
+        logger.debug(f"Before Compile")
         
         pipeline.compile()
+
+        logger.debug(f"Before Pipeline")
         
         # Process the uploaded files
         db = pipeline(files)
+
+        logger.debug(f"Before QuizBuilder")
         
         # Create and return the quiz questions
         output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
