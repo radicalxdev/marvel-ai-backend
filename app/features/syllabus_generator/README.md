@@ -95,7 +95,7 @@ To generate a syllabus, provide an input JSON file with the necessary course inf
 ## File Structure
 
 - **core.py**: Contains the core logic for processing the input and generating the syllabus.
-- **tools.py**: Contains helper functions and utilities for the project.
+- **tools.py**: Contains helper functions and utilities for the project as well as the default input prompt to the LLM which the user can change.
 - **metadata.json**: Defines the input structure and metadata for the syllabus generation tool.
 
 ## Input Data Description
