@@ -1,7 +1,7 @@
 
 # Syllabus Generator
 
-This project provides a tool to generate course syllabi based on input data provided in JSON format. The system allows users to specify various course-related details and outputs a structured syllabus.
+This feature provides a tool to generate course syllabi based on input data provided in JSON format. The system allows users to specify various course-related details and outputs a structured syllabus.
 
 ## Features
 
