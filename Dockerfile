@@ -13,12 +13,12 @@ COPY ./app /code/app
 # When set to dev, API Key on endpoint requests are just 'dev'
 # When set to production, API Key on endpoint requests are the actual API Key
 
-<<<<<<< HEAD
+
 ENV GOOGLE_APPLICATION_CREDENTIALS=/app/local-auth.json 
 ENV ENV_TYPE="dev"
 ENV PROJECT_ID="heroic-climber-423918-r1"
-=======
+
 ENV PYTHONPATH=/app
->>>>>>> feature/worksheet_generator
+
 
 CMD ["fastapi", "dev", "app/main.py", "--host=0.0.0.0", "--port=8000"]
