@@ -18,29 +18,34 @@
 
 ```plaintext
 backend/
-├── app/                     # Contains the main application code
-│   ├── Api/                 # Contains the API router for handling requests
-│   │   └── router.py        # Endpoints for FastAPI to test features and handle incoming requests
-│   ├── chats/               # Handles chat functionalities
-│   ├── Features/            # Contains feature-specific modules
-│   │   ├── Feature1/
+├── app/                                   # Contains the main application code
+│   ├── Api/                               # Contains the API router for handling requests
+│   │   └── router.py                      # Endpoints for FastAPI to test features and handle incoming requests
+│   ├── chats/                             # Handles chat functionalities
+│   ├── Features/                          # Contains feature-specific modules
+│   │   ├── dynamo/                        # Contains the Dynamo feature-specific code
+│   │   │   ├── core.py                    # Core functionalities for the dynamo feature
+│   │   │   ├── tools.py                   # Utility functions and loader classes for the dynamo feature
+│   │   │   ├── Prompt/                    # Contains prompt templates
+│   │   │   │   ├── dynamo-prompt.txt      # Template for generating flashcards from summary
+│   │   │   │   ├── examples.txt           # Example prompts for generating flashcards
+│   │   │   │   ├── summarize-prompt.txt   # Template for summarizing documents
+│   │   │   ├── metadata.json              # Metadata for the dynamo feature
+│   │   │   └── tests/                     # Contains test cases for the dynamo feature
+│   │   ├── Feature2/                      
 │   │   │   ├── core.py
 │   │   │   ├── tools.py
 │   │   │   ├── Prompt/
 │   │   │   └── metadata.json
-│   │   ├── Feature2/
-│   │   │   ├── core.py
-│   │   │   ├── tools.py
-│   │   │   ├── Prompt/
-│   │   │   └── metadata.json
-│   ├── services/            # Contains service modules
-│   ├── utils/               # Contains utility modules
-│   ├── app.yaml             # Application configuration file
-│   ├── Dependencies.py      # Dependency management
-│   ├── Main.py              # Main entry point for the application
-│   └── requirements.txt     # Python dependencies
-├── Dockerfile               # Dockerfile for containerizing the application
-└── README.md                # Documentation file
+│   ├── services/                          # Contains service modules
+│   ├── utils/                             # Contains utility modules
+│   ├── app.yaml                           # Application configuration file
+│   ├── Dependencies.py                    # Dependency management
+│   ├── Main.py                            # Main entry point for the application
+│   └── requirements.txt                   # Python dependencies
+├── Dockerfile                             # Dockerfile for containerizing the application
+└── README.md                              # Documentation file
+
 ```
 
 ## Install all the necessary libraries:
