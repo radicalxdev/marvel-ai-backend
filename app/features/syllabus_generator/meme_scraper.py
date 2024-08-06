@@ -1,4 +1,5 @@
 import requests
+from bs4 import BeautifulSoup
 from tools import Search_engine
 import pd 
 
@@ -16,8 +17,17 @@ def scrap_data():
         return links[0]
 
 
-def get_web_results(self):
-        # we scrap the link to find the tables components and store them in listes
-        link = self.scrap_data()
-        return pd.read_html(link)
- 
+def get_web_results():
+    # Scrap the link to find image components
+    link = scrap_data()
+    response = requests.get(link)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # Find all image tags and extract their 'src' attributes
+    images = []
+    for img in soup.find_all('img'):
+        img_url = img.get('src')
+        if img_url:
+            images.append(img_url)
+
+    return images

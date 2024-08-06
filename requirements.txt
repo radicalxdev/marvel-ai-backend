@@ -21,4 +21,5 @@ python-dotenv
 pytest
 pandas
 langchain_google_vertexai
-lxml
+html5lib
+beautifulsoup4
