@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
-from main import app  
-from services.tool_registry import validate_inputs
+from app.api.tool_utilities import validate_inputs
+from app.api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
 import pytest
 import os
 
@@ -10,22 +10,25 @@ import os
 @pytest.fixture(scope='session', autouse=True)
 def set_env_vars():
     # Backup old values and set new ones
-    old_creds = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-    old_env_type = os.getenv('ENV_TYPE')
-    old_project_id = os.getenv('PROJECT_ID')
+    # old_creds = os.getenv('GOOGLE_API_KEY')
+    # old_env_type = os.getenv('ENV_TYPE')
+    # old_project_id = os.getenv('PROJECT_ID')
     # Set new values
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'local-auth.json'
-    os.environ['ENV_TYPE'] = 'dev'
-    os.environ['PROJECT_ID'] = "kai-ai-f63c8"
-    # Ensure these changes are only present during the tests
-    yield
-    # Restore old values after tests
-    if old_creds:
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = old_creds
-    if old_env_type:
-        os.environ['ENV_TYPE'] = old_env_type
-    if old_project_id:
-        os.environ['PROJECT_ID'] = old_project_id
+    os.environ['GOOGLE_API_KEY'] = os.getenv('GOOGLE_API_KEY')
+
+    print('@@@@@ ENV')
+    print(os.environ['GOOGLE_API_KEY'])
+    # os.environ['ENV_TYPE'] = 'dev'
+    # os.environ['PROJECT_ID'] = "kai-ai-f63c8"
+    # # Ensure these changes are only present during the tests
+    # yield
+    # # Restore old values after tests
+    # if old_creds:
+    #     os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = old_creds
+    # if old_env_type:
+    #     os.environ['ENV_TYPE'] = old_env_type
+    # if old_project_id:
+    #     os.environ['PROJECT_ID'] = old_project_id
 
 @pytest.fixture
 def client():
@@ -60,7 +63,8 @@ def test_validate_inputs_missing_input():
         {"label": "Number of Questions", "type": "number", "name": "num_questions"}
     ]
     request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
-    assert validate_inputs(request_inputs_dict, firestore_data) == False
+    with pytest.raises(InputValidationError):
+        validate_inputs(request_inputs_dict, firestore_data)
 
 def test_validate_inputs_invalid_type():
     request_inputs = [
@@ -72,7 +76,8 @@ def test_validate_inputs_invalid_type():
         {"label": "Number of Questions", "type": "number", "name": "num_questions"}
     ]
     request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
-    assert validate_inputs(request_inputs_dict, firestore_data) == False
+    with pytest.raises(InputValidationError):
+        validate_inputs(request_inputs_dict, firestore_data)
 
 def test_validate_inputs_extra_undefined_input():
     request_inputs = [
@@ -96,5 +101,5 @@ def test_validate_inputs_input_not_found():
         {"label": "Number of Questions", "type": "number", "name": "num_questions"}
     ]
     request_inputs_dict = {input_item["name"]: input_item["value"] for input_item in request_inputs}
-    assert validate_inputs(request_inputs_dict, firestore_data) == False
-
+    with pytest.raises(InputValidationError):
+        validate_inputs(request_inputs_dict, firestore_data)
