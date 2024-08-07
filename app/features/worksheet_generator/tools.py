@@ -26,11 +26,12 @@ def read_text_file(file_path):
 
 # Class for the worksheet generation functionality
 class WorksheetGenerator:
-    def __init__(self, grade_level, topic, difficulty_level, question_types, prompt=None, model=None, parser=None, verbose=False):
+    def __init__(self, grade_level, topic, difficulty_level, question_types, lang, verbose=False):
         self.grade_level = grade_level
         self.topic = topic
         self.difficulty_level = difficulty_level
         self.question_types = question_types
+        self.lang = "EN" if lang is None else lang
         self.verbose = verbose
         
         if grade_level is None: raise ValueError("Grade level must be provided")
@@ -39,7 +40,7 @@ class WorksheetGenerator:
         if question_types is None: raise ValueError("At lease one question type must be provided")
 
     def create_worksheet(self):
-        params = {"grade_level": self.grade_level, "topic": self.topic, "difficulty_level": self.difficulty_level, "verbose": self.verbose}
+        params = {"grade_level": self.grade_level, "topic": self.topic, "difficulty_level": self.difficulty_level, "lang": self.lang, "verbose": self.verbose}
 
         worksheet = []
 
@@ -63,7 +64,7 @@ class QuestionBuilder(ABC):
         # Return the generated response
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["grade_level", "topic", "difficulty_level"],
+            input_variables=["grade_level", "topic", "difficulty_level", "lang"],
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )
 
@@ -72,6 +73,7 @@ class QuestionBuilder(ABC):
             grade_level=self.grade_level,
             topic=self.topic,
             difficulty_level=self.difficulty_level,
+            lang=self.lang
         )
 
         if self.verbose:
@@ -105,7 +107,7 @@ class QuestionBuilder(ABC):
         pass
 
 class MultiChoiceQuestionBuilder(QuestionBuilder):
-    def __init__(self, grade_level, topic, difficulty_level, prompt=None, model=None, parser=None, verbose=False):
+    def __init__(self, grade_level, topic, difficulty_level, lang, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=MultiChoiceQuestion),
@@ -119,6 +121,7 @@ class MultiChoiceQuestionBuilder(QuestionBuilder):
         self.grade_level = grade_level
         self.topic = topic
         self.difficulty_level = difficulty_level
+        self.lang = lang
         self.verbose = verbose
         
         if grade_level is None: raise ValueError("Grade level must be provided")
@@ -208,7 +211,7 @@ class MultiChoiceQuestionBuilder(QuestionBuilder):
         return generated_questions[:num_questions]
     
 class FillInBlankQuestionBuilder(QuestionBuilder):
-    def __init__(self, grade_level, topic, difficulty_level, prompt=None, model=None, parser=None, verbose=False):
+    def __init__(self, grade_level, topic, difficulty_level, lang, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=FillInBlankQuestion),
@@ -222,6 +225,7 @@ class FillInBlankQuestionBuilder(QuestionBuilder):
         self.grade_level = grade_level
         self.topic = topic
         self.difficulty_level = difficulty_level
+        self.lang = lang
         self.verbose = verbose
         
         if grade_level is None: raise ValueError("Grade level must be provided")
@@ -303,7 +307,7 @@ class FillInBlankQuestionBuilder(QuestionBuilder):
         return generated_questions[:num_questions]
     
 class OpenEndedQuestionBuilder(QuestionBuilder):
-    def __init__(self, grade_level, topic, difficulty_level, prompt=None, model=None, parser=None, verbose=False):
+    def __init__(self, grade_level, topic, difficulty_level, lang, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "parser": JsonOutputParser(pydantic_object=OpenEndedQuestion),
@@ -317,6 +321,7 @@ class OpenEndedQuestionBuilder(QuestionBuilder):
         self.grade_level = grade_level
         self.topic = topic
         self.difficulty_level = difficulty_level
+        self.lang = lang
         self.verbose = verbose
         
         if grade_level is None: raise ValueError("Grade level must be provided")

@@ -9,4 +9,4 @@ Follow the instructions to create a quiz question:
 You must respond as a JSON object:
 {format_instructions}
 
-
+You must provide the response in {lang} language. 

@@ -19,6 +19,11 @@
             "label": "Question Types",
             "name": "question_types",
             "type": "list"
+        },
+        {
+            "label": "ISO 639-1 Language Code",
+            "name": "lang",
+            "type": "text"
         }
     ]
 }

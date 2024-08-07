@@ -8,4 +8,4 @@ Follow the instructions to create an open ended question:
 You must respond as a JSON object:
 {format_instructions}
 
-
+You must provide the response in {lang} language. 

@@ -21,7 +21,7 @@ class ToolFile(BaseModel):
     url: str
     filename: Optional[str] = None
 
-# Model class for question
-class ToolQuestionType(BaseModel):
+# Model class for worksheet question type
+class WorkSheetQuestionType(BaseModel):
     question_type: str
     num_questions: int
