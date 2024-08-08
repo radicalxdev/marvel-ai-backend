@@ -16,3 +16,5 @@ fpdf
 youtube-transcript-api
 pytube
 python-docx
+requests
+beautifulsoup4

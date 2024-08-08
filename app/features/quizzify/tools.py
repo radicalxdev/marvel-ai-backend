@@ -9,6 +9,8 @@ import json
 import time
 from docx import Document as DocxDocument # new
 import csv # new
+from bs4 import BeautifulSoup
+import requests
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -175,6 +177,38 @@ class BytesFileTxtLoader:
         txt_content = file.read().decode('utf-8')
         return txt_content
 
+class BytesFileWebPageLoader:
+    def __init__(self, files: List[Tuple[str, str]]):
+        self.files = files
+    
+    def load(self) -> List[Document]:
+        documents = []
+        
+        for url, file_type in self.files:
+            page_content = self._fetch_web_page(url)
+            metadata = {"source": "web", "url": url}
+            doc = Document(page_content=page_content, metadata=metadata)
+            documents.append(doc)
+        
+        return documents
+    
+    def _fetch_web_page(self, url: str) -> str:
+        response = requests.get(url)
+        response.raise_for_status()  # Check for request errors
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Extract the main content. Customize this based on the structure of the target website.
+        content = soup.find('main')  # 'main' tag is common for main content. Adjust as needed.
+        
+        if not content:
+            # Fallback if 'main' tag is not found.
+            content = soup.find('body')
+        
+        text_content = content.get_text(separator="\n") if content else "Content not found"
+        
+        return text_content
+    
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], expected_file_type="pdf"):
         self.file_paths = file_paths
@@ -206,17 +240,19 @@ class LocalFileLoader:
         return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type=["pdf","docx","csv","txt"], verbose=False):
+    def __init__(self, file_loader=None, expected_file_type=["pdf", "docx", "csv", "txt", "web"], verbose=False):
         self.Docxloader = BytesFileDocxLoader
         self.Pdfloader = BytesFilePDFLoader
         self.Csvloader = BytesFileCSVLoader
         self.Txtloader = BytesFileTxtLoader
+        self.Webloader = BytesFileWebPageLoader  # Assuming this loader expects a list of URLs
         self.expected_file_type = expected_file_type
         self.verbose = verbose
         self.loader = None
     
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
         queued_files = []
+        queued_urls = []  # For URLs that are web pages
         documents = []
         any_success = False
 
@@ -232,22 +268,17 @@ class URLLoader:
                     file_content = BytesIO(response.content)
 
                     # Check file type
-                    file_type = path.split(".")[-1]
-                    if file_type not in self.expected_file_type: # change
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-                    # load right file loader
-                    if file_type == "pdf":
-                        self.loader = self.Pdfloader
-                    elif file_type == "docx":
-                        self.loader = self.Docxloader
-                    elif file_type == "csv":
-                        self.loader = self.Csvloader
-                    elif file_type == "txt":
-                        self.loader = self.Txtloader
-                    
+                    file_type = path.split(".")[-1].lower()
 
-                    # Append to Queue
-                    queued_files.append((file_content, file_type))
+                    if file_type in self.expected_file_type:
+                        logger.info(f"Successfully loaded file from: {file_type}")
+                        # Append to Queue
+                        queued_files.append((file_content, file_type))
+                    else:
+                        logger.info(f"Successfully loaded web page: {url}")
+                        # Append to URL queue for web page loader
+                        queued_urls.append((url, "web"))
+
                     if self.verbose:
                         logger.info(f"Successfully loaded file from {url}")
 
@@ -261,12 +292,29 @@ class URLLoader:
                 continue
 
         # Pass Queue to the file loader if there are any successful loads
-        if any_success:
-            file_loader = self.loader(queued_files)
-            documents = file_loader.load()
+        if queued_files:
+            # Process the queued files using the appropriate loaders
+            for file_content, file_type in queued_files:
+                if file_type == "pdf":
+                    loader = self.Pdfloader([(file_content, file_type)])
+                elif file_type == "docx":
+                    loader = self.Docxloader([(file_content, file_type)])
+                elif file_type == "csv":
+                    loader = self.Csvloader([(file_content, file_type)])
+                elif file_type == "txt":
+                    loader = self.Txtloader([(file_content, file_type)])
+                else:
+                    continue  # Unsupported file type
+                
+                documents.extend(loader.load())
 
-            if self.verbose:
-                logger.info(f"Loaded {len(documents)} documents")
+        if queued_urls:
+            # Process the web page URLs using the web page loader
+            web_loader = self.Webloader(files=queued_urls)
+            documents.extend(web_loader.load())
+
+        if self.verbose:
+            logger.info(f"Loaded {len(documents)} documents")
 
         if not any_success:
             raise LoaderError("Unable to load any files from URLs")
