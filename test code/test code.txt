@@ -1,0 +1,31 @@
+{
+    "user": {
+        "id": "string",
+        "fullName": "string",
+        "email": "string"
+    },
+    "type": "tool",
+    "tool_data": {
+        "tool_id": 0,
+        "inputs": [
+            {
+                "name": "topic",
+                "value": "AI"
+            },
+            {
+                "name": "num_questions",
+                "value": 1
+            },
+            {
+                "name": "files",
+                "value": [
+                    {
+                        "filePath": "gs://kai-ai-nano-429815.appspot.com/test_1.pdf",
+                        "url": "https://firebasestorage.googleapis.com/v0/b/kai-ai-nano-429815.appspot.com/o/test_1.pdf?alt=media&token=fa86e530-1318-4d26-ae9b-c7054dac677c",
+                        "filename": "test_1.pdf"
+                    }
+                ]
+            }
+        ]
+    }
+}

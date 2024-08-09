@@ -12,7 +12,15 @@ google-cloud-storage
 firebase-admin
 chroma
 pypdf
+python-docx
+python-pptx
 fpdf
 youtube-transcript-api
 pytube
+<<<<<<< HEAD:requirements.txt
 python-dotenv
+=======
+pandas
+requests
+beautifulsoup4
+>>>>>>> heathclief:app/requirements.txt
