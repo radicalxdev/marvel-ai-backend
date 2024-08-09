@@ -1,7 +1,15 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from services.tool_registry import ToolFile
-from features.quizzify.tools import URLLoader, BytesFilePDFLoader, Document  # Adjust the import path as necessary
+from features.quizzify.tools import (
+    URLLoader, 
+    BytesFilePDFLoader,
+    BytesFileDocxLoader,
+    PPTXLoader,
+    YouTubeLoader,
+    Document
+
+    )  # Adjust the import path as necessary
 
 @pytest.fixture
 def pdf_loader():
@@ -10,6 +18,11 @@ def pdf_loader():
 @pytest.fixture
 def url_loader(pdf_loader):
     return URLLoader(file_loader=pdf_loader, expected_file_type="pdf")
+
+# def test_documents_from_pdf_loader():
+#     test_url = "https://firebasestorage.googleapis.com/v0/b/nano-knights-9b750.appspot.com/o/CNN.pdf?alt=media&token=d608d447-8e2a-44b8-8c89-c303fd25cd20"
+#     tool_file = ToolFile(url=test_url, filePath = test_url, filename = None)
+#     if URLLoader.load():
 
 @patch('requests.get')
 def test_load_pdf_from_url(mock_get, url_loader):
@@ -53,7 +66,7 @@ def test_load_pdf_from_url(mock_get):
 
     # The specific URL you want to test with
     test_url = "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
-    tool_file = ToolFile(url=test_url, filePath = None, filename = None)
+    tool_file = ToolFile(url=test_url, filePath = test_url, filename = None)
     
     # Instantiate URLLoader class 
     url_loader_instance = URLLoader(BytesFilePDFLoader, expected_file_type="pdf")

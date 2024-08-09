@@ -12,9 +12,11 @@ google-cloud-storage
 firebase-admin
 chroma
 pypdf
+python-docx
+python-pptx
 fpdf
 youtube-transcript-api
 pytube
-python-docx
+pandas
 requests
 beautifulsoup4
