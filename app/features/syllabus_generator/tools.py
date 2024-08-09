@@ -13,7 +13,7 @@ logger = setup_logger(__name__)
 
 
 def read_text_file(file_path: str) -> str:
-    """Read the content of a text file."""
+    """Read the content of a text file in the syllabus_generator dir."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
     absolute_file_path = os.path.join(script_dir, file_path)
     with open(absolute_file_path, "r") as file:
@@ -56,6 +56,8 @@ class SyllabusBuilder:
             "prompt": read_text_file("prompt/syllabus_prompt.txt"),
         }
 
+        self._validate_inputs(subject, grade_level, options, customisation)
+
         self.prompt = prompt or default_config["prompt"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
@@ -68,17 +70,24 @@ class SyllabusBuilder:
         self.course_overview = course_overview
         self.verbose = verbose
 
-        self._validate_inputs()
+        self._post_validate_inputs()
 
-    def _validate_inputs(self):
+    def _validate_inputs(self, subject, grade_level, options, customisation):
         """Validate inputs to ensure all required fields are provided."""
-        if self.subject is None or len(self.subject) <= 2:
-            raise ValueError("Subject must be provided")
-        if self.grade_level is None or len(self.grade_level) == 0:
-            raise ValueError("Grade level must be provided")
-        if self.options is None or len(self.options) == 0:
-            raise ValueError("Options must be provided")
+        if subject is None or len(subject) <= 2 or not isinstance(subject, str):
+            raise ValueError("Subject must be provided as a str")
+        if (
+            grade_level is None
+            or len(grade_level) == 0
+            or not isinstance(grade_level, str)
+        ):
+            raise ValueError("Grade level must be provided as a str")
+        if options is None or len(options) == 0 or not isinstance(options, list):
+            raise ValueError("Options must be provided as a list")
+        if customisation is not None and not isinstance(customisation, str):
+            raise ValueError("customisation should be str or not specified at all")
 
+    def _post_validate_inputs(self):
         # Guarantee options only contains "all" or doesn't contain it at all
         seen_all = False
         for item in self.options:
@@ -92,43 +101,87 @@ class SyllabusBuilder:
                 seen_all = True
 
     # Probably a better way to do this
-    # TODO: UPDATE THIS
+    # TODO: Make this return ENUM so we can attach which part is broken
     def _validate_response(self, response: Dict) -> bool:
         """
         Validates response from LLM
         """
         try:
             # Assuming reponse is already a dict
+            if not isinstance(response, dict):
+                return False
             if isinstance(response, dict):
-                if (
-                    "title" in response
-                    and "overview" in response
-                    and "objectives" in response
-                    and "policies_and_exceptions" in response
-                    and "required_materials" in response
-                ):
-                    # Check objectives in correct format
+                if "title" in response:
+                    if not isinstance(response["title"], str):
+                        print(1)
+                        return False
+
+                if "overview" in response:
+                    if not isinstance(response["overview"], str):
+                        print(2)
+                        return False
+
+                if "objectives" in response:
                     objectives = response["objectives"]
-                    if isinstance(objectives, list):
-                        for item in objectives:
-                            if not isinstance(item, str):
-                                return False
+                    if not isinstance(objectives, list):
+                        print(3)
+                        return False
+                    for item in objectives:
+                        if not isinstance(item, str):
+                            print(4)
+                            return False
 
-                    # Check policies_and_exceptions in correct format
+                if "policies_and_exceptions" in response:
                     policies_and_exceptions = response["policies_and_exceptions"]
-                    if isinstance(policies_and_exceptions, dict):
-                        for key, value in policies_and_exceptions.items():
-                            if not isinstance(key, str) or not isinstance(value, str):
-                                return False
+                    if not isinstance(policies_and_exceptions, dict):
+                        print(5)
+                        return False
+                    for key, value in policies_and_exceptions.items():
+                        if not isinstance(key, str) or not isinstance(value, str):
+                            print(6)
+                            return False
 
-                    # Check required_materials in correct format
+                if "required_materials" in response:
                     required_materials = response["required_materials"]
-                    if isinstance(required_materials, dict):
-                        for key, val in required_materials.items():
-                            if not isinstance(key, str) or not isinstance(val, list):
-                                return False
-                        required_keys = {"recommended_books", "required_items"}
-                        if set(required_materials.keys()) != required_keys:
+                    if not isinstance(required_materials, dict):
+                        print(7)
+                        return False
+                    for key, val in required_materials.items():
+                        if not isinstance(key, str) or not isinstance(val, list):
+                            print(8)
+                            return False
+                    required_keys = {"recommended_books", "required_items"}
+                    if set(required_materials.keys()) != required_keys:
+                        print(9)
+                        return False
+
+                if "grade_level_assessments" in response:
+                    grade_level_assessments = response["grade_level_assessments"]
+                    if not isinstance(grade_level_assessments, dict):
+                        print(10)
+                        return False
+                    if (
+                        "assessment_components" not in grade_level_assessments
+                        or "grade_scale" not in grade_level_assessments
+                    ):
+                        print(11)
+                        return False
+                    assessment_components = grade_level_assessments[
+                        "assessment_components"
+                    ]
+                    grade_scale = grade_level_assessments["grade_scale"]
+                    if not isinstance(assessment_components, dict) or not isinstance(
+                        grade_scale, dict
+                    ):
+                        print(12)
+                        return False
+                    for key, val in assessment_components.items():
+                        if not isinstance(key, str) or not isinstance(val, int):
+                            print(13)
+                            return False
+                    for key, val in grade_scale.items():
+                        if not isinstance(key, str) or not isinstance(val, str):
+                            print(14)
                             return False
 
             if self.verbose:

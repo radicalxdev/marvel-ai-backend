@@ -16,4 +16,3 @@ fpdf
 youtube-transcript-api
 pytube
 python-dotenv
-numpy
