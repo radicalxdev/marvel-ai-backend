@@ -1,4 +1,5 @@
 import pytest
+import json
 from unittest.mock import patch, MagicMock
 from services.tool_registry import ToolFile
 from features.quizzify.tools import (
@@ -8,7 +9,6 @@ from features.quizzify.tools import (
     PPTXLoader,
     YouTubeLoader,
     Document
-
     )  # Adjust the import path as necessary
 
 @pytest.fixture
@@ -19,10 +19,136 @@ def pdf_loader():
 def url_loader(pdf_loader):
     return URLLoader(file_loader=pdf_loader, expected_file_type="pdf")
 
-# def test_documents_from_pdf_loader():
-#     test_url = "https://firebasestorage.googleapis.com/v0/b/nano-knights-9b750.appspot.com/o/CNN.pdf?alt=media&token=d608d447-8e2a-44b8-8c89-c303fd25cd20"
-#     tool_file = ToolFile(url=test_url, filePath = test_url, filename = None)
-#     if URLLoader.load():
+def test_documents_from_pdf_loader():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url = test_documents['PDF']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url, filePath = test_url, filename = "PDF"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
+def test_documents_from_docx_loader():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url = test_documents['DOCX']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url, filePath = test_url, filename = "DOCX"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
+def test_documents_from_pptx_loader():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url = test_documents['PPTX']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url, filePath = test_url, filename = "PPTX"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
+def test_documents_from_csv_loader():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url = test_documents['CSV']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url, filePath = test_url, filename = "CSV"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
+def test_documents_from_txt_loader():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url = test_documents['TXT']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url, filePath = test_url, filename = "TXT"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
+def test_documents_from_youtube_loader():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url = test_documents['YOUTUBE']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url, filePath = test_url, filename = "YOUTUBE"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
+def test_documents_from_web_loader():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url = test_documents['WEB']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url, filePath = test_url, filename = "WEB"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
+def test_documents_from_multiple_loaders():
+    # Arrange the data
+    with open('test_documents.json','r') as json_File:
+        test_documents=json.load(json_File)
+    
+    test_url_1 = test_documents['PDF']
+    test_url_2 = test_documents['PPTX']
+    tool_file = []
+    tool_file.append(ToolFile(url=test_url_1, filePath = test_url_1, filename = "PDF"))
+    tool_file.append(ToolFile(url=test_url_1, filePath = test_url_1, filename = "PDF"))
+
+    # Use the loader
+    documents = URLLoader.load(tool_file)
+
+    # Assert
+    assert isinstance(documents, list)
+    assert len(documents) >= 1
+
 
 @patch('requests.get')
 def test_load_pdf_from_url(mock_get, url_loader):
