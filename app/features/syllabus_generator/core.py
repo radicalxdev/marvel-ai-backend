@@ -5,10 +5,9 @@ from typing import Any, Dict
 # Application-specific imports
 from app.services.logger import setup_logger
 from app.features.syllabus_generator.tools import Syllabus_generator,Meme_generator_with_reddit,WordGenerator,PDFGenerator
-from app.features.syllabus_generator import credentials
 from app.services.schemas import InputData
 
-
+# Initialize the logger
 logger = setup_logger(__name__)
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"

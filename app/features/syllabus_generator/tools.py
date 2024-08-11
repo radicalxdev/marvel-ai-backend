@@ -95,6 +95,8 @@ class Syllabus_generator :
         try:
             data = json.loads(response)
         except json.JSONDecodeError as e:
+
+           
             print("JSON Decode Error , Trying to correct the JSON")
             try:
                 corrected_result = response[min(response.find('{'),response.find('[')):max(response.rfind(']'),response.rfind('}')) + 1]
@@ -124,9 +126,13 @@ class Syllabus_generator :
         response = chain.invoke(
                         {
                             'grade' : self.grade,
+
                             'subject' : self.subject,
+
                             'Syllabus_type' : self.Syllabus_type,
+
                             "instructions" : self.instructions,
+                            
                             'course_description': course_description
                         })
 
