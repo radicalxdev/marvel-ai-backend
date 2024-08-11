@@ -15,8 +15,8 @@ from contextlib import asynccontextmanager
 from app.api.router import router
 from app.services.logger import setup_logger
 from app.api.error_utilities import ErrorResponse, InputValidationError
-from app.features.syllabus_generator.core import executor,InputData
-from app.services.schemas import ToolResponse
+from app.features.syllabus_generator.core import executor
+from app.services.schemas import ToolResponse,InputData
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
 
@@ -63,30 +63,15 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 @app.post("/get_syllabus")
-async def submit_tool(inputs: InputData,tool_id: int=3):
+async def get_syllabus(inputs: InputData,Type: str = ''):
     try:
         # Call the executor function
-        result = executor(tool_id=tool_id, inputs=inputs)
-        if tool_id == 2 :
-            return StreamingResponse(result, media_type="application/pdf")
-        if tool_id == 3:
-            return StreamingResponse(result, media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-        # Return the result wrapped in ToolResponse
-        return ToolResponse(data=result)
-
-    except InputValidationError as e:
-        logger.error(f"InputValidationError: {e}")
-        return JSONResponse(
-            status_code=400,
-            content=jsonable_encoder(ErrorResponse(status=400, message=e.message))
-        )
-
-    except HTTPException as e:
-        logger.error(f"HTTPException: {e}")
-        return JSONResponse(
-            status_code=e.status_code,
-            content=jsonable_encoder(ErrorResponse(status=e.status_code, message=e.detail))
-        )
+        if not Type:
+            result = await executor(inputs=inputs)
+            return ToolResponse(data=result)
+        else :
+            result = await executor(inputs=inputs,Type=Type)
+            return StreamingResponse(result['file'], media_type=result['type'])
 
     except Exception as e:
         logger.error(f"Unexpected error: {e}")

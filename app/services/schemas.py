@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from enum import Enum
@@ -8,7 +9,7 @@ class User(BaseModel):
     id: str
     fullName: str
     email: str
-    
+
 class Role(str, Enum):
     human = "human"
     ai = "ai"
@@ -28,7 +29,7 @@ class Message(BaseModel):
     type: MessageType
     timestamp: Optional[Any] = None
     payload: MessagePayload
-    
+
 class RequestType(str, Enum):
     chat = "chat"
     tool = "tool"
@@ -36,21 +37,26 @@ class RequestType(str, Enum):
 class GenericRequest(BaseModel):
     user: User
     type: RequestType
-    
+
 class ChatRequest(GenericRequest):
     messages: List[Message]
-    
+
 class ToolRequest(GenericRequest):
     tool_data: BaseTool
-    
+
 class ChatResponse(BaseModel):
     data: List[Message]
 
 class ToolResponse(BaseModel):
     data: Any
-    
+
 class ChatMessage(BaseModel):
     role: str
     type: str
     text: str
 
+class InputData(BaseModel):
+    grade: str
+    subject: str
+    Syllabus_type: Optional[str] = 'exam_based'
+    instructions : Optional[str] = 'None'

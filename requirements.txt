@@ -26,3 +26,4 @@ docx
 python-docx
 reportlab
 dotenv
+praw
