@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 app = FastAPI()
 
 
-load_dotenv()
+#load_dotenv()
 
 
 class Flashcard(BaseModel):
@@ -26,14 +26,14 @@ class docProcessor:
     def __init__(self, userDocument: str, model: VertexAI):
         self.document = userDocument
         self.model = model 
-        self.api_key = os.getenv("UNSTRUCTURED_API_KEY")
+        #self.api_key = os.getenv("UNSTRUCTURED_API_KEY")
         self.logger = logging.getLogger(__name__)
     
     # Uses Unstructured API File Loader to process the user provided word document
     def processDocument(self):
         with open(self.document, "rb") as file:
             self.logger.info(f"Loading document from {self.document}")
-            loader = UnstructuredAPIFileLoader(self.document, api_key=self.api_key)
+            loader = UnstructuredAPIFileLoader(self.document, api_key="EdxFcvU7LzVdWwnbzMQv1tEltw3hId")
             docs = loader.load()
         return docs
 
