@@ -98,7 +98,7 @@ class UploadPDFLoader:
 
         return documents
 
-class BytesFilePDFLoader:
+class PDFLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -122,7 +122,7 @@ class BytesFilePDFLoader:
             
         return documents
 
-class BytesFileDocxLoader:
+class DocxLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -150,7 +150,7 @@ class BytesFileDocxLoader:
 
 
 class PPTXLoader:
-    def __init__(self, files: List[Tuple[BytesIO, str]], start: int = 2, end: int = 5):
+    def __init__(self, files: List[Tuple[BytesIO, str]], start: int = None, end: int = None):
         self.files = files
         self.start = start
         self.end = end
@@ -262,7 +262,7 @@ class YouTubeLoader:
 
         return [Document(page_content=full_transcript, metadata=metadata)]
 
-class BytesFileCSVLoader:
+class CSVLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -292,7 +292,7 @@ class BytesFileCSVLoader:
         
         return "\n".join(csv_content)
 
-class BytesFileTxtLoader:
+class TxtLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -317,7 +317,7 @@ class BytesFileTxtLoader:
         txt_content = file.read().decode('utf-8')
         return txt_content
 
-class BytesFileWebPageLoader:
+class WebPageLoader:
     def __init__(self, files: List[Tuple[str, str]]):
         self.files = files
     
@@ -381,13 +381,13 @@ class LocalFileLoader:
 
 class URLLoader:
     def __init__(self, file_loader=None, expected_file_types=["pdf","docx","doc","pptx","ppt","csv","txt","web"], verbose=False):
-        self.Docxloader = BytesFileDocxLoader
-        self.Pdfloader = BytesFilePDFLoader
+        self.Pdfloader = PDFLoader
+        self.Docxloader = DocxLoader
         self.Pptxloader = PPTXLoader
+        self.Csvloader = CSVLoader
+        self.Txtloader = TxtLoader
         self.Youtubeloader = YouTubeLoader
-        self.Csvloader = BytesFileCSVLoader
-        self.Txtloader = BytesFileTxtLoader
-        self.Webloader = BytesFileWebPageLoader  # Assuming this loader expects a list of URLs
+        self.Webloader = WebPageLoader  # Assuming this loader expects a list of URLs
         self.expected_file_types = expected_file_types
         self.verbose = verbose
         self.loader = None
@@ -407,37 +407,35 @@ class URLLoader:
                 parsed_url = urlparse(url)
                 path = parsed_url.path
 
-                if path.endswith(expected_file_extensions):
-                    if response.status_code == 200:
-                        # Read file
-                        file_content = BytesIO(response.content)
+                if response.status_code == 200:
+                    # Read file
+                    file_content = BytesIO(response.content)
 
-                        # Check file type
-                        file_type = path.split(".")[-1].lower()
+                    # Check file type
+                    file_type = path.split(".")[-1].lower()
 
-                        if file_type in self.expected_file_type:
-                            logger.info(f"Successfully loaded file from: {file_type}")
-                            # Append to Queue
-                            queued_files.append((file_content, file_type))
-                        elif not url.__contains__(YOUTUBE_DOMAINS[0]) or not url.__contains__(YOUTUBE_DOMAINS[1]):
-                            logger.info(f"Successfully loaded web page: {url}")
-                            # Append to URL queue for web page loader
-                            queued_urls.append((url, "web"))
-
-                        if self.verbose:
-                            logger.info(f"Successfully loaded file from {url}")
-
-                        any_success = True  # Mark that at least one file was successfully loaded
+                    if file_type in self.expected_file_types:
+                        logger.info(f"Successfully loaded file from: {file_type}")
+                        # Append to Queue
+                        queued_files.append((file_content, file_type))
+                    elif url.__contains__(YOUTUBE_DOMAINS[0]) or url.__contains__(YOUTUBE_DOMAINS[1]):
+                        youtube_loader = YouTubeLoader(url=url)
+                        youtube_documents = youtube_loader.load()
+                        logger.info(f"Loaded youtube document")
+                        documents.extend(youtube_documents)
+                        logger.info(f"Added to documents")
+                        any_success = True
                     else:
-                        logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
+                        logger.info(f"Successfully loaded web page: {url}")
+                        # Append to URL queue for web page loader
+                        queued_urls.append((url, "web"))
 
-                elif url.__contains__(YOUTUBE_DOMAINS[0]) or url.__contains__(YOUTUBE_DOMAINS[1]):
-                    youtube_loader = YouTubeLoader(url=url)
-                    youtube_documents = youtube_loader.load()
-                    logger.info(f"Loaded youtube document")
-                    documents.extend(youtube_documents)
-                    logger.info(f"Added to documents")
-                    any_success = True
+                    if self.verbose:
+                        logger.info(f"Successfully loaded file from {url}")
+
+                    any_success = True  # Mark that at least one file was successfully loaded
+                else:
+                    logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
             except Exception as e:
                 logger.error(f"Failed to load file from {url}")
@@ -452,7 +450,7 @@ class URLLoader:
                     loader = self.Pdfloader([(file_content, file_type)])
                 elif file_type == "docx":
                     loader = self.Docxloader([(file_content, file_type)])
-                elif file_type == "docx":
+                elif file_type == "pptx":
                     loader = self.Pptxloader([(file_content, file_type)])
                 elif file_type == "csv":
                     loader = self.Csvloader([(file_content, file_type)])
