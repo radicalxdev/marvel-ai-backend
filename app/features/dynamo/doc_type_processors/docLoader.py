@@ -1,4 +1,5 @@
-from dotenv import dotenv_values
+from dotenv import load_dotenv
+import os
 from pydantic import BaseModel, Field
 from langchain.prompts import PromptTemplate
 from langchain_google_vertexai import VertexAI
@@ -11,6 +12,10 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
+
+load_dotenv()
+
+
 class Flashcard(BaseModel):
     concept: str = Field(description="The concept of the flashcard")
     definition: str = Field(description="The definition of the flashcard")
@@ -21,27 +26,46 @@ class docProcessor:
     def __init__(self, userDocument: str, model: VertexAI):
         self.document = userDocument
         self.model = model 
+        self.api_key = os.getenv("UNSTRUCTURED_API_KEY")
         self.logger = logging.getLogger(__name__)
     
     # Uses Unstructured API File Loader to process the user provided word document
     def processDocument(self):
         with open(self.document, "rb") as file:
             self.logger.info(f"Loading document from {self.document}")
-            loader = UnstructuredAPIFileLoader(self.document, api_key=dotenv_values(".env")["api_key"])
+            loader = UnstructuredAPIFileLoader(self.document, api_key=self.api_key)
             docs = loader.load()
         return docs
 
     # Summarizes Document by joining everything into 1
     def summarizeDoc(self):
         allDocuments = self.processDocument()
+        if not allDocuments:
+            self.logger.error("No documents were loaded.")
+            raise ValueError("Document processing failed, no content available.")
+    
+        self.logger.info(f"Loaded {len(allDocuments)} documents.")
+    
         docSummary = []
         for doc in allDocuments:
             content = doc.page_content
-            docSummary.append(content)
+            if content:
+                docSummary.append(content)
+            else:
+                self.logger.warning(f"Empty content found in one of the documents.")
+    
+        if not docSummary:
+            self.logger.error("Document summary is empty.")
+            raise ValueError("Document summary generation failed.")
+    
         return ("\n".join(docSummary))
     
     # Creates a singular flashcard prompt
     def createFlashcards(self, summary, examples, format_instructions):
+        if not summary:
+            self.logger.error("Summary is empty. Cannot generate flashcards.")
+            raise ValueError("Summary is empty.")
+        
         prompt_template = (
             "You are a flashcard generation assistant designed to help students analyze a document and return a list of flashcards. "
             "Carefully consider the document and analyze what are the key terms or concepts relevant for students to better understand the topic. "
@@ -58,7 +82,7 @@ class docProcessor:
 
         flashcardsPrompt = PromptTemplate(
             template=prompt_template,
-            input_variables=["summary", "examples", "format_instructions"],
+            input_variables=["summary"],
             partial_variables={"examples": examples, "format_instructions": format_instructions}
         )
 
@@ -69,7 +93,9 @@ class docProcessor:
         try:
             self.logger.debug(f"Sending the following prompt to the model:\n{flashcardsPrompt.format(summary=summary, examples=examples, format_instructions=format_instructions)}")
             modelResponse = flashcardsChain.invoke({"summary": summary, "examples": examples, "format_instructions": format_instructions})
-            self.logger.debug(f"Received response from the model:\n{modelResponse}")
+            if not modelResponse:
+                self.logger.error("Model response is empty.")
+                raise ValueError("Model did not return any flashcards.")
         except OutputParserException as e:
             self.logger.error(f"Output parsing failed: {e.llm_output}")
             raise
