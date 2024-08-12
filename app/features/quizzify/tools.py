@@ -7,6 +7,9 @@ import requests
 import os
 import json
 import time
+import docx
+from pptx import Presentation
+import pandas as pd
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,6 +20,10 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_vertexai import VertexAIEmbeddings, VertexAI
+from langchain_community.document_transformers import BeautifulSoupTransformer
+from langchain_community.document_loaders.base import BaseLoader
+from youtube_transcript_api import YouTubeTranscriptApi
 
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
@@ -53,6 +60,19 @@ def read_text_file(file_path):
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
+def extract_text_from_docx(docx_file):
+    doc = docx.Document(docx_file)
+    return "\n".join([paragraph.text for paragraph in doc.paragraphs])
+
+def extract_text_from_pptx(pptx_file):
+    prs = Presentation(pptx_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
+    return "\n".join(text_runs)
+
 class RAGRunnable:
     def __init__(self, func):
         self.func = func
@@ -86,7 +106,8 @@ class UploadPDFLoader:
 
         return documents
 
-class BytesFilePDFLoader:
+# Credit to Rex Hunters for collaborating with us
+class BytesFileLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -104,11 +125,33 @@ class BytesFilePDFLoader:
 
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
+
+            
+            elif file_type in ["doc", "docx"]:
+                page_content = extract_text_from_docx(file)
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+                
+
+            elif file_type in ["ppt", "pptx"]:
+                page_content = extract_text_from_pptx(file)
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+
+            elif file_type == "csv":
+                df = pd.read_csv(file)
+                page_content = df.to_string()
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
                     
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
             
         return documents
+    
 
 class LocalFileLoader:
     def __init__(self, file_paths: list[str], expected_file_type="pdf"):
@@ -142,7 +185,7 @@ class LocalFileLoader:
 
 class URLLoader:
     def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
+        self.loader = file_loader or BytesFileLoader
         self.expected_file_type = expected_file_type
         self.verbose = verbose
 
@@ -239,7 +282,10 @@ class RAGpipeline:
     def create_vectorstore(self, documents: List[Document]):
         if self.verbose:
             logger.info(f"Creating vectorstore from {len(documents)} documents")
-        
+
+        for document in documents:
+            logger.info(f"Here is all the documents {document}")
+
         self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
 
         if self.verbose: logger.info(f"Vectorstore created")
@@ -390,4 +436,3 @@ class QuizQuestion(BaseModel):
         }
 
       }
-

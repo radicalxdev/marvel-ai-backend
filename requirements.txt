@@ -3,6 +3,7 @@ uvicorn[standard]
 langchain
 langchain-core
 langchain-google-genai
+langchain_google_vertexai
 langchain-chroma
 langchain-community
 google-cloud-secret-manager
@@ -12,6 +13,9 @@ google-cloud-storage
 firebase-admin
 chroma
 pypdf
+python-docx
+python-pptx
+pandas
 fpdf
 youtube-transcript-api
 pytube
