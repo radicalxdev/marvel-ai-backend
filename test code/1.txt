@@ -1,0 +1,37 @@
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+2024-07-18 18:59:16,794 - main - INFO - Initializing Application Startup
+2024-07-18 18:59:16,794 - main - INFO - Successfully Completed Application Startup
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     172.17.0.1:55908 - "GET / HTTP/1.1" 200 OK
+INFO:     172.17.0.1:55908 - "GET /docs HTTP/1.1" 200 OK
+INFO:     172.17.0.1:55908 - "GET /openapi.json HTTP/1.1" 200 OK
+2024-07-18 18:59:49,844 - api.tool_utilities - DEBUG - Loading tool metadata for tool_id: 0
+2024-07-18 18:59:49,844 - api.tool_utilities - DEBUG - Checking metadata file at: /app/features/quizzify/metadata.json
+2024-07-18 18:59:49,844 - api.tool_utilities - DEBUG - Loaded metadata: {'inputs': [{'label': 'Topic', 'name': 'topic', 'type': 'text'}, {'label': 'Number of Questions', 'name': 'num_questions', 'type': 'number'}, {'label': 'Upload PDF files', 'name': 'files', 'type': 'file'}]}
+2024-07-18 18:59:51,641 - services.logger - DEBUG - Files: [ToolFile(filePath='', url='https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd', filename='')]
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1721329191.679522       1 config.cc:230] gRPC experiments enabled: call_status_override_on_cancellation, event_engine_dns, event_engine_listener, http2_stats_fix, monitoring_experiment, pick_first_new, trace_record_callops, work_serializer_clears_time_cache
+I0000 00:00:1721329191.684779       1 check_gcp_environment.cc:61] BIOS data file does not exist or cannot be opened.
+2024-07-18 18:59:52,065 - features.quizzify.tools - INFO - Completed pipeline compilation
+2024-07-18 18:59:52,065 - features.quizzify.tools - INFO - Executing pipeline
+2024-07-18 18:59:52,065 - features.quizzify.tools - INFO - Start of Pipeline received: 1 documents of type <class 'services.tool_registry.ToolFile'>
+2024-07-18 18:59:52,065 - features.quizzify.tools - INFO - Loading 1 files
+2024-07-18 18:59:52,065 - features.quizzify.tools - INFO - Loader type used: <class 'features.quizzify.tools.URLLoader'>
+2024-07-18 18:59:52,065 - features.quizzify.tools - DEBUG - Loader is a: <class 'features.quizzify.tools.URLLoader'>
+2024-07-18 18:59:53,261 - features.quizzify.tools - INFO - Successfully loaded file from https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd
+2024-07-18 18:59:53,261 - features.quizzify.tools - DEBUG - pdf
+2024-07-18 18:59:53,303 - features.quizzify.tools - INFO - Loaded 3 documents
+2024-07-18 18:59:53,303 - features.quizzify.tools - INFO - Splitting 3 documents
+2024-07-18 18:59:53,303 - features.quizzify.tools - INFO - Splitter type used: <class 'langchain_text_splitters.character.RecursiveCharacterTextSplitter'>
+2024-07-18 18:59:53,304 - features.quizzify.tools - INFO - Split 3 documents into 8 chunks
+2024-07-18 18:59:53,304 - features.quizzify.tools - INFO - Creating vectorstore from 8 documents
+2024-07-18 18:59:53,844 - features.quizzify.tools - INFO - Vectorstore created
+2024-07-18 18:59:53,847 - features.quizzify.tools - INFO - Creating 1 questions
+2024-07-18 18:59:53,848 - features.quizzify.tools - INFO - Chain compilation complete
+2024-07-18 18:59:56,526 - features.quizzify.tools - INFO - Generated response attempt 1: {'question': 'A linear model was fit to the following data points, where the x-axis corresponds to the explanatory variable and the y-axis corresponds to the dependent variable:\n(0,0), (1,2), (2,4), (3,6), (4,8)\nThe equation of the fitted linear model is: y=0.5x+1.0.\nWhat would be the next number in this list?\n', 'choices': {'A': '350', 'B': '450', 'C': '1550', 'D': '3850'}, 'answer': 'D', 'explanation': 'Using the equation of the fitted linear model: y=0.5x+1.0.\nThe next number in this list would be:\n0.5(10)+1.0 = 5+1 = 6'}
+2024-07-18 18:59:56,526 - features.quizzify.tools - INFO - Valid question added: {'question': 'A linear model was fit to the following data points, where the x-axis corresponds to the explanatory variable and the y-axis corresponds to the dependent variable:\n(0,0), (1,2), (2,4), (3,6), (4,8)\nThe equation of the fitted linear model is: y=0.5x+1.0.\nWhat would be the next number in this list?\n', 'choices': [{'key': 'A', 'value': '350'}, {'key': 'B', 'value': '450'}, {'key': 'C', 'value': '1550'}, {'key': 'D', 'value': '3850'}], 'answer': 'D', 'explanation': 'Using the equation of the fitted linear model: y=0.5x+1.0.\nThe next number in this list would be:\n0.5(10)+1.0 = 5+1 = 6'}
+2024-07-18 18:59:56,526 - features.quizzify.tools - INFO - Total generated questions: 1
+2024-07-18 18:59:56,526 - features.quizzify.tools - INFO - Deleting vectorstore
+
