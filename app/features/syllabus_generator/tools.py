@@ -1,4 +1,4 @@
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
 from app.services.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
@@ -25,9 +25,6 @@ class SyllabusRequestArgs(BaseModel):
     class_schedule: Optional[str] = None
     instructor_contact: Optional[str] = None
     additional_customizations: Optional[str] = None
-
-    def to_dict(self) -> dict:
-        return self.dict(exclude_unset=True)
 
 class SyllabusGeneratorPipeline:
     def __init__(self, prompt=None, customization_prompt=None, parser=None, model=None, verbose=False):
@@ -159,7 +156,7 @@ def generate_syllabus(request_args: SyllabusRequestArgs, verbose=True) -> Dict:
         pipeline = SyllabusGeneratorPipeline(verbose=verbose)
         initial_chain, customization_chain = pipeline.compile()
         
-        initial_output = initial_chain.invoke(request_args.to_dict())
+        initial_output = initial_chain.invoke(request_args.model_dump(exclude_unset=True))
         
         if request_args.additional_customizations:
             import json
