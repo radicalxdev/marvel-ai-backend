@@ -132,6 +132,8 @@ ENV/
 env.bak/
 venv.bak/
 
+vvvenv.bak/
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -164,5 +166,7 @@ cython_debug/
 #.idea/
 
 **/env/
+
+**/vvvenv/
 **/key.txt
 **/local-auth.json
