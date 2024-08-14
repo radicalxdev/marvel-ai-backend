@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SyllabusModel(BaseModel):
@@ -117,80 +117,5 @@ class SyllabusModel(BaseModel):
             }
         ],
     )
-    model_config = {
-        "json_schema_extra": {
-            "examples": """
-            {
-                "title": "ELECTROCARDIOGRAPH TECHNIQUE & APPLICATION",
-                "overview": "Acquiring a deeper understanding of the cardiovascular system and how it functions, students
-                    practice basic electrocardiograph patient care techniques, applying legal and ethical responsibilities. Students learn the
-                    use of medical instrumentation, electrocardiogram theory, identification of and response to mechanical problems,
-                    recognition of cardiac rhythm and response to emergency findings.",
-                "objectives": [
-                        "Define the key terms associated with electrocardiographs.",
-                        "Describe the cardiac cycle and the conduction systems that controls the cardiac cycle.",
-                        "Describe the electrocardiogram.",
-                        "Maintain equipment for safety and accuracy; identify and eliminate or report interference and
-                        mechanical problems."
-                    ],
-                "policies_and_exceptions": {
-                    "attendance requirements":
-                        "It is important for the school to be notified when a student is not able to attend class. It is the student’s responsibility to
-                        inquire about make-up work for both classroom lectures and laboratory sessions.
-                        Tardiness and/or absence from any part of a class/lab will constitute a partial absence. A total of three partial absences
-                        will constitute a full absence. ",
-                    "make-up work":
-                        "It is the student’s responsibility to inquire about make-up work for both classroom and laboratory sessions. The
-                        instructor will not re-teach material, therefore there is no charge for make-up work. For information regarding make-up
-                        work."
-                },
-                "grade_level_assessments": {
-                    "assessment_components": {
-                        "assignments": 20,
-                        "exams": 25,
-                        "projects": 25,
-                        "presentations": 15,
-                        "participation": 15,
-                    },
-                    "grade_scale": {
-                        "A": "90-100%",
-                        "B": "80-89%",
-                        "C": "70-79%",
-                        "D": "60-69%",
-                        "F": "Below 60%",
-                    },
-                    
-            },
-            "required_materials": {
-                "recommended_books": [
-                    "book 1", 
-                    "book 2", 
-                    "book 3"
-                ]
-                "required_items": [
-                    "paint",
-                    "paintbrush",
-                    "pencil",
-                    "eraser",
-                    "notebooks" "sharpies",
-                    "crayons",
-                    "black ink pen",
-                    "ruler",
-                ]
-            },
-            "additional_information": {
-              "Visual aids":[
-                  Diagrams of the cardiovascular system , 
-                  Annotated electrocardiogram (ECG) readings , 
-                  Videos demonstrating ECG procedures and techniques ,
-                  Infographics on the cardiac cycle and conduction system ],
-             "Resources":[
-               {Textbook: "Electrocardiography for Healthcare Professionals" by Booth and O'Brien},
-                Online tutorials and interactive ECG simulations,
-                Access to ECG machines and practice materials in the laboratory,
-                Recommended articles and research papers on the latest ECG technologies and practices]
 
-            }
-            """
-        }
-    }
+    model_config = ConfigDict(str_strip_whitespace=True, extra="allow")

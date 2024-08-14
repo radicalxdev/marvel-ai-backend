@@ -1,7 +1,7 @@
 import os
 from typing import Dict, List
 
-from app.features.syllabus_generator.model import SyllabusModel
+from app.features.syllabus_generator.schema import SyllabusModel
 from app.services.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
