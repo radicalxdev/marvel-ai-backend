@@ -25,10 +25,12 @@ async def executor(inputs: InputData,Type='') -> Dict[str, Any]:
         dict: A dictionary containing tool-specific details.
     """
     try:
+        # Initialize input values
         grade = inputs.grade
         subject = inputs.subject
         syllabus_type = inputs.Syllabus_type
         instructions = inputs.instructions
+        # Compulsory parameters
         if not grade or not subject or not syllabus_type:
             raise ValueError("Missing required parameters: 'grade', 'subject', or 'Syllabus_type'")
 
