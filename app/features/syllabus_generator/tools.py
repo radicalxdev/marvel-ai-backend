@@ -1,13 +1,12 @@
 import os
-import sys
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from app.features.syllabus_generator.model import SyllabusModel
 from app.services.logger import setup_logger
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import ValidationError
 
 logger = setup_logger(__name__)
 
