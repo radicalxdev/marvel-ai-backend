@@ -113,9 +113,12 @@ class Syllabus_generator :
 
     def course_description(self) -> str:
         # Brief description or high level overview of course
-        prompt = self.build_prompt('prompts/course_description.txt')
-        chain = prompt | self.model
 
+        # Build prompt
+        prompt = self.build_prompt('prompts/course_description.txt')
+        # Create LLM chain
+        chain = prompt | self.model
+        # Generate response
         response = chain.invoke({"grade" : self.grade,
                                  "subject" : self.subject,
                                  "Syllabus_type" : self.Syllabus_type,
