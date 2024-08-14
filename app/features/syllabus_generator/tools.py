@@ -112,58 +112,47 @@ class SyllabusBuilder:
             if isinstance(response, dict):
                 if "title" in response:
                     if not isinstance(response["title"], str):
-                        print(1)
                         return False
 
                 if "overview" in response:
                     if not isinstance(response["overview"], str):
-                        print(2)
                         return False
 
                 if "objectives" in response:
                     objectives = response["objectives"]
                     if not isinstance(objectives, list):
-                        print(3)
                         return False
                     for item in objectives:
                         if not isinstance(item, str):
-                            print(4)
                             return False
 
                 if "policies_and_exceptions" in response:
                     policies_and_exceptions = response["policies_and_exceptions"]
                     if not isinstance(policies_and_exceptions, dict):
-                        print(5)
                         return False
                     for key, value in policies_and_exceptions.items():
                         if not isinstance(key, str) or not isinstance(value, str):
-                            print(6)
                             return False
 
                 if "required_materials" in response:
                     required_materials = response["required_materials"]
                     if not isinstance(required_materials, dict):
-                        print(7)
                         return False
                     for key, val in required_materials.items():
                         if not isinstance(key, str) or not isinstance(val, list):
-                            print(8)
                             return False
                     required_keys = {"recommended_books", "required_items"}
                     if set(required_materials.keys()) != required_keys:
-                        print(9)
                         return False
 
                 if "grade_level_assessments" in response:
                     grade_level_assessments = response["grade_level_assessments"]
                     if not isinstance(grade_level_assessments, dict):
-                        print(10)
                         return False
                     if (
                         "assessment_components" not in grade_level_assessments
                         or "grade_scale" not in grade_level_assessments
                     ):
-                        print(11)
                         return False
                     assessment_components = grade_level_assessments[
                         "assessment_components"
@@ -172,15 +161,12 @@ class SyllabusBuilder:
                     if not isinstance(assessment_components, dict) or not isinstance(
                         grade_scale, dict
                     ):
-                        print(12)
                         return False
                     for key, val in assessment_components.items():
                         if not isinstance(key, str) or not isinstance(val, int):
-                            print(13)
                             return False
                     for key, val in grade_scale.items():
                         if not isinstance(key, str) or not isinstance(val, str):
-                            print(14)
                             return False
 
             if self.verbose:
