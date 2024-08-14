@@ -99,75 +99,12 @@ class SyllabusBuilder:
             if item == "all":
                 seen_all = True
 
-    # Probably a better way to do this
-    # TODO: Make this return ENUM so we can attach which part is broken
     def _validate_response(self, response: Dict) -> bool:
         """
         Validates response from LLM
         """
         try:
-            # Assuming reponse is already a dict
-            if not isinstance(response, dict):
-                return False
-            if isinstance(response, dict):
-                if "title" in response:
-                    if not isinstance(response["title"], str):
-                        return False
-
-                if "overview" in response:
-                    if not isinstance(response["overview"], str):
-                        return False
-
-                if "objectives" in response:
-                    objectives = response["objectives"]
-                    if not isinstance(objectives, list):
-                        return False
-                    for item in objectives:
-                        if not isinstance(item, str):
-                            return False
-
-                if "policies_and_exceptions" in response:
-                    policies_and_exceptions = response["policies_and_exceptions"]
-                    if not isinstance(policies_and_exceptions, dict):
-                        return False
-                    for key, value in policies_and_exceptions.items():
-                        if not isinstance(key, str) or not isinstance(value, str):
-                            return False
-
-                if "required_materials" in response:
-                    required_materials = response["required_materials"]
-                    if not isinstance(required_materials, dict):
-                        return False
-                    for key, val in required_materials.items():
-                        if not isinstance(key, str) or not isinstance(val, list):
-                            return False
-                    required_keys = {"recommended_books", "required_items"}
-                    if set(required_materials.keys()) != required_keys:
-                        return False
-
-                if "grade_level_assessments" in response:
-                    grade_level_assessments = response["grade_level_assessments"]
-                    if not isinstance(grade_level_assessments, dict):
-                        return False
-                    if (
-                        "assessment_components" not in grade_level_assessments
-                        or "grade_scale" not in grade_level_assessments
-                    ):
-                        return False
-                    assessment_components = grade_level_assessments[
-                        "assessment_components"
-                    ]
-                    grade_scale = grade_level_assessments["grade_scale"]
-                    if not isinstance(assessment_components, dict) or not isinstance(
-                        grade_scale, dict
-                    ):
-                        return False
-                    for key, val in assessment_components.items():
-                        if not isinstance(key, str) or not isinstance(val, int):
-                            return False
-                    for key, val in grade_scale.items():
-                        if not isinstance(key, str) or not isinstance(val, str):
-                            return False
+            SyllabusModel(**response)
 
             if self.verbose:
                 logger.info("Response validated successfully")
@@ -197,9 +134,9 @@ class SyllabusBuilder:
             self.grade_level_assessments = read_text_file("prompt/university.txt")
 
         options_text = ""
-        for num, item in enumerate(self.options, 2):
+        for num, option in enumerate(self.options, 2):
             # join the optional commands with "\n" to add to prompt
-            if item == "all":
+            if option == "all":
                 options_text = "\n".join(
                     [
                         f"{i}: {text}"
@@ -207,7 +144,7 @@ class SyllabusBuilder:
                     ]
                 )
                 break
-            options_text += f"{num}: {USABLE_OPTIONS[item]}\n"
+            options_text += f"{num}: {USABLE_OPTIONS[option]}\n"
 
         self.prompt = self.prompt.format(options_text=options_text)
 
