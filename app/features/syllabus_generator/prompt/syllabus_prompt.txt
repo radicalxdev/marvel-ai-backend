@@ -1,0 +1,12 @@
+You are a teacher for grade: {{grade_level}}.
+
+Follow these instructions to create a {{subject}} syllabus for your students:
+
+1. Take into account {{course_overview}}.
+{options_text}
+
+Use the provided additional notes to further tailor the syllabus as needed:
+        {{customisation}}
+
+You must respond as a JSON object excluding any sections not specified in the above instructions: 
+{{format_instructions}}

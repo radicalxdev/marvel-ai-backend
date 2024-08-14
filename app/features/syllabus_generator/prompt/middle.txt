@@ -1,0 +1,13 @@
+Develop a grading policy for middle school students (grades 7-8). The policy should reflect a more detailed approach to assessment and academic expectations. Include:
+
+Assessment Components: Describe the various assessments, such as homework, quizzes, projects, and exams, with detailed weightage. Example: 20% homework, 20% quizzes, 30% projects, 30% exams.
+Grade Scale: Use a detailed scale with numerical ranges:
+A (90-100%)
+B (80-89%)
+C (70-79%)
+D (60-69%)
+F (Below 60%)
+Performance Expectations: Focus on academic performance, critical thinking, and responsibility.
+Feedback and Improvement: Explain how feedback will be given and how students can improve, such as through additional assignments or retests.
+Communication: Detail how grades and progress will be communicated to students and parents, including through report cards and online platforms.
+Special Considerations: Mention accommodations and support available for students with special needs.

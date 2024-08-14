@@ -13,6 +13,7 @@ COPY ./app /code/app
 # ENV TYPES: dev, production
 # When set to dev, API Key on endpoint requests are just 'dev'
 # When set to production, API Key on endpoint requests are the actual API Key
+ENV ENV_TYPE="dev"
 
 ENV PYTHONPATH=/code/app
 

@@ -1,0 +1,29 @@
+{
+    "inputs": [
+        {
+            "label": "Subject",
+            "name": "subject",
+            "type": "text"
+        },
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Customisation",
+            "name": "customisation",
+            "type": "text"
+        },
+        {
+            "label": "Course Overview",
+            "name": "course_overview",
+            "type": "text"
+        },
+        {
+            "label": "Options",
+            "name": "options",
+            "type": "list"
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+Create a grading policy for high school students (grades 9-12). The policy should be detailed and reflect the higher academic and personal responsibility expectations at this level. Include:
+
+Assessment Components: Specify the assessment types and weightage, such as homework, quizzes, tests, projects, and class participation. Example: 15% homework, 20% quizzes, 25% tests, 25% projects, 15% class participation.
+Grade Scale: Use a detailed numerical scale with GPA implications:
+A (90-100%)
+B (80-89%)
+C (70-79%)
+D (60-69%)
+F (Below 60%)
+Performance Expectations: Emphasize academic achievement, critical thinking, and preparation for higher education or career paths.
+Feedback and Improvement: Outline how feedback will be given and how students can improve, including opportunities for make-up work or extra credit.
+Communication: Describe how progress and grades will be communicated through report cards, online systems, and parent-teacher meetings.
+Special Considerations: Address accommodations for students with special needs and support resources available.
