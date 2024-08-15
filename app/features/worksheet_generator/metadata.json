@@ -1,0 +1,29 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "number"
+        },
+        {
+            "label": "Topic",
+            "name": "topic",
+            "type": "text"
+        },
+        {
+            "label": "Difficulty Level",
+            "name": "difficulty_level",
+            "type": "text"
+        },
+        {
+            "label": "Question Types",
+            "name": "question_types",
+            "type": "list"
+        },
+        {
+            "label": "ISO 639-1 Language Code",
+            "name": "lang",
+            "type": "text"
+        }
+    ]
+}
