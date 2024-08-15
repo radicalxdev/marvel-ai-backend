@@ -26,5 +26,5 @@ beautifulsoup4
 docx
 python-docx
 reportlab
-dotenv
+python-dotenv
 praw

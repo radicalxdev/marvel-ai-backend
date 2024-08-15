@@ -24,6 +24,9 @@ async def executor(inputs: InputData,Type='') -> Dict[str, Any]:
     Returns:
         dict: A dictionary containing tool-specific details.
     """
+    if Type not in ['','pdf','word'] :
+        raise ValueError(f"Unsupported Type: {Type}")
+
     try:
         grade = inputs.grade
         subject = inputs.subject
@@ -33,22 +36,12 @@ async def executor(inputs: InputData,Type='') -> Dict[str, Any]:
             raise ValueError("Missing required parameters: 'grade', 'subject', or 'Syllabus_type'")
 
         Memes_Generator = Meme_generator_with_reddit(subject=subject)
-        print('starting memes')
         memes = Memes_Generator.get_memes()
-        print('memes done')
-        # Execute the syllabus generation logic
-
-        Syllabus_Generator = Syllabus_generator(grade=grade,subject=subject,Syllabus_type=syllabus_type,instructions = instructions,path="app/features/syllabus_generator/")
-
-
-        print('starting syllabus')
-        result = Syllabus_Generator.run(verbose=False)
-        print('syllabus done')
+        Syllabus_Generator = Syllabus_generator(grade,subject,syllabus_type,instructions,path="app/features/syllabus_generator/")
+        result = Syllabus_Generator.run()
         result['memes'] = memes
 
-        if not Type :
-            return result
-        elif Type == 'pdf':
+        if Type == 'pdf':
             Gen = PDFGenerator(grade,subject)
             return {
                     'file' :Gen.generate_pdf(result),
@@ -60,7 +53,8 @@ async def executor(inputs: InputData,Type='') -> Dict[str, Any]:
                     'file' :Gen.generate_word(result),
                     'type' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                     }
-        raise ValueError(f"Unsupported Type: {Type}")
+            
+        return result
 
     except Exception as e:
         error_message = f"Error in executor: {e}"
