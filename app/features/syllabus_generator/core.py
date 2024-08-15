@@ -34,8 +34,8 @@ async def executor(inputs: InputData,Type='') -> Dict[str, Any]:
         syllabus_type = inputs.Syllabus_type
         instructions = inputs.instructions
         # Compulsory parameters
-        if not grade or not subject or not syllabus_type:
-            raise ValueError("Missing required parameters: 'grade', 'subject', or 'Syllabus_type'")
+        if not grade or not subject :
+            raise ValueError("Missing required parameters: 'grade', 'subject'")
 
         Memes_Generator = Meme_generator_with_reddit(subject=subject)
         memes = Memes_Generator.get_memes()
@@ -55,7 +55,7 @@ async def executor(inputs: InputData,Type='') -> Dict[str, Any]:
                     'file' :Gen.generate_word(result),
                     'type' : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                     }
-            
+
         return result
 
     except Exception as e:
