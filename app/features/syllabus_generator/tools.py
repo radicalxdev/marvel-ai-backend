@@ -1,3 +1,6 @@
+# Libraries 
+
+
 import os
 import json
 import time
@@ -22,6 +25,7 @@ from app.features.syllabus_generator import credentials
 
 logger = setup_logger(__name__)
 
+# Search engine class to extract api output and verify data
 class Search_engine:
 
     def __init__(self, grade, subject, API_KEY=credentials['api_key'],SEARCH_ENGINE_ID=credentials['search_engine_id']):
@@ -66,6 +70,7 @@ class Search_engine:
             print(f"Error scraping data: {e}")  # Handle and log the scraping error
             return []
 
+# Entire syllabus generator pipeline with all functions in this class
 class Syllabus_generator :
 
     def __init__(self,grade,subject,Syllabus_type,instructions,path="",API_KEY=credentials['api_key'],SEARCH_ENGINE_ID=credentials['search_engine_id']):
@@ -84,7 +89,7 @@ class Syllabus_generator :
             return file.read()
 
     def build_prompt(self,filepath):
-
+        # build invididual promps for each sub part of syllabus
         template = self.read_text_file(filepath)
 
         prompt = PromptTemplate.from_template(template)
@@ -107,10 +112,13 @@ class Syllabus_generator :
         return data
 
     def course_description(self) -> str:
+        # Brief description or high level overview of course
 
+        # Build prompt
         prompt = self.build_prompt('prompts/course_description.txt')
+        # Create LLM chain
         chain = prompt | self.model
-
+        # Generate response
         response = chain.invoke({"grade" : self.grade,
                                  "subject" : self.subject,
                                  "Syllabus_type" : self.Syllabus_type,
@@ -119,6 +127,7 @@ class Syllabus_generator :
         return response
 
     def course_objectives(self,course_description:str) -> str:
+        # Numbered objectives or aims of the course
 
         prompt = self.build_prompt('prompts/course_objectives.txt')
         chain = prompt | self.model
@@ -139,6 +148,8 @@ class Syllabus_generator :
         return self.Validator(response)
 
     def course_outline(self,course_description:str,course_objectives:str) -> str:
+        # Structured outline explaining topics and subtopics covered in a timeline
+
         Outline_prompt = self.build_prompt('prompts/course_outline.txt')
         Search_prompt = self.build_prompt('prompts/search_results.txt')
 
@@ -168,6 +179,7 @@ class Syllabus_generator :
         return self.Validator(response)
 
     def grading_policy(self,course_outline:str) -> str:
+        # Assessment and marks policy and percentage distribtution
 
         prompt = self.build_prompt('prompts/grading_policy.txt')
         chain = prompt | self.model
@@ -184,6 +196,7 @@ class Syllabus_generator :
         return self.Validator(response)
 
     def rules_policies(self,course_outline:str) -> str:
+        # Classroom rules and etiquette 
 
         prompt = self.build_prompt('prompts/rules_policies.txt')
         chain = prompt | self.model
@@ -200,6 +213,8 @@ class Syllabus_generator :
         return self.Validator(response)
 
     def study_materials(self,course_outline:str) -> str:
+        # Important study resources and their specific function
+
         prompt = self.build_prompt('prompts/study_materials.txt')
         chain = prompt | self.model
 
@@ -214,6 +229,7 @@ class Syllabus_generator :
         return self.Validator(response)
 
     def run(self,verbose=False):
+        # Final function to run all prompts and combine final syllabus
 
         #? time.sleep to avoid the quota increase error because if you use a free trial these a limit of requests per minute
 
@@ -245,6 +261,7 @@ class Syllabus_generator :
 
         return response
 
+# Class to generate PDF document with entire syllabus formatted with headings, tables, etc.
 class PDFGenerator:
     def __init__(self, grade, subject):
         self.grade = grade
@@ -487,6 +504,7 @@ class PDFGenerator:
         buffer.seek(0)
         return buffer
 
+# Similar functionality as PDF but for a word document
 class WordGenerator:
 
     def __init__(self, grade, subject):
@@ -585,6 +603,7 @@ class WordGenerator:
         buffer.seek(0)
         return buffer
 
+# Generate fun memes related to subject and topic of user's syllabus
 class Meme_generator_with_reddit:
 
     def __init__(self, subject, client_id=credentials['client_id'],client_secret=credentials['client_secret'],username=credentials['username'],password=credentials['password'],user_agent=credentials['user_agent']):
@@ -659,6 +678,7 @@ class Meme_generator_with_reddit:
 
         return meme_urls
 
+# Additional scraper functionality in meme generator
 class Meme_generator_with_scraper:
 
     def __init__(self,grade,subject,API_KEY=credentials['api_key'],SEARCH_ENGINE_ID=credentials['search_engine_id']):

@@ -1,3 +1,5 @@
+# Testing meme generation functionality
+
 from app.features.syllabus_generator.tools import Meme_generator_with_reddit, Meme_generator_with_scraper
 from app.features.syllabus_generator import credentials
 import pytest

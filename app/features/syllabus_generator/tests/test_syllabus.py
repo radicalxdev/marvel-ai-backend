@@ -4,7 +4,7 @@ from app.features.syllabus_generator.tests import is_valid_url,Test_Engine,Test_
 from langchain_core.prompts import PromptTemplate
 
 
-
+# Pytest setup
 @pytest.fixture
 def capture_output(request):
     test_output = []
@@ -23,6 +23,7 @@ def add_delay():
     print("Teardown: Adding delay after test")
     time.sleep(2.5)
 
+# Data scraping and search engine
 def test_get_link():
     link = Test_Engine.get_link()
     assert link
@@ -33,10 +34,12 @@ def test_scrap_data():
     result = Test_Engine.scrap_data()
     assert isinstance(result, list)
 
+# Are prompts successfuly built from prompts folder
 def test_build_prompt():
     result = Test_Generator.build_prompt('tests/TestExamples/text.txt')
     assert isinstance(result, PromptTemplate)
 
+# Testing if each sub section of syllabus is accurately working
 def test_course_description():
     result = Test_Generator.course_description()
     assert result
