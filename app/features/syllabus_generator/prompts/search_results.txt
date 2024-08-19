@@ -4,7 +4,7 @@ Subject : {subject}
 Syllabus type : {Syllabus_type}
 Specific Instructions/Information : {instructions}
 
-*Your task is to take the information from the table and turn it into a clear and understandable list of the main topics in that table. 
+*Your task is to take the information from the table and turn it into a clear and understandable list of the main topics in that table.
 *The response should be structured as a list. Ensure that the response can be loaded using json.loads in Python.
 the response should be only the topics without any titles or something else.
 
@@ -19,4 +19,4 @@ Example structure of the response:
 Input Table:
 {web_search}
 
-Answer : 
+Answer :

@@ -1,8 +1,7 @@
-You are an expert syllabus generator. Your have to create a detailed course outline or:
+You are an expert syllabus generator. You have to create a detailed course outline or:
 Grade : {grade}
 Subject : {subject}
 Syllabus type : {Syllabus_type}
-Specific Instructions/Information : {instructions}
 Specific Instructions/Information : {instructions}
 
 *The outline should be well structured and detail all the syllabus
@@ -24,6 +23,9 @@ Example structure of the response:
     }},
     ...
 ]
+
+The topics ordering and the durations should take into consideration the class level
+Class level : {class_level}
 
 Use as reference
 ------------------------

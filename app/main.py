@@ -1,9 +1,10 @@
 # Standard library imports
 import os
+from typing import Optional
 
 # FastAPI core imports
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import JSONResponse,StreamingResponse
+from fastapi import FastAPI, Request, HTTPException, File, UploadFile, Form
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 
@@ -15,27 +16,34 @@ from app.api.router import router
 from app.services.logger import setup_logger
 from app.api.error_utilities import ErrorResponse, InputValidationError
 from app.features.syllabus_generator.core import executor
-from app.services.schemas import ToolResponse,InputData
+from app.services.schemas import ToolResponse, InputData
 
+# Environment setup
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
 
+# Logger setup
 logger = setup_logger(__name__)
 
+# Context manager for application lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"Initializing Application Startup")
+    logger.info("Initializing Application Startup")
     try:
         # Perform initialization tasks here
         pass
     except Exception as e:
         logger.error(f"Error during startup: {e}")
         raise
-    logger.info(f"Successfully Completed Application Startup")
+    logger.info("Successfully Completed Application Startup")
 
-    yield
+    yield  # This point represents the lifespan of the application
+
     logger.info("Application shutdown")
 
+# FastAPI application setup
 app = FastAPI(lifespan=lifespan)
+
+# Middleware configuration for CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -43,8 +51,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include the application router
 app.include_router(router)
 
+# Custom exception handler for request validation errors
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
@@ -61,15 +72,31 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content=error_response.dict()
     )
 
+# Endpoint to get syllabus
 @app.post("/get_syllabus")
-async def get_syllabus(inputs: InputData,Type: str = ''):
+async def get_syllabus(
+    grade: str = Form(...),
+    subject: str = Form(...),
+    syllabus_type: str = Form(...),
+    instructions: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    type_: str = Form('')  # Renamed 'Type' to 'type_' to avoid conflict with Python's built-in 'type'
+):
     try:
-        # Call the executor function
-        if not Type:
-            result = await executor(inputs=inputs)
+        # Prepare input data
+        inputs = InputData(
+            grade=grade,
+            subject=subject,
+            Syllabus_type=syllabus_type,
+            instructions=instructions
+        )
+
+        # Execute the core functionality based on 'type_' parameter
+        if not type_:
+            result = await executor(inputs=inputs, file=file)
             return ToolResponse(data=result)
-        else :
-            result = await executor(inputs=inputs,Type=Type)
+        else:
+            result = await executor(inputs=inputs, file=file, Type=type_)
             return StreamingResponse(result['file'], media_type=result['type'])
 
     except Exception as e:

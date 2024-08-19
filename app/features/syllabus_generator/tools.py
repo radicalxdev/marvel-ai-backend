@@ -1,4 +1,4 @@
-# Libraries 
+# Libraries
 
 
 import os
@@ -15,7 +15,7 @@ from reportlab.platypus import Table, TableStyle
 from reportlab.lib import colors
 from docx import Document
 from requests.exceptions import HTTPError
-from io import BytesIO
+from io import BytesIO,StringIO
 from bs4 import BeautifulSoup
 import requests
 import praw
@@ -73,20 +73,26 @@ class Search_engine:
 # Entire syllabus generator pipeline with all functions in this class
 class Syllabus_generator :
 
-    def __init__(self,grade,subject,Syllabus_type,instructions,path="",API_KEY=credentials['api_key'],SEARCH_ENGINE_ID=credentials['search_engine_id']):
+    def __init__(self,grade,subject,Syllabus_type,instructions,content,path="",API_KEY=credentials['api_key'],SEARCH_ENGINE_ID=credentials['search_engine_id']):
         self.grade = grade
         self.subject = subject
         self.Syllabus_type = Syllabus_type
         self.instructions = instructions
+        self.content = content
         self.model = VertexAI(model_name='gemini-pro',temperature=0.1)
         self.path = path
         Engine = Search_engine(grade,subject,API_KEY,SEARCH_ENGINE_ID)
-        self.web_search = '' #Engine.scrap_data()
+        self.web_search = Engine.scrap_data()
 
     def read_text_file(self,filepath):
 
         with open(f"{self.path}{filepath}", 'r') as file:
             return file.read()
+
+    def stats(self):
+        df = pd.read_csv(StringIO(self.content.decode("utf-8")))
+        class_level = df.describe()
+        return class_level.to_string()
 
     def build_prompt(self,filepath):
         # build invididual promps for each sub part of syllabus
@@ -101,7 +107,7 @@ class Syllabus_generator :
             data = json.loads(response)
         except json.JSONDecodeError as e:
 
-           
+
             print("JSON Decode Error , Trying to correct the JSON")
             try:
                 corrected_result = response[min(response.find('{'),response.find('[')):max(response.rfind(']'),response.rfind('}')) + 1]
@@ -141,7 +147,7 @@ class Syllabus_generator :
                             'Syllabus_type' : self.Syllabus_type,
 
                             "instructions" : self.instructions,
-                            
+
                             'course_description': course_description
                         })
 
@@ -169,11 +175,11 @@ class Syllabus_generator :
                              'grade' : self.grade,
                              'subject' : self.subject,
                              'Syllabus_type' : self.Syllabus_type,
-                             "instructions" : self.instructions,
+                             'instructions' : self.instructions,
+                             'class_level' :self.stats(),
                              'search_results' : search_results,
                              'course_objectives' : course_objectives,
                              'course_description' : course_description,
-                             "instructions":self.instructions
                          })
 
         return self.Validator(response)
@@ -196,7 +202,7 @@ class Syllabus_generator :
         return self.Validator(response)
 
     def rules_policies(self,course_outline:str) -> str:
-        # Classroom rules and etiquette 
+        # Classroom rules and etiquette
 
         prompt = self.build_prompt('prompts/rules_policies.txt')
         chain = prompt | self.model
