@@ -1,4 +1,4 @@
-# Kai AI Platform
+# Marvel AI Platform
 
 ![Static Badge](https://img.shields.io/badge/v3.10.12-blue?logo=python&logoColor=yellow&labelColor=gray)
 ![Static Badge](https://img.shields.io/badge/Gemini%201.0-blue?logo=googlegemini&logoColor=blue&labelColor=gray)
@@ -17,29 +17,46 @@
 ## Folder Structure
 
 ```plaintext
-backend/
+marvel-ai-backend/
 ├── app/                     # Contains the main application code
-│   ├── Api/                 # Contains the API router for handling requests
+│   ├── api/                 # Contains the API router for handling requests
+│   │   ├── tests/
 │   │   └── router.py        # Endpoints for FastAPI to test features and handle incoming requests
-│   ├── chats/               # Handles chat functionalities
-│   ├── Features/            # Contains feature-specific modules
-│   │   ├── Feature1/
+│   │   └── error_utilities.py        
+│   │   └── tool_utilities.py        
+│   │   └── tools_config.json        
+│   ├── features/            # Contains feature-specific modules
+│   │   ├── feature1/
 │   │   │   ├── core.py
 │   │   │   ├── tools.py
-│   │   │   ├── Prompt/
+│   │   │   ├── prompt/
+│   │   │   ├── tests/
 │   │   │   └── metadata.json
-│   │   ├── Feature2/
+│   │   ├── feature2/
 │   │   │   ├── core.py
 │   │   │   ├── tools.py
-│   │   │   ├── Prompt/
+│   │   │   ├── prompt/
+│   │   │   ├── tests/
+│   │   │   └── metadata.json
+│   │   ├── featureN/
+│   │   │   ├── core.py
+│   │   │   ├── tools.py
+│   │   │   ├── prompt/
+│   │   │   ├── tests/
 │   │   │   └── metadata.json
 │   ├── services/            # Contains service modules
+│   │   ├── logger.py
+│   │   ├── schemas.py
+│   │   ├── tool_registry.py
 │   ├── utils/               # Contains utility modules
-│   ├── app.yaml             # Application configuration file
-│   ├── Dependencies.py      # Dependency management
-│   ├── Main.py              # Main entry point for the application
-│   └── requirements.txt     # Python dependencies
+│   │   ├── auth.py
+│   ├── .env.sample              # Contains the required env variables (CREATE AN .env file using it)
+│   ├── main.py              # Main entry point for the application
 ├── Dockerfile               # Dockerfile for containerizing the application
+├── requirements.txt         # Python dependencies 
+├── app.yaml                 # Application configuration file
+├── load_env.sh              # Loads env variables
+├── local-start.sh           # Starts the local server
 └── README.md                # Documentation file
 ```
 
@@ -48,7 +65,7 @@ backend/
 ### Navigate to the app directory
 
 ```bash
-cd backend/app
+cd marvel-ai-backend/app
 ```
 
 ### Create and activate Virtual Environment
@@ -122,7 +139,7 @@ Navigate to the project's root directory and build the Docker image. Typically, 
 docker build -t <image_name> .
 ```
 
-### 3 Run the Docker Container
+### 2. Run the Docker Container
 
 Run the Docker container using the following command:
 
