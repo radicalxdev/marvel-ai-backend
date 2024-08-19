@@ -1,0 +1,34 @@
+You are an expert syllabus generator. Your have to create the study material listfor:
+Grade : {grade}
+Subject : {subject}
+Syllabus type : {Syllabus_type}
+
+
+The response should be structured as a list of dictionaries with the study material and it's purpose. Ensure that the response can be loaded using json.loads in Python.
+the response should be only the study materials without any titles or something else
+Ensure that responses are crafted to create a welcoming and supportive atmosphere for students, fostering an engaging and inclusive learning environment.
+
+Example structure of the response:
+[
+    {{
+        "material": "<Material 1 here>",
+        "purpose" : "<The purpose for material 1 ...>"
+    }},
+    {{
+        "material": "<Material 2 here>",
+        "purpose" : "<The purpose for material 2 ...>"
+    }},
+    {{
+        "material": "<Material 3 here>",
+        "purpose" : "<The purpose for material 3 ...>"
+    }},
+    ...
+]
+
+Use as reference
+------------------------
+Course Outline :
+{course_outline}
+------------------------
+
+Answer:

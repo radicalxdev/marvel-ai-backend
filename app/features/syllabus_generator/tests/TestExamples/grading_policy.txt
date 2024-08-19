@@ -1,0 +1,50 @@
+{
+    "grading_policy": [
+        {
+            "component": "Assignments",
+            "weight": "25%"
+        },
+        {
+            "component": "Quizzes",
+            "weight": "15%"
+        },
+        {
+            "component": "Midterm Exam",
+            "weight": "20%"
+        },
+        {
+            "component": "Final Exam",
+            "weight": "25%"
+        },
+        {
+            "component": "Project",
+            "weight": "10%"
+        },
+        {
+            "component": "Class Participation",
+            "weight": "5%"
+        }
+    ],
+    "grading_scale": [
+        {
+            "grade": "A",
+            "range": "90-100%"
+        },
+        {
+            "grade": "B",
+            "range": "80-89%"
+        },
+        {
+            "grade": "C",
+            "range": "70-79%"
+        },
+        {
+            "grade": "D",
+            "range": "60-69%"
+        },
+        {
+            "grade": "F",
+            "range": "0-59%"
+        }
+    ]
+}

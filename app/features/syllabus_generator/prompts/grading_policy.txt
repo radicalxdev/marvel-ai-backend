@@ -1,0 +1,28 @@
+You are an expert syllabus generator. Your have to create a grading policy for:
+Grade : {grade}
+Subject : {subject}
+Syllabus type : {Syllabus_type}
+Specific Instructions/Information : {instructions}
+
+*The response should be structured as a list. Ensure that the response can be loaded using json.loads in Python.
+the response should be only the grading policy without any titles or something else
+
+Example structure of the response:
+[
+    {{
+        "Component": "<component here>",
+        "Coefficient": "<The coefficient here>",
+        "Note": "<Note here about the component>"
+    }},
+    ...
+]
+
+The Coefficients adds up to 1
+
+Use as reference
+------------------------
+Course Outline :
+{course_outline}
+------------------------
+
+Answer:

@@ -1,28 +1,49 @@
-from fastapi import FastAPI, Request, Depends
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+# Standard library imports
+import os
+from typing import Optional
+
+# FastAPI core imports
+from fastapi import FastAPI, Request, HTTPException, File, UploadFile, Form
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+
+# Context management imports
 from contextlib import asynccontextmanager
+
+# Application-specific imports
 from app.api.router import router
 from app.services.logger import setup_logger
-from app.api.error_utilities import ErrorResponse
+from app.api.error_utilities import ErrorResponse, InputValidationError
+from app.features.syllabus_generator.core import executor
+from app.services.schemas import ToolResponse, InputData
 
-import os
-from dotenv import load_dotenv, find_dotenv
+# Environment setup
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "local-auth.json"
 
-load_dotenv(find_dotenv())
-
+# Logger setup
 logger = setup_logger(__name__)
 
+# Context manager for application lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"Initializing Application Startup")
-    logger.info(f"Successfully Completed Application Startup")
-    
-    yield
+    logger.info("Initializing Application Startup")
+    try:
+        # Perform initialization tasks here
+        pass
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+        raise
+    logger.info("Successfully Completed Application Startup")
+
+    yield  # This point represents the lifespan of the application
+
     logger.info("Application shutdown")
 
-app = FastAPI(lifespan = lifespan)
+# FastAPI application setup
+app = FastAPI(lifespan=lifespan)
+
+# Middleware configuration for CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -31,6 +52,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include the application router
+app.include_router(router)
+
+# Custom exception handler for request validation errors
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
@@ -47,4 +72,33 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content=error_response.dict()
     )
 
-app.include_router(router)
+# Endpoint to get syllabus
+@app.post("/get_syllabus")
+async def get_syllabus(
+    grade: str = Form(...),
+    subject: str = Form(...),
+    syllabus_type: str = Form(...),
+    instructions: str = Form(...),
+    file: Optional[UploadFile] = File(None),
+    type_: str = Form('')  # Renamed 'Type' to 'type_' to avoid conflict with Python's built-in 'type'
+):
+    try:
+        # Prepare input data
+        inputs = InputData(
+            grade=grade,
+            subject=subject,
+            Syllabus_type=syllabus_type,
+            instructions=instructions
+        )
+
+        # Execute the core functionality based on 'type_' parameter
+        if not type_:
+            result = await executor(inputs=inputs, file=file)
+            return ToolResponse(data=result)
+        else:
+            result = await executor(inputs=inputs, file=file, Type=type_)
+            return StreamingResponse(result['file'], media_type=result['type'])
+
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")

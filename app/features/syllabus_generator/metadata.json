@@ -1,0 +1,24 @@
+{
+    "inputs": [
+        {
+            "label": "grade",
+            "name": "grade",
+            "type": "text"
+        },
+        {
+            "label": "subject",
+            "name": "subject",
+            "type": "text"
+        },
+        {
+            "label": "Syllabus_type",
+            "name": "Syllabus_type",
+            "type": "text"
+        },
+        {
+            "label": "instructions",
+            "name": "instructions",
+            "type": "text"
+        }
+    ]
+}
