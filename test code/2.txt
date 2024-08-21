@@ -1,0 +1,23 @@
+INFO:     172.17.0.1:55918 - "POST /submit-tool HTTP/1.1" 200 OK
+2024-07-18 19:01:17,579 - api.tool_utilities - DEBUG - Loading tool metadata for tool_id: 0
+2024-07-18 19:01:17,579 - api.tool_utilities - DEBUG - Checking metadata file at: /app/features/quizzify/metadata.json
+2024-07-18 19:01:17,579 - api.tool_utilities - DEBUG - Loaded metadata: {'inputs': [{'label': 'Topic', 'name': 'topic', 'type': 'text'}, {'label': 'Number of Questions', 'name': 'num_questions', 'type': 'number'}, {'label': 'Upload PDF files', 'name': 'files', 'type': 'file'}]}
+2024-07-18 19:01:17,579 - services.logger - DEBUG - Files: [ToolFile(filePath='', url='https://firebasestorage.googleapis.com/v0/b/kai-ai-nano-429815.appspot.com/o/o%2Fupload%2Ftest_1.pdf?alt=media&token=4e0776a8-2e49-49a8-ae3b-2689186323f5', filename='')]
+2024-07-18 19:01:17,821 - features.quizzify.tools - INFO - Completed pipeline compilation
+2024-07-18 19:01:17,821 - features.quizzify.tools - INFO - Executing pipeline
+2024-07-18 19:01:17,821 - features.quizzify.tools - INFO - Start of Pipeline received: 1 documents of type <class 'services.tool_registry.ToolFile'>
+2024-07-18 19:01:17,821 - features.quizzify.tools - INFO - Loading 1 files
+2024-07-18 19:01:17,822 - features.quizzify.tools - INFO - Loader type used: <class 'features.quizzify.tools.URLLoader'>
+2024-07-18 19:01:17,822 - features.quizzify.tools - DEBUG - Loader is a: <class 'features.quizzify.tools.URLLoader'>
+2024-07-18 19:01:19,471 - features.quizzify.tools - INFO - Successfully loaded file from https://firebasestorage.googleapis.com/v0/b/kai-ai-nano-429815.appspot.com/o/o%2Fupload%2Ftest_1.pdf?alt=media&token=4e0776a8-2e49-49a8-ae3b-2689186323f5
+2024-07-18 19:01:19,471 - features.quizzify.tools - DEBUG - pdf
+2024-07-18 19:01:22,588 - features.quizzify.tools - INFO - Loaded 18 documents
+2024-07-18 19:01:22,589 - features.quizzify.tools - INFO - Splitting 18 documents
+2024-07-18 19:01:22,589 - features.quizzify.tools - INFO - Splitter type used: <class 'langchain_text_splitters.character.RecursiveCharacterTextSplitter'>
+2024-07-18 19:01:22,601 - features.quizzify.tools - INFO - Split 18 documents into 96 chunks
+2024-07-18 19:01:22,602 - features.quizzify.tools - INFO - Creating vectorstore from 96 documents
+Gapic client context issue detected.This can occur due to parallelization.
+2024-07-18 19:01:24,612 - services.logger - ERROR - Error in executor: list index out of range
+2024-07-18 19:01:24,612 - api.tool_utilities - ERROR - Encountered error in executing tool: Error in executor: list index out of range
+2024-07-18 19:01:24,612 - api.router - ERROR - HTTPException: 500: Error in executor: list index out of range
+INFO:     172.17.0.1:58450 - "POST /submit-tool HTTP/1.1" 500 Internal Server Error
