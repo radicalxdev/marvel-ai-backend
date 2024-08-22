@@ -112,8 +112,8 @@ class SyllabusBuilder:
         self.attributes = attributes
 
         default_config = {
-            "model": GoogleGenerativeAI(model="gemini-1.0-pro", temperature=0.8),
-            "prompt_template": read_text_file("prompts/syllabus_prompt.txt"),
+            "model": GoogleGenerativeAI(model="gemini-1.0-pro", temperature=0.7),
+            "prompt_template": read_text_file(r"prompts/syllabus_prompt.txt"),
             "parser": JsonOutputParser(pydantic_object=SyllabusFormat),
         }
 
