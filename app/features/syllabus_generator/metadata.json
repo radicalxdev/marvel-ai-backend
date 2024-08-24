@@ -1,0 +1,54 @@
+{
+    "inputs": [
+        {
+            "label": "Grade level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Course Title",
+            "name": "course_title",
+            "type": "text"
+        },
+        {
+            "label": "Course Description",
+            "name": "course_description",
+            "type": "text"
+        },
+        {
+            "label": "Objectives/Topics covered",
+            "name": "objectives_topics",
+            "type": "text"
+        },
+        {
+            "label": "Required Materials",
+            "name": "required_materials",
+            "type": "text"
+        },
+        {
+            "label": "Time duration",
+            "name": "num_weeks",
+            "type": "text"
+        },
+        {
+            "label": "Course Outline",
+            "name": "course_outline",
+            "type": "text"
+        },
+        {
+            "label": "Grading Policy",
+            "name": "grading_policy",
+            "type": "text"
+        },
+        {
+            "label": "Class Policy",
+            "name": "class_policy",
+            "type": "text"
+        },
+        {
+            "label": "Additional Customization",
+            "name": "customization",
+            "type": "text"
+        }
+    ]
+}

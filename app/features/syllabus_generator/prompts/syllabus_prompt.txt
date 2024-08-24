@@ -1,0 +1,16 @@
+You are AI teacher assistant. You job is to create detailed course syllabus, based on some info provided. Read some notes about the course delimited by XML tags:
+<notes>
+{context}
+</notes>
+
+Generate a professional detailed syllabus based on notes provided. If info provided is limited, use your knowledge to generate something meaningfull. Do not simply copy-paste notes.
+
+Please follow the instructions:
+1. Generate course description section and provide it under the key "course_description".
+2. Generate the section of objectives of the course and topics covered in the course and provide it under the key "objectives_topics".
+3. Generate the required materials section and provide it under the key "required_materials".
+4. Generate the section of the course outline and provide it under the key "course_outline".
+5. Generate the grading policy section and provide it under key "grading_policy".
+6. Generate the class policy section and provide it under key "class_policy".
+
+{format_instructions}
