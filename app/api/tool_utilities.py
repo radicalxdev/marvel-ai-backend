@@ -1,8 +1,8 @@
 import json
 import os
-from services.logger import setup_logger
-from services.tool_registry import ToolFile
-from api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
+from app.services.logger import setup_logger
+from app.services.tool_registry import ToolFile
+from app.api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
 from typing import Dict, Any, List
 from fastapi import HTTPException
 from pydantic import ValidationError
@@ -32,9 +32,16 @@ def load_tool_metadata(tool_id):
         logger.error(f"No tool configuration found for tool_id: {tool_id}")
         raise HTTPException(status_code=404, detail="Tool configuration not found")
     
-    # The path to the module needs to be split and only the directory path should be used.
-    module_dir_path = '/'.join(tool_config['path'].split('.')[:-1])  # This removes the last segment (core)
-    file_path = os.path.join(os.getcwd(), module_dir_path, tool_config['metadata_file'])
+    # Ensure the base path is relative to the current file's directory
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    logger.debug(f"Base directory: {base_dir}")
+    
+    # Construct the directory path
+    module_dir_path = os.path.join(base_dir, '..', *tool_config['path'].split('.')[:-1])  # Go one level up and then to the path
+    module_dir_path = os.path.abspath(module_dir_path)  # Get absolute path
+    logger.debug(f"Module directory path: {module_dir_path}")
+    
+    file_path = os.path.join(module_dir_path, tool_config['metadata_file'])
     logger.debug(f"Checking metadata file at: {file_path}")
     
     if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
@@ -51,47 +58,57 @@ def prepare_input_data(input_data) -> Dict[str, Any]:
     inputs = {input.name: input.value for input in input_data}
     return inputs
 
-def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, str]]) -> bool:
-    validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}
-    
-    # Check for missing inputs
-    for validate_input_name, input_type in validate_inputs.items():
+def check_missing_inputs(request_data: Dict[str, Any], validate_inputs: Dict[str, str]):
+    for validate_input_name in validate_inputs:
         if validate_input_name not in request_data:
             error_message = f"Missing input: `{validate_input_name}`"
             logger.error(error_message)
             raise InputValidationError(error_message)
 
+def raise_type_error(input_name: str, input_value: Any, expected_type: str):
+    error_message = f"Input `{input_name}` must be a {expected_type} but got {type(input_value)}"
+    logger.error(error_message)
+    raise InputValidationError(error_message)
+
+def validate_file_input(input_name: str, input_value: Any):
+    if not isinstance(input_value, list):
+        error_message = f"Input `{input_name}` must be a list of file dictionaries but got {type(input_value)}"
+        logger.error(error_message)
+        raise InputValidationError(error_message)
+    
+    for file_obj in input_value:
+        if not isinstance(file_obj, dict):
+            error_message = f"Each item in the input `{input_name}` must be a dictionary representing a file but got {type(file_obj)}"
+            logger.error(error_message)
+            raise InputValidationError(error_message)
+        try:
+            ToolFile.model_validate(file_obj, from_attributes=True)  # This will raise a validation error if the structure is incorrect
+        except ValidationError:
+            error_message = f"Each item in the input `{input_name}` must be a valid ToolFile where a URL is provided"
+            logger.error(error_message)
+            raise InputValidationError(error_message)
+
+def validate_input_type(input_name: str, input_value: Any, expected_type: str):
+    if expected_type == 'text' and not isinstance(input_value, str):
+        raise_type_error(input_name, input_value, "string")
+    elif expected_type == 'number' and not isinstance(input_value, (int, float)):
+        raise_type_error(input_name, input_value, "number")
+    elif expected_type == 'file':
+        validate_file_input(input_name, input_value)
+
+def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, str]]) -> bool:
+    validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}
+    
+    # Check for missing inputs
+    check_missing_inputs(request_data, validate_inputs)
+
     # Validate each input in request data against validate definitions
     for input_name, input_value in request_data.items():
         if input_name not in validate_inputs:
-            continue  # Skip validation for extra inputs not defined in validate
+            continue  # Skip validation for extra inputs not defined in validate_inputs
 
         expected_type = validate_inputs[input_name]
-        if expected_type == 'text' and not isinstance(input_value, str):
-            error_message = f"Input `{input_name}` must be a string but got {type(input_value)}"
-            logger.error(error_message)
-            raise InputValidationError(error_message)
-        elif expected_type == 'number' and not isinstance(input_value, (int, float)):
-            error_message = f"Input `{input_name}` must be a number but got {type(input_value)}"
-            logger.error(error_message)
-            raise InputValidationError(error_message)
-        elif expected_type == 'file':
-            # Validate file inputs
-            if not isinstance(input_value, list):
-                error_message = f"Input `{input_name}` must be a list of file dictionaries but got {type(input_value)}"
-                logger.error(error_message)
-                raise InputValidationError(error_message)
-            for file_obj in input_value:
-                if not isinstance(file_obj, dict):
-                    error_message = f"Each item in the input `{input_name}` must be a dictionary representing a file but got {type(file_obj)}"
-                    logger.error(error_message)
-                    raise InputValidationError(error_message)
-                try:
-                    ToolFile.model_validate(file_obj, from_attributes=True)  # This will raise a validation error if the structure is incorrect
-                except ValidationError:
-                    error_message = f"Each item in the input `{input_name}` must be a valid ToolFile where a url is provided"
-                    logger.error(error_message)
-                    raise InputValidationError(error_message)
+        validate_input_type(input_name, input_value, expected_type)
 
     return True
 
