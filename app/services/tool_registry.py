@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from services.logger import setup_logger
 from typing import List, Any, Optional, Dict
-from api.error_utilities import InputValidationError
 
 logger = setup_logger(__name__)
 

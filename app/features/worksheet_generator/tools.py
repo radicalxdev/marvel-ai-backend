@@ -5,9 +5,10 @@ from langchain_google_vertexai import VertexAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableParallel, RunnablePassthrough
-from app.services.logger import setup_logger
+from services.logger import setup_logger
 from langchain_core.pydantic_v1 import BaseModel, Field
 from typing import List, Dict
+from sentence_transformers import SentenceTransformer, util
 
 
 relative_path = "features/worksheet_generator"
@@ -163,6 +164,42 @@ class WorksheetBuilder:
 
         # Return the list of questions
         return generated_questions[:num_questions]
+    def validate_qtype_response(self, hint: str, answer) -> bool:
+        if "single sentence" in hint:
+            return 10 <= len(answer.split()) <= 400
+        if "integer" in hint:
+            try:
+                int(answer)
+                return True
+            except ValueError:
+                return False
+
+    def is_response_relevant(self, response: dict) -> bool:
+        model = SentenceTransformer('all-MiniLM-L6-v2')
+
+        question = response['question']
+        answer = response['answer']
+        explanation = response['explanation']
+
+        # Generate embeddings for question, answer, and explanation
+        question_embedding = model.encode(question, convert_to_tensor=True)
+        answer_embedding = model.encode(answer, convert_to_tensor=True)
+        explanation_embedding = model.encode(explanation, convert_to_tensor=True)
+
+        # Calculate cosine similarity
+        question_answer_similarity = util.cos_sim(question_embedding, answer_embedding)
+        question_explanation_similarity = util.cos_sim(question_embedding, explanation_embedding)
+
+        # Convert tensor to scalar for easier interpretation
+        question_answer_similarity = question_answer_similarity.item()
+        question_explanation_similarity = question_explanation_similarity.item()
+
+        print(f"Question: {question}")
+        print(f"Answer: {answer}")
+        print(f"Explanation: {explanation}")
+        print(f"Similarity between question and answer: {question_answer_similarity:.4f}")
+        print(f"Similarity between question and explanation: {question_explanation_similarity:.4f}")
+        return max(question_answer_similarity, question_explanation_similarity)
 
     def create_worksheet_questions(self, hint_num=3):
         chain = self.execute()
@@ -178,14 +215,16 @@ class WorksheetBuilder:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
 
             # Check for "choices" type and validate against instructions
-            if "choices" in response or not self.is_valid_dict_values(response) or not self.validate_worksheet_response(response):
+            if "choices" in response or not self.is_valid_dict_values(response) or not self.validate_worksheet_response(response)\
+                    or not self.validate_qtype_response(self.hint, response['answer']):
                 logger.warning(
                         f"Question is choices type and doesn't meet instructions. Attempt {attempts + 1} of {max_attempts}")
                 attempts += 1
                 continue
 
             # Valid question, add to list
-            generated_questions.append(response)
+            if self.is_response_relevant(response) >= 0.6:
+                generated_questions.append(response)
             if self.verbose:
                 logger.info(f"Valid question added: {response}")
                 logger.info(f"Total generated questions: {len(generated_questions)}")
