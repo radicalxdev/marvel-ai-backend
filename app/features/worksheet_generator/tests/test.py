@@ -1,40 +1,69 @@
-from evaluator import AnswerEvaluator
-
 import pytest
 from unittest.mock import patch, MagicMock
-
-from app.services.tool_registry import ToolFile
-from app.services.logger import setup_logger
-from app.features.worksheet_generator.tools import WorksheetBuilder
-from app.features.quizzify.tools import LocalFileLoader
-from app.api.error_utilities import LoaderError, ToolExecutorError
-logger = setup_logger()
+from services.tool_registry import ToolFile
+from features.quizzify.tools import URLLoader, BytesFilePDFLoader, Document  # Adjust the import path as necessary
 
 
+@pytest.fixture
+def pdf_loader():
+    return BytesFilePDFLoader
 
-if __name__ == "__main__":
-    # Download stopwords if not already downloaded
-    #nltk.download('punkt')
-    #nltk.download('stopwords')
-    evaluator = AnswerEvaluator()
 
-    # Example usage
-    question = "What is the capital of France?"
-    ground_truth = "Paris"
-    given_answer = "The capital of France is Paris."
+@pytest.fixture
+def url_loader(pdf_loader):
+    return URLLoader(file_loader=pdf_loader, expected_file_type="pdf")
 
-    accuracy, match_type = evaluator.evaluate_answer(given_answer, ground_truth)
-    print(f"Accuracy: {accuracy}, Match Type: {match_type}")
 
-    question = "Explain the theory of relativity."
-    ground_truth = "The theory of relativity, formulated by Albert Einstein, revolutionized the way we understand space, time, and gravity. It consists of two theories: special relativity and general relativity."
-    given_answer = "Einstein's theory of relativity changed our understanding of space, time, and gravity. It includes special and general relativity."
+@patch('requests.get')
+def test_load_pdf_from_url(mock_get, url_loader):
+    pdf_file_path = "features/worksheet_generator/tests/test.pdf"
 
-    accuracy, match_type = evaluator.evaluate_answer(given_answer, ground_truth)
-    print(f"Accuracy: {accuracy}, Match Type: {match_type}")
+    with open(pdf_file_path, 'rb') as file:
+        mock_pdf_content = file.read()
 
-    ground_truth = 'a'
-    given_answer = 'a'
+    # Mocking the response of requests.get
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.content = mock_pdf_content
+    mock_get.return_value = mock_response
 
-    accuracy, match_type = evaluator.evaluate_answer(given_answer, ground_truth)
-    print(f"Accuracy: {accuracy}, Match Type: {match_type}")
+    # The URL you're testing with (doesn't matter in this case since it's mocked)
+    test_url = "https://example.com/test.pdf"
+
+    # Assuming your Document class has a simple structure for this example
+    expected_document = Document(page_content="Mock PDF Content", metadata={"source": "pdf", "page_number": 1})
+
+    # Run the loader
+    documents = url_loader.load([test_url])
+
+    # Verify the results
+    assert isinstance(documents, list)
+    assert len(documents) == 1
+
+
+@patch('requests.get')
+def test_load_pdf_from_url(mock_get):
+    # Simulate reading a local PDF file or use mock PDF content
+    pdf_file_path = "features/quizzify/tests/test.pdf"
+    with open(pdf_file_path, 'rb') as pdf_file:
+        pdf_content = pdf_file.read()
+
+    # Mocking the response of requests.get to simulate downloading the PDF
+    mock_response = MagicMock()
+    mock_response.status_code = 200
+    mock_response.content = pdf_content
+    mock_get.return_value = mock_response
+
+    # The specific URL you want to test with
+    test_url = "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
+    tool_file = ToolFile(url=test_url, filePath=None, filename=None)
+
+    # Instantiate URLLoader class
+    url_loader_instance = URLLoader(BytesFilePDFLoader, expected_file_type="pdf")
+
+    # Assuming you have a URL loader or similar functionality in your application
+    documents = url_loader_instance.load([tool_file])
+
+    # Verify the results
+    assert isinstance(documents, list)
+    assert len(documents) == 1
