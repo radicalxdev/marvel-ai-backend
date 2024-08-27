@@ -2,11 +2,14 @@ from typing import List, Tuple, Dict, Any
 from io import BytesIO
 from fastapi import UploadFile
 from pypdf import PdfReader
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 import requests
 import os
 import json
 import time
+import docx
+from pptx import Presentation
+import pandas as pd
 
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -17,6 +20,9 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.pydantic_v1 import BaseModel, Field
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_community.document_transformers import BeautifulSoupTransformer
+from langchain_community.document_loaders.base import BaseLoader
+from youtube_transcript_api import YouTubeTranscriptApi
 
 from app.services.logger import setup_logger
 from app.services.tool_registry import ToolFile
@@ -25,6 +31,15 @@ from app.api.error_utilities import LoaderError
 relative_path = "features/quzzify"
 
 logger = setup_logger(__name__)
+
+ALLOWED_NETLOCK = {
+    "youtu.be",
+    "m.youtube.com",
+    "youtube.com",
+    "www.youtube.com",
+    "www.youtube-nocookie.com",
+    "vid.plus",
+}
 
 def transform_json_dict(input_data: dict) -> dict:
     # Validate and parse the input data to ensure it matches the QuizQuestion schema
@@ -52,6 +67,197 @@ def read_text_file(file_path):
     
     with open(absolute_file_path, 'r') as file:
         return file.read()
+    
+def extract_text_from_docx(docx_file):
+    doc = docx.Document(docx_file)
+    return "\n".join([paragraph.text for paragraph in doc.paragraphs])
+
+def extract_text_from_pptx(pptx_file):
+    prs = Presentation(pptx_file)
+    text_runs = []
+    for slide in prs.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                text_runs.append(shape.text)
+    return "\n".join(text_runs)
+
+class WebPageLoader:
+    def __init__(self, url: str, verbose=False):
+        self.url = url
+        self.verbose = verbose
+
+    def load(self) -> List[Document]:
+        documents = []
+        tags_to_extract = ["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "table"]
+
+        try:
+            response = requests.get(self.url)
+            response.raise_for_status()  # Raise an error for bad status codes
+
+            # Decode HTML content
+            html_content = response.content.decode("utf-8")
+
+            # Create a Document object with the HTML content and metadata
+            doc = Document(page_content=html_content, metadata={"source": self.url})
+
+            # Initialize the BeautifulSoupTransformer
+
+            bs_transformer = BeautifulSoupTransformer()
+
+            # Transform the document
+            transformed_docs = bs_transformer.transform_documents([doc], tags_to_extract=tags_to_extract)
+            
+            # Add transformed documents to the list
+            documents.extend(transformed_docs)
+
+            if self.verbose:
+                print(f"Successfully loaded and transformed content from {self.url}")
+        except Exception as e:
+            if self.verbose:
+                print(f"Failed to load content from {self.url}")
+                print(e)
+
+        if not documents and self.verbose:
+            print("Unable to load any content from the URL")
+
+        return documents
+    
+class YouTubeLoader(BaseLoader):
+    def __init__(
+        self,
+            youtube_url: str,
+            start_time : float = None,
+            end_time : float = None,
+            add_video_info: bool = False,
+            continue_on_failure: bool = False
+        
+        ):
+            """Initialize with YouTube video ID."""
+            self.youtube_url = youtube_url
+            self.start_time = start_time
+            self.end_time = end_time
+            self.add_video_info = add_video_info
+            self.language = ["en"]
+            self.continue_on_failure = continue_on_failure
+
+    def extract_video_id(self,youtube_url: str) -> str:
+        """Extract video id from common YT urls."""
+        parsed_url = urlparse(youtube_url)
+        path = parsed_url.path
+
+        if path.endswith("/watch"):
+            query = parsed_url.query
+            parsed_query = parse_qs(query)
+            if "v" in parsed_query:
+                ids = parsed_query["v"]
+                video_id = ids if isinstance(ids, str) else ids[0]
+            else:
+                video_id =  None
+        else:
+            path = parsed_url.path.lstrip("/")
+            video_id = path.split("/")[-1]
+
+        if not video_id and len(video_id) != 11:  # Video IDs are 11 characters long
+            raise ValueError(
+                f"Could not determine the video ID for the URL {youtube_url}"
+            )
+        else:
+            return video_id
+        
+    # Filer transcript text by time stamp
+    def filter_dicts_by_time_stamp(self,list_of_dicts, start=None, end=None):
+    # Define the filtering function based on the provided min and/or max values
+        def is_within_range(d):
+            if start is not None and float(d['start']) < float(start):
+                return False
+            if end is not None and float(d['start']) > float(end):
+                return False
+            return True
+        # Apply the filtering function to the list
+        return [d for d in list_of_dicts if is_within_range(d)]
+
+    def load(self) -> List[Document]:
+        """Load documents."""
+        try:
+            from youtube_transcript_api import (
+                NoTranscriptFound,
+                TranscriptsDisabled,
+                YouTubeTranscriptApi,
+            )
+        except ImportError:
+            raise ImportError(
+                "Could not import youtube_transcript_api python package. "
+                "Please install it with `pip install youtube-transcript-api`."
+            )
+        
+        video_id = self.extract_video_id(self.youtube_url)
+        metadata = {"source": video_id}
+
+        if self.add_video_info:
+            # Get more video meta info
+            # Such as title, description, thumbnail url, publish_date
+            video_info = self._get_video_info()
+            metadata.update(video_info)
+
+        try:
+            transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
+        except TranscriptsDisabled:
+            return []
+
+        try:
+            transcript = transcript_list.find_transcript(self.language)
+
+        except NoTranscriptFound:
+            transcript = transcript_list.find_transcript(["en"])
+
+        transcript_pieces = transcript.fetch()
+        
+        # Time Stamp Retrieval
+        filetred_transcrpit_peices =[]
+        filetred_transcrpit_peices = self.filter_dicts_by_time_stamp(list_of_dicts=transcript_pieces,start=self.start_time,end=self.end_time)
+        
+        # check if there is any transcripts within the time stamps
+        if not len(filetred_transcrpit_peices) > 0:
+            raise ValueError(f"No video transcripts available for given time stamps")
+
+        transcript = " ".join([t["text"].strip(" ") for t in filetred_transcrpit_peices])
+
+        return [Document(page_content=transcript, metadata=metadata)]
+
+
+    def _get_video_info(self) -> dict:
+        """Get important video information.
+
+        Components are:
+            - title
+            - description
+            - thumbnail url,
+            - publish_date
+            - channel_author
+            - and more.
+        """
+        try:
+            from pytube import YouTube
+
+        except ImportError:
+            raise ImportError(
+                "Could not import pytube python package. "
+                "Please install it with `pip install pytube`."
+            )
+        video_id = self.extract_video_id(self.youtube_url)
+        yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+        video_info = {
+            "title": yt.title or "Unknown",
+            "description": yt.description or "Unknown",
+            "view_count": yt.views or 0,
+            "thumbnail_url": yt.thumbnail_url or "Unknown",
+            "publish_date": yt.publish_date.strftime("%Y-%m-%d %H:%M:%S")
+            if yt.publish_date
+            else "Unknown",
+            "length": yt.length or 0,
+            "author": yt.author or "Unknown",
+        }
+        return video_info
 
 class RAGRunnable:
     def __init__(self, func):
@@ -66,7 +272,7 @@ class RAGRunnable:
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
 
-class UploadPDFLoader:
+class UploadFileLoader:
     def __init__(self, files: List[UploadFile]):
         self.files = files
 
@@ -74,19 +280,43 @@ class UploadPDFLoader:
         documents = []
 
         for upload_file in self.files:
-            with upload_file.file as pdf_file:
-                pdf_reader = PdfReader(pdf_file)
+            file_type = upload_file.filename.split(".")[-1].lower()
+            with upload_file.file as file:
+                if file_type == "pdf":
+                    pdf_reader = PdfReader(file)
+                    for i, page in enumerate(pdf_reader.pages):
+                        page_content = page.extract_text()
+                        metadata = {"source": upload_file.filename, "page_number": i + 1}
 
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": upload_file.filename, "page_number": i + 1}
+                        doc = Document(page_content=page_content, metadata=metadata)
+                        documents.append(doc)
 
+                elif file_type in ["doc", "docx"]:
+                    page_content = extract_text_from_docx(file)
+                    metadata = {"source": upload_file.filename}
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
 
+                elif file_type in ["ppt", "pptx"]:
+                    page_content = extract_text_from_pptx(file)
+                    metadata = {"source": upload_file.filename}
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+
+                elif file_type == "csv":
+                    df = pd.read_csv(file)
+                    page_content = df.to_string()
+                    metadata = {"source": upload_file.filename}
+                    doc = Document(page_content=page_content, metadata=metadata)
+                    documents.append(doc)
+
+                else:
+                    raise ValueError(f"Unsupported file type: {file_type}")
+                
+
         return documents
 
-class BytesFilePDFLoader:
+class BytesFileLoader:
     def __init__(self, files: List[Tuple[BytesIO, str]]):
         self.files = files
     
@@ -104,46 +334,38 @@ class BytesFilePDFLoader:
 
                     doc = Document(page_content=page_content, metadata=metadata)
                     documents.append(doc)
+
+            
+            elif file_type in ["doc", "docx"]:
+                page_content = extract_text_from_docx(file)
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+                
+
+            elif file_type in ["ppt", "pptx"]:
+                page_content = extract_text_from_pptx(file)
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
+
+            elif file_type == "csv":
+                df = pd.read_csv(file)
+                page_content = df.to_string()
+                metadata = {"source": file_type}
+                doc = Document(page_content=page_content, metadata=metadata)
+                documents.append(doc)
                     
             else:
                 raise ValueError(f"Unsupported file type: {file_type}")
             
         return documents
 
-class LocalFileLoader:
-    def __init__(self, file_paths: list[str], expected_file_type="pdf"):
-        self.file_paths = file_paths
-        self.expected_file_type = expected_file_type
-
-    def load(self) -> List[Document]:
-        documents = []
-        
-        # Ensure file paths is a list
-        self.file_paths = [self.file_paths] if isinstance(self.file_paths, str) else self.file_paths
-    
-        for file_path in self.file_paths:
-            
-            file_type = file_path.split(".")[-1]
-
-            if file_type != self.expected_file_type:
-                raise ValueError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-            with open(file_path, 'rb') as file:
-                pdf_reader = PdfReader(file)
-
-                for i, page in enumerate(pdf_reader.pages):
-                    page_content = page.extract_text()
-                    metadata = {"source": file_path, "page_number": i + 1}
-
-                    doc = Document(page_content=page_content, metadata=metadata)
-                    documents.append(doc)
-
-        return documents
 
 class URLLoader:
-    def __init__(self, file_loader=None, expected_file_type="pdf", verbose=False):
-        self.loader = file_loader or BytesFilePDFLoader
-        self.expected_file_type = expected_file_type
+    def __init__(self, file_loader=None, expected_file_types=None, verbose=False):
+        self.loader = file_loader or BytesFileLoader
+        self.expected_file_types = expected_file_types or ["pdf", "doc", "docx", "ppt", "pptx", "csv"]        
         self.verbose = verbose
 
     def load(self, tool_files: List[ToolFile]) -> List[Document]:
@@ -151,40 +373,52 @@ class URLLoader:
         documents = []
         any_success = False
 
+        expected_file_extensions = tuple(self.expected_file_types)
+
         for tool_file in tool_files:
             try:
                 url = tool_file.url
                 response = requests.get(url)
-                parsed_url = urlparse(url)
+                parsed_url = urlparse(url)                
                 path = parsed_url.path
+                                
+                if path.endswith(expected_file_extensions):
+                                      
+                    if response.status_code == 200:
+                        file_content = BytesIO(response.content)
+                        file_type = tool_file.filename.split(".")[-1].lower()
+                        if file_type not in self.expected_file_types:
+                            raise LoaderError(f"Expected file types: {self.expected_file_types}, but got: {file_type}")
+                        queued_files.append((file_content, file_type))
+                        if self.verbose:
+                            logger.info(f"Successfully loaded file from {url}")
+                        any_success = True
+                    else:
+                        logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
 
-                if response.status_code == 200:
-                    # Read file
-                    file_content = BytesIO(response.content)
+                elif parsed_url.netloc in ALLOWED_NETLOCK:
+                    #Handle Youtube Transcript Loading
+                    youtube_loader = YouTubeLoader(youtube_url=url)
+                    youtube_documents = youtube_loader.load()
+                    documents.extend(youtube_documents)
+                    any_success = True
 
-                    # Check file type
-                    file_type = path.split(".")[-1]
-                    if file_type != self.expected_file_type:
-                        raise LoaderError(f"Expected file type: {self.expected_file_type}, but got: {file_type}")
-
-                    # Append to Queue
-                    queued_files.append((file_content, file_type))
-                    if self.verbose:
-                        logger.info(f"Successfully loaded file from {url}")
-
-                    any_success = True  # Mark that at least one file was successfully loaded
                 else:
-                    logger.error(f"Request failed to load file from {url} and got status code {response.status_code}")
-
+                    # Handle web page loading                    
+                    web_page_loader = WebPageLoader(url, self.verbose)                    
+                    web_documents = web_page_loader.load()
+                    documents.extend(web_documents)
+                    any_success = True
             except Exception as e:
                 logger.error(f"Failed to load file from {url}")
                 logger.error(e)
                 continue
 
-        # Pass Queue to the file loader if there are any successful loads
-        if any_success:
+
+        if any_success and queued_files:
             file_loader = self.loader(queued_files)
             documents = file_loader.load()
+            
 
             if self.verbose:
                 logger.info(f"Loaded {len(documents)} documents")
@@ -193,6 +427,7 @@ class URLLoader:
             raise LoaderError("Unable to load any files from URLs")
 
         return documents
+
 
 class RAGpipeline:
     def __init__(self, loader=None, splitter=None, vectorstore_class=None, embedding_model=None, verbose=False):
