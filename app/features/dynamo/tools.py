@@ -28,7 +28,7 @@ def read_text_file(file_path):
         return file.read()
 
 # Summarize chain
-def summarize_transcript(youtube_url: str, verbose=False) -> str:
+def summarize_transcript(youtube_url: str, max_video_length=600, verbose=False) -> str:
     try:
         loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
     except Exception as e:
@@ -43,31 +43,13 @@ def summarize_transcript(youtube_url: str, verbose=False) -> str:
         logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
     
-    # splitter = RecursiveCharacterTextSplitter(
-    #         chunk_size = 1000,
-    #         chunk_overlap = 0
-    #     )
+    if length > max_video_length:
+        raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
     
-    if length <= 600:
-        splitter = RecursiveCharacterTextSplitter(
+    splitter = RecursiveCharacterTextSplitter(
             chunk_size = 1000,
-            chunk_overlap = 200
-        )
-    elif length <= 1800:
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 2500,
-            chunk_overlap = 500
-        )
-    elif length <= 3600:
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 5000,
-            chunk_overlap = 1000
-        )
-    else:
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size = 10000,
-            chunk_overlap = 2000
-        )
+            chunk_overlap = 0
+    )
     
     split_docs = splitter.split_documents(docs)
 

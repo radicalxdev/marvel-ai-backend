@@ -2,8 +2,6 @@ from features.dynamo.tools import summarize_transcript, generate_flashcards
 from services.logger import setup_logger
 from api.error_utilities import VideoTranscriptError
 
-#Forking repo
-
 logger = setup_logger(__name__)
 
 def executor(youtube_url: str, verbose=False):
