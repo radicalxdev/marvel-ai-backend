@@ -1,7 +1,7 @@
 import pytest
 import requests
 from features.dynamo.tools import *
-from api.error_utilities import FileHandlerError
+from app.api.error_utilities import FileHandlerError
 
 def test_load_pdf_documents_valid():
     pdf_url = "https://filesamples.com/samples/document/pdf/sample1.pdf"
