@@ -4,7 +4,7 @@ from app.api.error_utilities import ToolExecutorError, VideoTranscriptError
 
 logger = setup_logger(__name__)
 
-def executor(file_url: str, file_type: str, lang: str = "en", verbose=True):
+def executor(file_url: str, file_type: str, lang: str = "en", verbose=False):
     try:
         if verbose:
             logger.info(f"File URL loaded: {file_url}")
