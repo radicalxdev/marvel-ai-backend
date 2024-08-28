@@ -56,9 +56,9 @@ def get_summary(file_url: str, file_type: str, verbose=True):
         file_loader = file_loader_map[FileType(file_type)]
         full_content = file_loader(file_url, verbose)
         if file_type in STRUCTURED_TABULAR_FILE_EXTENSIONS:
-            prompt = "prompt/summarize-structured-tabular-data-prompt.txt"
+            prompt = r"prompt/summarize-structured-tabular-data-prompt.txt"
         else:
-            prompt = "prompt/summarize-text-prompt.txt"
+            prompt = r"prompt/summarize-text-prompt.txt"
             
         chain = build_chain(prompt)
         return chain.invoke(full_content)
@@ -73,8 +73,8 @@ def generate_flashcards(summary: str, lang:str, verbose=False) -> list:
     
     if verbose: logger.info(f"Beginning to process flashcards from summary")
     
-    template = read_text_file("prompt/dynamo-prompt.txt")
-    examples = read_text_file("prompt/examples.txt")
+    template = read_text_file(r"prompt/dynamo-prompt.txt")
+    examples = read_text_file(r"prompt/examples.txt")
     
     cards_prompt = PromptTemplate(
         template=template,
@@ -426,7 +426,7 @@ def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, ver
         logger.info(f"Combined documents into a single string.")
         logger.info(f"Beginning to process transcript...")
     
-    prompt_template = read_text_file("prompt/summarize-youtube-video-prompt.txt")
+    prompt_template = read_text_file(r"prompt/summarize-youtube-video-prompt.txt")
     summarize_prompt = PromptTemplate.from_template(prompt_template)
 
     summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
