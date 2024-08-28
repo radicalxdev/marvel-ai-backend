@@ -1,12 +1,5 @@
-from langchain_community.document_loaders import YoutubeLoader
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader, TextLoader, UnstructuredURLLoader, UnstructuredPowerPointLoader, Docx2txtLoader, UnstructuredExcelLoader, UnstructuredXMLLoader
 from langchain_community.document_loaders.csv_loader import CSVLoader
-from langchain_community.document_loaders import TextLoader
-from langchain_community.document_loaders import UnstructuredURLLoader
-from langchain_community.document_loaders import UnstructuredPowerPointLoader
-from langchain_community.document_loaders import Docx2txtLoader
-from langchain_community.document_loaders import UnstructuredExcelLoader
-from langchain_community.document_loaders import UnstructuredXMLLoader
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.utils.allowed_file_extensions import FileType
 from app.api.error_utilities import FileHandlerError, ImageHandlerError
