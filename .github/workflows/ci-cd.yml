@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIAL }}
+
+      - name: Set Up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '>= 363.0.0'
+
+      - name: Set Environment Variables
+        id: secrets
+        run: |
+          echo "ENV_TYPE=$(gcloud secrets versions access latest --secret=ENV_TYPE)" >> $GITHUB_ENV
+          echo "GCP_PROJECT_ID=$(gcloud secrets versions access latest --secret=GCP_PROJECT_ID)" >> $GITHUB_ENV
+
+      - name: Build Docker Image
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          IMAGE_NAME=gcr.io/${{ env.GCP_PROJECT_ID }}/my-app:${COMMIT_HASH}
+          docker build -t ${IMAGE_NAME} .
+          docker tag ${IMAGE_NAME} gcr.io/${{ env.GCP_PROJECT_ID }}/my-app:latest
+
+      - name: Push Docker Image to GCR
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          docker push gcr.io/${{ env.GCP_PROJECT_ID }}/my-app:${COMMIT_HASH}
+          docker push gcr.io/${{ env.GCP_PROJECT_ID }}/my-app:latest
+
+      - name: Deploy to Google Cloud Run
+        run: |
+          gcloud run deploy my-app \
+            --image gcr.io/${{ env.GCP_PROJECT_ID }}/my-app:latest \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars "ENV=${{ env.ENV_TYPE }}" \
+            --project ${{ env.GCP_PROJECT_ID }}
