@@ -1,6 +1,15 @@
 
 # Document Processing Toolkit
 
+# Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [File Type Support](#file-type-support)
+- [Usage](#usage)
+- [Templates](#templates)
+- [Examples](#examples)
+
 ## Overview
 
 This toolkit provides a comprehensive suite of utilities to process and summarize various types of documents and generate educational flashcards. It leverages AI models to extract meaningful insights from documents, making it useful for educational, research, and business purposes.
@@ -138,7 +147,37 @@ load_gpdf_documents(drive_folder_url: str, verbose=False)
 generate_concepts_from_img(img_url: str)
 ```
 
-# Request Templates
+# Templates
+## Request template
+```json
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "tool",
+  "tool_data": {
+    "tool_id": 1,
+    "inputs": [
+      {
+        "name": "file_url",
+        "value": "string"
+      },
+      {
+        "name": "file_type",
+        "value": "string"
+      },
+      {
+        "name": "lang",
+        "value": "string"
+      }
+    ]
+  }
+}
+```
+
+# Examples
 
 ## Youtube URL
 ```json
