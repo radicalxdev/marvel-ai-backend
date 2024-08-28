@@ -20,7 +20,12 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
         db = pipeline(files)
         
         # Create and return the quiz questions
-        output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
+        details,output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
+
+        final_result = {
+            "details": details,
+            "quiz": output
+        } 
     
     except LoaderError as e:
         error_message = e
@@ -32,5 +37,5 @@ def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=Fals
         logger.error(error_message)
         raise ValueError(error_message)
     
-    return output
+    return final_result
 
