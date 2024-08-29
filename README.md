@@ -94,7 +94,6 @@ cd marvel-ai-backend/app
 python -m venv env
 source env/bin/activate
 ```
-### Install Required Libraries
 
 ```bash
 pip install -r requirements.txt
