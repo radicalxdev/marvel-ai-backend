@@ -26,8 +26,8 @@
    - [Overview](#overview)
    - [Prerequisites for Docker](#prerequisites-for-docker)
    - [Installation Instructions](#installation-instructions)
-     - [Build the Docker Image](#build-the-docker-image)
-     - [Run the Docker Container](#run-the-docker-container)
+     - [Step 1: Build the Docker Image](#step-1-build-the-docker-image)
+     - [Step 2: Run the Docker Container](#step-2-run-the-docker-container)
 6. [Environment Variables](#environment-variables)
 7. [Accessing the Application](#accessing-the-application)
 
@@ -146,7 +146,7 @@ pip install -r requirements.txt
 
 This guide is designed to help contributors set up and run the backend service using Docker. Follow these steps to ensure that your development environment is configured correctly.
 
-## Prerequisites
+## Prerequisites for Docker
 
 Before you start, ensure you have the following installed:
 
@@ -155,7 +155,7 @@ Before you start, ensure you have the following installed:
 
 ## Installation Instructions
 
-### 1. Build the Docker Image
+### Step 1: Build the Docker Image
 
 Navigate to the project's root directory and build the Docker image. Typically, this is done with the following command:
 
@@ -163,7 +163,7 @@ Navigate to the project's root directory and build the Docker image. Typically, 
 docker build -t <image_name> .
 ```
 
-### 2. Run the Docker Container
+### Step 2: Run the Docker Container
 
 Run the Docker container using the following command:
 
