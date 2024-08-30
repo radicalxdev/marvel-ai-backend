@@ -1,4 +1,4 @@
-fastapi
+fastapi[standard]
 uvicorn[standard]
 langchain
 langchain-core
@@ -15,4 +15,8 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
-python-dotenv
+python-dotenv 
+python-docx 
+python-pptx
+openpyxl 
+pytube 
