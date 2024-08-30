@@ -22,7 +22,10 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           version: '>= 363.0.0'
-
+          
+      - name: Configure Docker to Authenticate with GCR
+        run: gcloud auth configure-docker
+        
       - name: Set Environment Variables
         id: secrets
         run: |
@@ -35,7 +38,7 @@ jobs:
           IMAGE_NAME=gcr.io/${{ env.GCP_PROJECT_ID }}/my-app:${COMMIT_HASH}
           docker build -t ${IMAGE_NAME} .
           docker tag ${IMAGE_NAME} gcr.io/${{ env.GCP_PROJECT_ID }}/my-app:latest
-
+  
       - name: Push Docker Image to GCR
         run: |
           COMMIT_HASH=$(git rev-parse --short HEAD)
