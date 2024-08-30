@@ -2,8 +2,8 @@ import os
 from app.services.logger import setup_logger
 from dotenv import load_dotenv, find_dotenv
 from google.cloud import secretmanager
-import google.auth
 import google_crc32c
+from google.auth import default
 
 logger = setup_logger(__name__)
 
@@ -27,13 +27,21 @@ def get_env_variable(var_name):
     # If not found, fallback to Google Cloud Secrets Manager
     try:
         # Initialize Google Cloud Secret Manager client
-        client = secretmanager.SecretManagerServiceClient()
+        credentials, project_id = default()  # Automatically fetches the default credentials and project ID
 
-        # Build the secret name
-        secret_name = f"secrets/{var_name}/versions/latest"
+        if not project_id:
+            error_message = "Project ID could not be determined from the default credentials."
+            logger.error(error_message)
+            raise ValueError(error_message)
+
+        client = secretmanager.SecretManagerServiceClient(credentials=credentials)
+
+        # Build the secret name with the dynamically fetched project ID
+        secret_name = f"projects/{project_id}/secrets/{var_name}/versions/latest"
 
         # Access the secret
         response = client.access_secret_version(name=secret_name)
+
 
         # Verify payload checksum.
         crc32c = google_crc32c.Checksum()
@@ -48,7 +56,7 @@ def get_env_variable(var_name):
         return secret_payload
 
     except google.api_core.exceptions.NotFound as e:
-        error_message = f"Secret '{var_name}' not found in Google Cloud Secrets Manager: {e}"
+        error_message = f"Secret '{var_name}' not found in Google Cloud Secrets Manager."
         logger.error(error_message)
         raise ValueError(error_message)
 
