@@ -9,7 +9,6 @@ RUN pip install --no-cache-dir -r /code/requirements.txt
 
 COPY ./app /code/app 
 
-# .env 파일 복사
 COPY .env /code/.env 
 
 # Local development key set
