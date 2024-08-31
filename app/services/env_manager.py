@@ -2,8 +2,9 @@ import os
 from app.services.logger import setup_logger
 from dotenv import load_dotenv, find_dotenv
 from google.cloud import secretmanager
-import google_crc32c
 from google.auth import default
+import google_crc32c
+import google
 
 logger = setup_logger(__name__)
 
