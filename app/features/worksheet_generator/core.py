@@ -34,6 +34,3 @@ def executor(files: list[ToolFile], topic: str, level: str, hint: str, hint_num:
         raise ValueError(error_message)
 
     return output
-
-# executor([ToolFile(url="https://courses.edx.org/asset-v1:ColumbiaX+CSMM.101x+1T2017+type@asset+block@AI_edx_ml_5.1intro.pdf")],
-#          "machine learning","Masters","single sentence answer questions",5, 5)
