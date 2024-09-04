@@ -1,0 +1,80 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "string"
+        },
+        {
+            "label": "Important Dates",
+            "name": "important_dates",
+            "type": "string"
+        },
+
+        {
+            "label": "Subject",
+            "name": "subject",
+            "type": "string"
+        },
+        {
+            "label": "Course Description",
+            "name": "course_description",
+            "type": "string"
+        },
+        {
+            "label": "Learning Outcomes",
+            "name": "learning_outcomes",
+            "type": "string"
+        },
+        {
+            "label": "Course Objectives",
+            "name": "course_objectives",
+            "type": "string"
+        },
+        {
+            "label": "Class Schedule",
+            "name": "class_schedule",
+            "type": "string"
+        },
+        {
+            "label": "Required Materials",
+            "name": "required_materials",
+            "type": "string"
+        },
+        {
+            "label": "Grading Policy",
+            "name": "grading_policy",
+            "type": "string"
+        },
+        {
+            "label": "Course Outline",
+            "name": "course_outline",
+            "type": "string"
+        },
+        {
+            "label": "Class Policies",
+            "name": "class_policies",
+            "type": "string"
+        },
+        {
+            "label": "Instructor Name",
+            "name": "instructor_name",
+            "type": "string"
+        },
+        {
+            "label": "Instructor Title",
+            "name": "instructor_title",
+            "type": "string"
+        },
+        {
+            "label": "Instructor Contact",
+            "name": "instructor_contact",
+            "type": "string"
+        },
+        {
+            "label": "Additional Customizations",
+            "name": "additional_customizations",
+            "type": "string"
+        }
+    ]
+}

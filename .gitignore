@@ -122,11 +122,17 @@ celerybeat.pid
 # Environments
 .env
 .venv
+.vvvenv
+
 env/
 venv/
+
+vvvenv/
 ENV/
 env.bak/
 venv.bak/
+
+vvvenv.bak/
 
 # Spyder project settings
 .spyderproject
@@ -160,5 +166,7 @@ cython_debug/
 #.idea/
 
 **/env/
+
+**/vvvenv/
 **/key.txt
 **/local-auth.json

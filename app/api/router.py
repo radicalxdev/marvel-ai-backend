@@ -18,7 +18,6 @@ def read_root():
 @router.post("/submit-tool", response_model=Union[ToolResponse, ErrorResponse])
 async def submit_tool( data: ToolRequest, _ = Depends(key_check)):     
     try: 
-        # Unpack GenericRequest for tool data
         request_data = data.tool_data
         
         requested_tool = load_tool_metadata(request_data.tool_id)
