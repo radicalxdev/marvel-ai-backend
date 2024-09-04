@@ -1,7 +1,7 @@
 import json
 import os
 from app.services.logger import setup_logger
-from app.services.tool_registry import ToolFile
+from app.services.tool_registry import ToolFile, PDFFile, CSVFile, PPTXFile, TextFile, WebPage, YouTube
 from app.api.error_utilities import VideoTranscriptError, InputValidationError, ToolExecutorError
 from typing import Dict, Any, List
 from fastapi import HTTPException
@@ -19,10 +19,16 @@ tools_config = load_config()
 def get_executor_by_name(module_path):
     try:
         module = __import__(module_path, fromlist=['executor'])
+    except ImportError:
+        module = __import__('app.' + module_path, fromlist=['executor'])
+    
+    try:
         return getattr(module, 'executor')
+   
     except Exception as e:
         logger.error(f"Failed to import executor from {module_path}: {str(e)}")
         raise ImportError(f"Failed to import module from {module_path}: {str(e)}")
+
 
 def load_tool_metadata(tool_id):
     logger.debug(f"Loading tool metadata for tool_id: {tool_id}")
@@ -82,11 +88,13 @@ def validate_file_input(input_name: str, input_value: Any):
             logger.error(error_message)
             raise InputValidationError(error_message)
         try:
-            ToolFile.model_validate(file_obj, from_attributes=True)  # This will raise a validation error if the structure is incorrect
-        except ValidationError:
-            error_message = f"Each item in the input `{input_name}` must be a valid ToolFile where a URL is provided"
-            logger.error(error_message)
-            raise InputValidationError(error_message)
+            if 'filetype' not in file_obj:
+                raise InputValidationError("file type must be provided")
+            else:
+                ToolFile.model_validate(file_obj, from_attributes=True)  # This will raise a validation error if the structure is incorrect
+        except ValidationError as ve:
+            logger.error(ve)
+            raise InputValidationError(ve)
 
 def validate_input_type(input_name: str, input_value: Any, expected_type: str):
     if expected_type == 'text' and not isinstance(input_value, str):
@@ -114,7 +122,23 @@ def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, 
 
 def convert_files_to_tool_files(inputs: Dict[str, Any]) -> Dict[str, Any]:
     if 'files' in inputs:
-        inputs['files'] = [ToolFile(**file_object) for file_object in inputs['files']]
+        file_list = []
+        for file_object in inputs['files']:
+            if file_object.get('filetype') == 'csv':
+                file_list.append(CSVFile(**file_object))
+            elif file_object.get('filetype') == 'pdf':
+                file_list.append(PDFFile(**file_object))
+            elif file_object.get('filetype') == 'pptx':
+                file_list.append(PPTXFile(**file_object))
+            elif file_object.get('filetype') == 'txt':
+                file_list.append(TextFile(**file_object))
+            elif file_object.get('filetype') == 'webpage':
+                file_list.append(WebPage(**file_object))
+            elif file_object.get('filetype') == 'youtube':
+                file_list.append(YouTube(**file_object))
+            else:
+                file_list.append(ToolFile(**file_object))
+        inputs['files'] = file_list
     return inputs
 
 def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str, Any]:

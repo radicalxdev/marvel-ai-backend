@@ -1,0 +1,55 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Subject",
+            "name": "subject", 
+            "type": "text"
+        },
+        {
+            "label":"Number of Weeks",
+            "name": "num_weeks",
+            "type": "int"
+        },
+        {
+            "label":"Start Date of the Semester",
+            "name": "start_date",
+            "type": "text",
+            "optional":true
+        },
+        {
+            "label":"Additional Objectives",
+            "name": "additional_objectives",
+            "type": "text",
+            "optional": true
+        },
+        {
+            "label":"Additional Required Materials",
+            "name": "additional_materials",
+            "type": "text" ,
+            "optional": true
+        },
+        {
+            "label":"Additional Grading Policy",
+            "name": "additional_grading_policy",
+            "type": "text" ,
+            "optional": true
+        },
+        {
+            "label":"Additional Class Policy",
+            "name": "additional_class_policy",
+            "type": "text" ,
+            "optional": true
+        },
+        {
+            "label":"Custom Course Outline",
+            "name": "custom_course_outline",
+            "type": "text" ,
+            "optional": true
+        }
+    ]
+}
