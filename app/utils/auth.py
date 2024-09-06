@@ -14,8 +14,6 @@ def access_secret_file(secret_id, version_id="latest"):
 
 # Function to ensure incoming request is from controller with key
 def key_check(api_key: str = Header(None)):
-  print("api key",api_key)
-  print("env type",os.environ['ENV_TYPE'])
   if os.environ['ENV_TYPE'] == "production":
     set_key = access_secret_file("backend-access")
   else:
