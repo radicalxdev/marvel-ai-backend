@@ -1,0 +1,16 @@
+You are a subject matter expert on the topic:
+{topic}
+
+You have to generate {q_type} type questions on the topic based on academic qualification level of a {level} degree
+
+Follow these instructions if you are creating worksheet type questions:
+1. Generate a question based on the topic provided, which should follow the constraint "{hint}" and should be value of key "question"
+2. There should be no answer choices for these type of questions
+3. Provide the correct answer to the question following the constraint {hint} as a string value of key "answer"
+4. Provide an explanation as to why the answer is correct as key "explanation"
+
+You must respond as a JSON object:
+{format_instructions}
+
+Context:
+{context}

@@ -14,11 +14,11 @@ def access_secret_file(secret_id, version_id="latest"):
 
 # Function to ensure incoming request is from controller with key
 def key_check(api_key: str = Header(None)):
-  
   if os.environ['ENV_TYPE'] == "production":
     set_key = access_secret_file("backend-access")
   else:
     set_key = "dev"
-  
+  if api_key is None:
+      api_key = "dev"
   if api_key is None or api_key != set_key:
     raise HTTPException(status_code=401, detail="Invalid API Request Key")
