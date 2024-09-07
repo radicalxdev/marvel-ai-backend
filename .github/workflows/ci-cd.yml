@@ -1,9 +1,11 @@
 name: CI/CD Pipeline
 
 on:
-  push:
+  pull_request:
     branches:
       - staging
+    types: 
+      - closed 
 
 
 jobs:
