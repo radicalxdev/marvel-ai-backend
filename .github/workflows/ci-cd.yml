@@ -55,5 +55,6 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
-            --set-env-vars "ENV=${{ env.ENV_TYPE }}" \
+            --set-env-vars "PORT=8000,ENV=${{ env.ENV_TYPE }}" \
             --project ${{ env.GCP_PROJECT_ID }}
+
