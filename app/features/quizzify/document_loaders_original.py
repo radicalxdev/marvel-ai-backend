@@ -8,16 +8,11 @@ from langchain_core.messages import HumanMessage
 from app.services.logger import setup_logger
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from pydub import AudioSegment
-
-import speech_recognition as sr
 import os
 import tempfile
 import uuid
 import requests
 import gdown
-import shutil
-
 
 STRUCTURED_TABULAR_FILE_EXTENSIONS = {"csv", "xls", "xlsx", "gsheet", "xml"}
 
@@ -42,10 +37,8 @@ def get_docs(file_url: str, file_type: str, verbose=True):
     file_type = file_type.lower()
     try:
         file_loader = file_loader_map[FileType(file_type)]
-        logger.info(f"File type found in get_docs: {file_type}")
-        logger.info(f"file_loader: {file_loader}")
         docs = file_loader(file_url, verbose)
-        print(f"docs successfully created  {docs} , move next to return.")
+
         return docs
 
     except Exception as e:
@@ -356,133 +349,6 @@ def generate_docs_from_img(img_url, verbose: bool=False):
 
     return split_docs
 
-
-
-def split_audio_fixed_intervals(audio, interval_ms):
-    """
-    Split audio into chunks of fixed length.
-    
-    Args:
-        audio (AudioSegment): The audio segment to split.
-        interval_ms (int): The length of each chunk in milliseconds.
-
-    Returns:
-        List[AudioSegment]: List of audio chunks.
-    """
-    chunks = []
-    length_ms = len(audio)
-    for start in range(0, length_ms, interval_ms):
-        end = min(start + interval_ms, length_ms)
-        chunk = audio[start:end]
-        chunks.append(chunk)
-    return chunks
-
-def generate_docs_from_audio(audio_url: str, verbose=False):
-    GOOGLE_CLOUD_API_KEY = os.getenv('GOOGLE_API_KEY')
-
-    # Create a temporary directory
-    temp_dir = tempfile.mkdtemp()
-    logger.info("INSIDE generate_docs_from_audio")
-
-    current_dir = os.getcwd()
-    # Generate unique file names for the MP3 and WAV files
-    mp3_audio = f'mp3_audio_{uuid.uuid4()}.mp3'
-    wav_audio = f'wav_audio_{uuid.uuid4()}.wav'
-    mp3_file_path = os.path.join(current_dir, mp3_audio)
-    wav_file_path = os.path.join(current_dir, wav_audio)
-    print(f"mp3_file_path: {mp3_file_path}")
-
-    docs = []
-
-    # Download the file from the URL and save it to a temporary file
-    response = requests.get(audio_url)
-    response.raise_for_status()  # Ensure the request was successful
-
-    with tempfile.NamedTemporaryFile(delete=False, prefix=mp3_audio) as temp_file:
-        temp_file.write(response.content)
-        mp3_file_path = temp_file.name
-
-    # Convert the MP3 file to WAV
-    audio = AudioSegment.from_mp3(mp3_file_path)
-    audio.export(wav_file_path, format="wav")
-    if verbose:
-        print("Conversion to WAV successful!")
-
-    # Split WAV file into smaller chunks
-    chunk_length_ms = 60000  # 1-minute chunks
-    chunks = split_audio_fixed_intervals(audio, chunk_length_ms)
-
-    # Create a recognizer instance
-    recognizer = sr.Recognizer()
-
-    # Directory to save chunks inside the temporary folder
-    chunks_dir = os.path.join(current_dir, 'chunks')
-    os.makedirs(chunks_dir, exist_ok=True)
-
-    # Process each chunk
-    for i, chunk in enumerate(chunks):
-        chunk_file_path = os.path.join(chunks_dir, f'chunk_{i}.wav')
-        chunk.export(chunk_file_path, format="wav")
-
-        # Verify the chunk file exists before processing
-        if not os.path.exists(chunk_file_path):
-            print(f"File not found: {chunk_file_path}")
-            continue  # Skip this chunk if the file is not found
-
-        print(f"Chunk file created: {chunk_file_path}")
-
-        if len(chunk) < 1000:  # Less than 1 second
-            print(f"Chunk {i} too short: {len(chunk)} ms")
-            continue  # Skip too short chunks
-
-        try:
-            with sr.AudioFile(chunk_file_path) as source:
-                audio_data = recognizer.record(source)
-                print(f"Audio data recorded for chunk {i}. Duration: {len(audio_data.frame_data) / audio_data.sample_rate:.2f} seconds")
-
-                if len(audio_data.frame_data) == 0:
-                    print(f"Warning: No audio data recorded for chunk {i}")
-                    continue
-
-                try:
-                    print(f"File found1, inside TRY: {chunk_file_path}")
-                    # Recognize speech using Google Cloud Speech-to-Text
-                    text = recognizer.recognize_google(audio_data)
-                    docs.append(Document(page_content=text))  # Create Document objects from text
-                    print(f"File found2: {chunk_file_path}")
-                    if verbose:
-                        print(f"Transcription for chunk {i} successful!")
-                        print(text)
-                except sr.UnknownValueError:
-                    if verbose:
-                        print(f"Chunk {i}: Google Speech Recognition could not understand the audio.")
-                except sr.RequestError as e:
-                    print(f"Chunk {i}: Could not request results from Google Speech Recognition service; {e}")
-        except FileNotFoundError:
-            print(f"File not found2: {chunk_file_path}")
-        except Exception as e:
-            print(f"An unexpected error occurred while processing chunk {i}: {e}")
-
-    # Clean up temporary files
-    if os.path.exists(wav_file_path):
-        #os.remove(wav_file_path)
-        if verbose:
-            print(f"Temporary WAV file {wav_audio} deleted.")
-    #shutil.rmtree(temp_dir, ignore_errors=True)
-    if verbose:
-        print("Temporary directory deleted.")
-
-    if docs:
-        print(f"docs successfully created   , execute IF and split")
-        split_docs = splitter.split_documents(docs)
-        print(f"after splitter ,")
-        if verbose:
-            logger.info("Found transcript")
-            logger.info(f"Splitting documents into {len(split_docs)} chunks")
-        return split_docs
-
-
-
 file_loader_map = {
     FileType.PDF: load_pdf_documents,
     FileType.CSV: load_csv_documents,
@@ -499,6 +365,5 @@ file_loader_map = {
     FileType.GSLIDE: load_gslides_documents,
     FileType.GPDF: load_gpdf_documents,
     FileType.YOUTUBE_URL: load_docs_youtube_url,
-    FileType.IMG: generate_docs_from_img,
-    FileType.MP3: generate_docs_from_audio
+    FileType.IMG: generate_docs_from_img
 }
