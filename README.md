@@ -7,12 +7,32 @@
 
 ## Table of Contents
 
-- [Architecture](#Architecture)
-- [Folder Structure](#folder-structure)
-- [Setup](#Setup)
-- [Local Development](#local-development)
-- [Contributing](#Contributing)
-  ![Architectural Diagram](diagram.png)
+1. [Architecture](#architecture)
+2. [Folder Structure](#folder-structure)
+3. [Installation](#installation)
+   - [Navigate to the App Directory](#navigate-to-the-app-directory)
+   - [Create and Activate Virtual Environment](#create-and-activate-virtual-environment)
+   - [Install Required Libraries](#install-required-libraries)
+4. [Running Locally and Testing](#running-locally-and-testing)
+   - [Prerequisites](#prerequisites)
+   - [Steps for Authentication Setup](#steps-for-authentication-setup)
+     - [Step 1: Create a Google Cloud Project](#step-1-create-a-google-cloud-project)
+     - [Step 2: Enable the Google Cloud APIs](#step-2-enable-the-google-cloud-apis)
+     - [Step 3: Create a new AI Studio API Key](#step-3-create-a-new-ai-studio-api-key)
+     - [Step 4: Create a new .env and Store the API Key](#step-4-create-a-new-env-and-store-the-api-key)
+     - [Step 5: Run the Application with Local Shell Script](#step-5-run-the-application-with-local-shell-script)
+     - [Step 6: Set the API Header](#step-6-set-the-api-header)
+5. [Docker Setup Guide](#docker-setup-guide)
+   - [Overview](#overview)
+   - [Prerequisites for Docker](#prerequisites-for-docker)
+   - [Installation Instructions](#installation-instructions)
+     - [Step 1: Build the Docker Image](#step-1-build-the-docker-image)
+     - [Step 2: Run the Docker Container](#step-2-run-the-docker-container)
+6. [Environment Variables](#environment-variables)
+7. [Accessing the Application](#accessing-the-application)
+
+## Architecture
+  ![Architecture](diagram.png)
 
 ## Folder Structure
 
@@ -60,7 +80,7 @@ marvel-ai-backend/
 └── README.md                # Documentation file
 ```
 
-## Install all the necessary libraries:
+## Installation:
 
 ### Navigate to the app directory
 
@@ -75,11 +95,12 @@ python -m venv env
 source env/bin/activate
 ```
 
+### Install Required Libraries
 ```bash
 pip install -r requirements.txt
 ```
 
-## To Run Locally and Test
+## Running Locally and Testing
 
 ## Prerequisites
 
@@ -125,7 +146,7 @@ pip install -r requirements.txt
 
 This guide is designed to help contributors set up and run the backend service using Docker. Follow these steps to ensure that your development environment is configured correctly.
 
-## Prerequisites
+## Prerequisites for Docker
 
 Before you start, ensure you have the following installed:
 
@@ -134,7 +155,7 @@ Before you start, ensure you have the following installed:
 
 ## Installation Instructions
 
-### 1. Build the Docker Image
+### Step 1: Build the Docker Image
 
 Navigate to the project's root directory and build the Docker image. Typically, this is done with the following command:
 
@@ -142,7 +163,7 @@ Navigate to the project's root directory and build the Docker image. Typically, 
 docker build -t <image_name> .
 ```
 
-### 2. Run the Docker Container
+### Step 2: Run the Docker Container
 
 Run the Docker container using the following command:
 
