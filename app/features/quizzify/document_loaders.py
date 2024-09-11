@@ -9,15 +9,21 @@ from app.services.logger import setup_logger
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 from pydub import AudioSegment
-
+from google.cloud import speech
+from google.cloud.speech import RecognitionAudio, RecognitionConfig
+from google.cloud import speech_v1p1beta1 as speech
+from dotenv import load_dotenv, find_dotenv
 import speech_recognition as sr
-import os
 import tempfile
 import uuid
 import requests
 import gdown
 import shutil
+import io
+import os
+import base64
 
+load_dotenv(find_dotenv())
 
 STRUCTURED_TABULAR_FILE_EXTENSIONS = {"csv", "xls", "xlsx", "gsheet", "xml"}
 
@@ -356,16 +362,14 @@ def generate_docs_from_img(img_url, verbose: bool=False):
 
     return split_docs
 
-
-
-def split_audio_fixed_intervals(audio, interval_ms):
+#########################################################################################################
+#########################################################################################################
+def split_audio_fixed_intervals1(audio, interval_ms):
     """
     Split audio into chunks of fixed length.
-    
     Args:
         audio (AudioSegment): The audio segment to split.
         interval_ms (int): The length of each chunk in milliseconds.
-
     Returns:
         List[AudioSegment]: List of audio chunks.
     """
@@ -377,21 +381,18 @@ def split_audio_fixed_intervals(audio, interval_ms):
         chunks.append(chunk)
     return chunks
 
-def generate_docs_from_audio(audio_url: str, verbose=False):
-    GOOGLE_CLOUD_API_KEY = os.getenv('GOOGLE_API_KEY')
-
+#USING GOOGLE WEB SPEECH API (FREE SERVICE USED FOR WEB TRANSCRIPT)
+def generate_docs_from_audio1(audio_url: str, verbose=False):
+    
     # Create a temporary directory
     temp_dir = tempfile.mkdtemp()
     logger.info("INSIDE generate_docs_from_audio")
 
-    current_dir = os.getcwd()
     # Generate unique file names for the MP3 and WAV files
     mp3_audio = f'mp3_audio_{uuid.uuid4()}.mp3'
     wav_audio = f'wav_audio_{uuid.uuid4()}.wav'
-    mp3_file_path = os.path.join(current_dir, mp3_audio)
-    wav_file_path = os.path.join(current_dir, wav_audio)
-    print(f"mp3_file_path: {mp3_file_path}")
-
+    wav_file_path = os.path.join(temp_dir, wav_audio)
+    
     docs = []
 
     # Download the file from the URL and save it to a temporary file
@@ -401,6 +402,7 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
     with tempfile.NamedTemporaryFile(delete=False, prefix=mp3_audio) as temp_file:
         temp_file.write(response.content)
         mp3_file_path = temp_file.name
+        print(f"mp3_file_path: {mp3_file_path}")
 
     # Convert the MP3 file to WAV
     audio = AudioSegment.from_mp3(mp3_file_path)
@@ -416,7 +418,7 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
     recognizer = sr.Recognizer()
 
     # Directory to save chunks inside the temporary folder
-    chunks_dir = os.path.join(current_dir, 'chunks')
+    chunks_dir = os.path.join(temp_dir, 'chunks')
     os.makedirs(chunks_dir, exist_ok=True)
 
     # Process each chunk
@@ -446,7 +448,7 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
 
                 try:
                     print(f"File found1, inside TRY: {chunk_file_path}")
-                    # Recognize speech using Google Cloud Speech-to-Text
+                    # Recognize speech using Google web speech API
                     text = recognizer.recognize_google(audio_data)
                     docs.append(Document(page_content=text))  # Create Document objects from text
                     print(f"File found2: {chunk_file_path}")
@@ -465,10 +467,14 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
 
     # Clean up temporary files
     if os.path.exists(wav_file_path):
-        #os.remove(wav_file_path)
+        os.remove(wav_file_path)
         if verbose:
             print(f"Temporary WAV file {wav_audio} deleted.")
-    #shutil.rmtree(temp_dir, ignore_errors=True)
+    if os.path.exists(mp3_file_path):
+        os.remove(mp3_file_path)
+        if verbose:
+            print(f"Temporary MP3 file {mp3_audio} deleted.")
+    shutil.rmtree(temp_dir, ignore_errors=True)
     if verbose:
         print("Temporary directory deleted.")
 
@@ -481,6 +487,170 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
         return split_docs
 
+#########################################################################################################
+#########################################################################################################
+# Retrieve the API key from environment variables
+GOOGLE_CLOUD_API_KEY = os.getenv('GOOGLE_API_KEY')
+
+if not GOOGLE_CLOUD_API_KEY:
+    raise ValueError("API key not found. Please check your .env file.")
+
+
+def split_audio_fixed_intervals(audio: AudioSegment, interval_ms: int):
+    """
+    Split audio into chunks of fixed length.
+
+    Args:
+        audio (AudioSegment): The audio segment to split.
+        interval_ms (int): The length of each chunk in milliseconds.
+
+    Returns:
+        List[AudioSegment]: List of audio chunks.
+    """
+    chunks = []
+    length_ms = len(audio)
+
+    # Split the audio into chunks
+    for start in range(0, length_ms, interval_ms):
+        end = min(start + interval_ms, length_ms)
+        chunk = audio[start:end]
+        chunks.append(chunk)
+
+    # Verify the length of each chunk
+    for i, chunk in enumerate(chunks):
+        print(f"Chunk {i} length: {len(chunk)} ms")
+        if len(chunk) >= interval_ms:
+            print(f"Warning: Chunk {i} is very close or exceeds the limit of {interval_ms} ms.")
+
+    return chunks
+
+
+#USING GOOGLE SPEECH-TO-TEXT API (PAID SERVICE)(RECOMMENDED FOR LARGE AUDIO FILES)
+def generate_docs_from_audio(audio_url: str, verbose=False):
+    # Create a temporary directory
+    temp_dir = tempfile.mkdtemp()
+    logger.info("INSIDE generate_docs_from_audio")
+
+    # Generate unique file names for the MP3 and WAV files
+    mp3_audio = f'mp3_audio_{uuid.uuid4()}.mp3'
+    wav_audio = f'wav_audio_{uuid.uuid4()}.wav'
+    wav_file_path = os.path.join(temp_dir, wav_audio)
+
+    docs = []
+
+    # Download the file from the URL and save it to a temporary file
+    response = requests.get(audio_url)
+    response.raise_for_status()  # Ensure the request was successful
+
+    with tempfile.NamedTemporaryFile(delete=False, prefix=mp3_audio) as temp_file:
+        temp_file.write(response.content)
+        mp3_file_path = temp_file.name
+        print(f"mp3_file_path: {mp3_file_path}")
+
+    # Convert the MP3 file to WAV
+    audio = AudioSegment.from_mp3(mp3_file_path)
+    audio.export(wav_file_path, format="wav")
+    if verbose:
+        print("Conversion to WAV successful!")
+
+    print(f"GOOGLE_CLOUD_API_KEY before URL: {GOOGLE_CLOUD_API_KEY}")
+    # Split WAV file into smaller chunks with a slightly reduced length to avoid exceeding the limit
+    chunk_length_ms = 59000  # 59 seconds to ensure it's under the 1-minute limit for the API
+    chunks = split_audio_fixed_intervals(audio, chunk_length_ms)
+
+
+    # Google Cloud Speech-to-Text API URL
+    url = "https://speech.googleapis.com/v1/speech:recognize"
+
+    # Process each chunk
+    for i, chunk in enumerate(chunks):
+        chunk_file_path = os.path.join(temp_dir, f'chunk_{i}.wav')
+        
+        chunk.export(chunk_file_path, format="wav")
+
+        # Verify the chunk file exists before processing
+        if not os.path.exists(chunk_file_path):
+            print(f"File not found: {chunk_file_path}")
+            continue  # Skip this chunk if the file is not found
+
+        print(f"Chunk file created: {chunk_file_path}")
+
+        if len(chunk) < 1000:  # Less than 1 second
+            print(f"Chunk {i} too short: {len(chunk)} ms")
+            continue  # Skip too short chunks
+
+        try:
+            # Load the audio data and encode it in base64
+            with open(chunk_file_path, "rb") as audio_file:
+                content = base64.b64encode(audio_file.read()).decode('utf-8')
+
+            headers = {
+                'Content-Type': 'application/json',
+            }
+
+            params = {
+                'key': GOOGLE_CLOUD_API_KEY,
+            }
+
+            data = {
+                "config": {
+                    "encoding": "LINEAR16",
+                    
+                    "languageCode": "en-US",
+                },
+                "audio": {
+                    "content": content
+                }
+            }
+
+            # Send the request to the Speech-to-Text API
+            try:
+                response = requests.post(url, headers=headers, params=params, json=data)
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                print(f"API request failed for chunk {i}: {e}")
+                print(f"Response content: {response.content}")
+                continue
+
+            # Process the response
+            result = response.json()
+            for result in result.get('results', []):
+                text = result['alternatives'][0]['transcript']
+                docs.append(Document(page_content=text))
+
+            if verbose:
+                print(f"Transcription for chunk {i} successful!")
+                print(text)
+
+        except FileNotFoundError:
+            print(f"File not found2: {chunk_file_path}")
+        except Exception as e:
+            print(f"An unexpected error occurred while processing chunk {i}: {e}")
+
+    # Clean up temporary files
+    if os.path.exists(wav_file_path):
+        os.remove(wav_file_path)
+        if verbose:
+            print(f"Temporary WAV file {wav_audio} deleted.")
+    if os.path.exists(mp3_file_path):
+        os.remove(mp3_file_path)
+        if verbose:
+            print(f"Temporary MP3 file {mp3_audio} deleted.")
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    if verbose:
+        print("Temporary directory deleted.")
+
+    if docs:
+        print(f"docs successfully created   , execute IF and split")
+        split_docs = splitter.split_documents(docs)
+        print(f"after splitter ,")
+        if verbose:
+            logger.info("Found transcript")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
+        return split_docs
+    
+#########################################################################################################
+#########################################################################################################
 
 
 file_loader_map = {
