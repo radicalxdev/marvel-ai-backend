@@ -1,0 +1,19 @@
+{
+    "inputs": [
+        {
+            "label": "Topic",
+            "name": "topic",
+            "type": "text"
+        },
+        {
+            "label": "Number of Questions",
+            "name": "num_questions",
+            "type": "number"
+        },
+        {
+            "label": "Upload PDF files",
+            "name": "files",
+            "type": "file"
+        }
+    ]
+}
