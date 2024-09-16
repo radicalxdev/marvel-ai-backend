@@ -56,6 +56,7 @@ class ChatMessage(BaseModel):
 
 class AIResistantArgs(BaseModel):
     topic: str = Field(..., min_length=1, max_length=255, description="Topic or subject related to the content")
+    assignment: str = Field(..., min_length=1, max_length=255, description="The given assignment")
     grade_level: Literal["elementary", "middle", "high", "college", "professional"] = Field(..., description="Educational level to which the content is directed")
     file_type: str = Field(..., description="Type of file being handled, according to the defined enumeration")
     file_url: str = Field(..., description="URL or path of the file to be processed")
