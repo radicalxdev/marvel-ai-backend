@@ -1,0 +1,9 @@
+{
+    "inputs": [
+        {
+            "label": "AI Resistant Assignment Generator Args.",
+            "name": "ai_resistant_args",
+            "type": "ai_resistant_args"
+        }
+    ]
+}
