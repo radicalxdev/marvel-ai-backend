@@ -83,7 +83,7 @@ class AIResistantAssignmentGenerator:
 
         chain = self.compile(documents)
 
-        response = chain.invoke(f"Topic: {self.args.topic}, Assignment: {self.args.assignment}, Grade Level: {self.args.grade_level}, Lang: {self.args.lang}")
+        response = chain.invoke(f"Topic: {self.args.topic}, Assignment: {self.args.assignment}, Grade Level: {self.args.grade_level}, Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}")
 
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
