@@ -11,6 +11,7 @@ class FileType(Enum):
     XLS = "xls"
     XLSX = "xlsx"
     XML = 'xml'
+    JSON = 'json'
 
     GDOC = 'gdoc'
     GSHEET = "gsheet"

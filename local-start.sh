@@ -1,4 +1,4 @@
-source .env
+source ./app/.env
 
 echo "Starting local server\n"
 

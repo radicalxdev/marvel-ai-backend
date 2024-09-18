@@ -1,4 +1,4 @@
-from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader, TextLoader, UnstructuredURLLoader, UnstructuredPowerPointLoader, Docx2txtLoader, UnstructuredExcelLoader, UnstructuredXMLLoader
+from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader, TextLoader, UnstructuredURLLoader, UnstructuredPowerPointLoader, Docx2txtLoader, UnstructuredExcelLoader, UnstructuredXMLLoader, JSONLoader
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.utils.allowed_file_extensions import FileType
@@ -212,6 +212,18 @@ def load_xml_documents(xml_url: str, verbose=False):
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         return split_docs
+    
+def load_json_documents(json_url: str, verbose=False):
+    json_handler = FileHandler(JSONLoader, 'json')
+    docs = json_handler.load(json_url)
+
+    if docs:
+
+        if verbose:
+            logger.info(f"Found JSON file")
+            logger.info(f"Splitting documents into {len(docs)} chunks")
+
+        return docs
 
 
 class FileHandlerForGoogleDrive:
@@ -360,6 +372,7 @@ file_loader_map = {
     FileType.XLS: load_xls_documents,
     FileType.XLSX: load_xlsx_documents,
     FileType.XML: load_xml_documents,
+    FileType.JSON: load_json_documents,
     FileType.GDOC: load_gdocs_documents,
     FileType.GSHEET: load_gsheets_documents,
     FileType.GSLIDE: load_gslides_documents,

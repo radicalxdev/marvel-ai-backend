@@ -13,8 +13,8 @@ def executor(quizzify_args: QuizzifyArgs, verbose=True):
             logger.info(f"File URL loaded: {quizzify_args.file_url}")
 
         docs = get_docs(quizzify_args.file_url, quizzify_args.file_type, verbose)
-    
-        output = QuizBuilder(quizzify_args.topic, quizzify_args.lang, verbose=verbose).create_questions(docs, quizzify_args.n_questions)
+        print("DOCS LOADED: ", docs)
+        output = QuizBuilder(quizzify_args.topic, quizzify_args.lang, file_type=quizzify_args.file_type, verbose=verbose).create_questions(docs, quizzify_args.n_questions)
     
     except LoaderError as e:
         error_message = e

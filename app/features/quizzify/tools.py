@@ -44,7 +44,7 @@ def read_text_file(file_path):
         return file.read()
 
 class QuizBuilder:
-    def __init__(self, topic, lang='en', vectorstore_class=Chroma, prompt=None, embedding_model=None, model=None, parser=None, verbose=False):
+    def __init__(self, topic, lang='en', file_type=None, vectorstore_class=Chroma, prompt=None, embedding_model=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001'),
@@ -53,6 +53,7 @@ class QuizBuilder:
             "vectorstore_class": Chroma
         }
         
+        self.file_type = file_type
         self.prompt = prompt or default_config["prompt"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
@@ -69,6 +70,11 @@ class QuizBuilder:
     
     def compile(self, documents: List[Document]):
         # Return the chain
+        if self.file_type in ["csv", "xml", "xls", "xlsx", "json"]:
+            cot_response = self.cot_structured(documents)
+            documents = [Document(page_content=cot_response)]
+            # documents = self.cot_structured(documents)  # Ensure this returns `Document` objects
+
         prompt = PromptTemplate(
             template=self.prompt,
             input_variables=["attribute_collection"],
@@ -94,6 +100,61 @@ class QuizBuilder:
         if self.verbose: logger.info(f"Chain compilation complete")
         
         return chain
+    
+    def cot_structured(self, documents: List[Document]) -> str:
+        # prompt = read_text_file("prompt/cot-prompt.txt")
+        structured_data = "\n".join(doc.page_content for doc in documents)
+        logger.info("****STRUCTURED DATA****: " + structured_data)
+        prompt = f"""
+        You are an expert in understanding various structured data formats such as CSV, XML, XLS, XLSX, and JSON. Your task is to perform a detailed analysis of the provided data to gain a comprehensive understanding of its structure and content. This understanding is crucial for accurately generating quiz questions based on this data.
+
+        Follow these steps to analyze the data:
+
+        1. **Identify the Format:**
+        - Determine the format of the data (CSV, XML, XLS, XLSX, JSON). This will help in understanding the specific characteristics and structure associated with this format.
+
+        2. **Examine the Structure:**
+        - Analyze the data to identify its key components:
+            - For CSV: Columns, headers, and rows.
+            - For XML: Tags, attributes, and hierarchical structure.
+            - For XLS/XLSX: Sheets, rows, columns, and cell content.
+            - For JSON: Keys, values, nested objects, and arrays.
+
+        3. **Describe Relationships:**
+        - Identify and describe relationships between the components:
+            - Are there hierarchical structures (e.g., parent-child relationships in XML)?
+            - Are there key-value pairs (e.g., JSON objects)?
+            - Are there tabular relationships (e.g., rows and columns in CSV/XLS)?
+
+        4. **Identify Key Attributes and Patterns:**
+        - Look for important attributes or patterns:
+            - Numerical patterns, categorical fields, or text descriptions.
+            - Common fields or recurring values that might be significant.
+
+        5. **Infer the Purpose:**
+        - Make logical inferences about the data’s purpose:
+            - What might the data be used for? 
+            - What is the subject matter or context?
+            - How are the pieces of information connected?
+
+        6. **Summarize the Data:**
+        - Provide a summary of your findings:
+            - A coherent interpretation of the data’s overall meaning.
+            - Key components, relationships, attributes, and inferred purpose.
+
+        **Data:**
+        {structured_data}
+
+        Your response should reflect a thorough understanding of the data's structure and content, helping to ensure accurate quiz generation based on this information.
+        """
+        response = self.model(prompt) # + could also include the structured_data here
+        # Process the response and convert it to a list of Document objects
+        if response:
+            # documents = [Document(page_content=r) for r in response.split('\n')]
+            # logger.info(f"COT response processed into {len(documents)} documents")
+            logger.info("****RESPONSE****: " + response)
+            # logger.info("****DOCUMENTS: " + str(documents))
+        return response
 
     def validate_response(self, response: Dict) -> bool:
         try:

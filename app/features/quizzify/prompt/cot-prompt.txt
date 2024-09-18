@@ -1,0 +1,40 @@
+You are an expert in understanding various structured data formats such as CSV, XML, XLS, XLSX, and JSON. Your task is to perform a detailed analysis of the provided data to gain a comprehensive understanding of its structure and content. This understanding is crucial for accurately generating quiz questions based on this data.
+
+Follow these steps to analyze the data:
+
+1. **Identify the Format:**
+- Determine the format of the data (CSV, XML, XLS, XLSX, JSON). This will help in understanding the specific characteristics and structure associated with this format.
+
+2. **Examine the Structure:**
+- Analyze the data to identify its key components:
+    - For CSV: Columns, headers, and rows.
+    - For XML: Tags, attributes, and hierarchical structure.
+    - For XLS/XLSX: Sheets, rows, columns, and cell content.
+    - For JSON: Keys, values, nested objects, and arrays.
+
+3. **Describe Relationships:**
+- Identify and describe relationships between the components:
+    - Are there hierarchical structures (e.g., parent-child relationships in XML)?
+    - Are there key-value pairs (e.g., JSON objects)?
+    - Are there tabular relationships (e.g., rows and columns in CSV/XLS)?
+
+4. **Identify Key Attributes and Patterns:**
+- Look for important attributes or patterns:
+    - Numerical patterns, categorical fields, or text descriptions.
+    - Common fields or recurring values that might be significant.
+
+5. **Infer the Purpose:**
+- Make logical inferences about the data’s purpose:
+    - What might the data be used for? 
+    - What is the subject matter or context?
+    - How are the pieces of information connected?
+
+6. **Summarize the Data:**
+- Provide a summary of your findings:
+    - A coherent interpretation of the data’s overall meaning.
+    - Key components, relationships, attributes, and inferred purpose.
+
+**Data:**
+{structured_data}
+
+Your response should reflect a thorough understanding of the data's structure and content, helping to ensure accurate quiz generation based on this information.
