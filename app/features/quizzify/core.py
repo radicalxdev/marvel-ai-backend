@@ -12,7 +12,9 @@ def executor(quizzify_args: QuizzifyArgs, verbose=True):
         if verbose:
             logger.info(f"File URL loaded: {quizzify_args.file_url}")
 
-        docs = get_docs(quizzify_args.file_url, quizzify_args.file_type, verbose)
+        #docs = get_docs(quizzify_args.file_url, quizzify_args.file_type, verbose)
+        docs = get_docs(quizzify_args.file_url, quizzify_args.file_type, quizzify_args.lang, verbose=True)
+
     
         output = QuizBuilder(quizzify_args.topic, quizzify_args.lang, verbose=verbose).create_questions(docs, quizzify_args.n_questions)
     
