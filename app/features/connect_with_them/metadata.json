@@ -1,0 +1,9 @@
+{
+    "inputs": [
+        {
+            "label": "Connect with Them Args.",
+            "name": "connect_with_them_args",
+            "type": "connect_with_them_args"
+        }
+    ]
+}
