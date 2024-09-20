@@ -1,6 +1,6 @@
 from app.services.tool_registry import ToolFile
 from app.services.logger import setup_logger
-from app.features.syllabus.tools import SyllabusBuilder
+from app.features.syllabus_generator.tools import SyllabusBuilder
 from app.api.error_utilities import LoaderError, ToolExecutorError
 
 logger = setup_logger()

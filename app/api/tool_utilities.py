@@ -17,6 +17,7 @@ def load_config():
 tools_config = load_config()
 
 def get_executor_by_name(module_path):
+    module_path = 'app.' + module_path
     try:
         module = __import__(module_path, fromlist=['executor'])
         return getattr(module, 'executor')
