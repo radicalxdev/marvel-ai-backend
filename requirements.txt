@@ -23,3 +23,4 @@ pydantic==1.10.7
 langchain_groq
 selenium
 bs4
+firecrawl-py

@@ -3,35 +3,28 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 from langchain import hub
 from langchain.agents import AgentExecutor,create_react_agent,tool
-from langchain_core.prompts import PromptTemplate
+from langchain.document_loaders.web_base import WebBaseLoader
+from langchain.chains.summarize.chain import load_summarize_chain
 from langchain.tools.base import StructuredTool
 from langchain_groq import ChatGroq
-# from langchain_core.tools import Tool , StructuredTool
-#from langchain_google_vertexai import VertexAI
-#model = VertexAI(model_name='gemini-1.5-flash', temperature=0.1) #gemini-pro
 from langchain.pydantic_v1 import BaseModel, Field
-from Credentials import credentials,categories_mapping
-from prompt.Prompts import Prompt_query
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
-from webdriver_manager.chrome import ChromeDriverManager
+from app.features.connect_with_them.Credentials import credentials,categories_mapping
+from app.features.connect_with_them.prompt.Prompts import Prompt_query
+
 from bs4 import BeautifulSoup
-from typing import Literal
-# import html2markdown
 
 model_name = 'llama-3.1-70b-versatile'
 
-llm = ChatGroq(model=model_name,temperature=0.5,api_key=credentials['GROQ_API_KEY'])
+llm = ChatGroq(model=model_name,temperature=0.3,api_key=credentials['GROQ_API_KEY'])
 
 class GetSubredditsModel(BaseModel):
     Topic: str = Field(description='Topic that you want to get subreddits for')
-class ScrapePageModel(BaseModel):
+
+class SearchArticlesModel(BaseModel):
     category: str = Field(description='Category that you want to get some information about')
 
-def get_subreddits(topic:str ,limit:int=10 ):
+def get_subreddits(topic:str ,limit:int=10 ) -> str:
     params = {'q': topic, 'type': 'sr', 'sort': 'relevance', 'limit': limit}
     data = {'grant_type': 'password', 'username': credentials['NAME'], 'password': credentials['PASSWORD']}
     headers = {'User-Agent': credentials['USER_AGENT']}
@@ -49,55 +42,64 @@ def get_subreddits(topic:str ,limit:int=10 ):
     except RequestException as e:
         print(f"An error occurred during the request: {e}")
         return f"No subreddits found for '{topic}'. Error: {str(e)}"
-#! this function should be fixed not always work
-def scrape_page(category:str ):
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
-    driver.get(f"https://www.edutopia.org/{categories_mapping[category]}")
 
-    driver.implicitly_wait(4)
-    try:
-        first_image = driver.find_element(By.TAG_NAME, "img")
-    except NoSuchElementException:
-        print("First image not found. Continuing...")
-        driver.quit()
-        return
+def scrape_page(category: str, num_articles: int) -> list:
+    # Build the URL based on the category
+    url = f"https://www.edutopia.org/{categories_mapping[category]}"
 
     try:
-        parent_element = first_image.find_element(By.XPATH, '..')
-        parent_element.click()
-    except NoSuchElementException:
-        print("Parent element of the image not found. Continuing...")
-        driver.quit()
-        return
+        # Send a GET request to fetch the page content
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an exception for HTTP errors
 
-    driver.implicitly_wait(2)
+        # Parse the HTML content using BeautifulSoup
+        soup = BeautifulSoup(response.text, 'html.parser')
 
+        # Find the 'main' section of the page
+        main = soup.find('main')
+        if not main:
+            print("Main section not found")
+            return []
+
+        # Find the 'ul' element within the 'main' section
+        ul = main.find('ul')
+        if not ul:
+            print("List (ul) not found")
+            return []
+
+        # Find all 'li' elements within the 'ul'
+        li_tags = ul.find_all('li')
+
+        # Extract the 'href' attribute from 'a' tags within 'li'
+        article_links = [li.find('a')['href'] for li in li_tags if li.find('a')]
+
+        # Return the required number of article links
+        return [f'https://www.edutopia.org{link}' for link in article_links[:min(num_articles, len(article_links))]]
+
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+        return []
+
+def Search_Articles(category: str) -> str:
     try:
-        close_button = driver.find_element(By.XPATH, "//button[text()='Close']")
-        close_button.click()
-    except NoSuchElementException:
-        print("Close button not found. Skipping...")
+        category = category.replace("'","")
+        if category not in categories_mapping:
+            print(category)
+            return f"Invalid category: '{category}'. Valid categories are: {list(categories_mapping.keys())}"
 
-    try:
-        body = driver.find_element(By.TAG_NAME, "body").get_attribute('innerHTML')
-    except NoSuchElementException:
-        print("Body content not found. Continuing...")
-        driver.quit()
-        return
+        links = scrape_page(category, 3)
+        if not links:
+            return f"No articles found for '{category}'"
 
-    soup = BeautifulSoup(body, 'html.parser')
+        loader = WebBaseLoader(links)
+        docs = loader.load()
 
-    for tag in soup(['style', 'script']):
-        tag.decompose()
-
-    paragraphs = soup.find_all('p')
-    try:
-        result = '/n'.join([p.get_text(strip=True) for p in paragraphs])
-        return result
+        summarization_chain = load_summarize_chain(llm=llm, verbose=False,chain_type='map_reduce')
+        summary = summarization_chain.invoke(docs)
+        return summary
     except Exception as e:
-        return "No content found"
-    finally:
-        driver.quit()
+        logging.exception(f"Error in Search_Articles for category '{category}': {str(e)}")
+        return f"An error occurred while searching articles for '{category}'. Please try again later."
 
 tools = [
     StructuredTool.from_function(
@@ -108,14 +110,14 @@ tools = [
         it takes a Topic as argument''',
         args_schema= GetSubredditsModel
     ),
-    # StructuredTool.from_function(
-    #     name='scrape_page',
-    #     func=scrape_page,
-    #     description= f'''Get a some informations about a certain category from edutopia website ,
-    #     this tool is useful when you want to have more informations from the web about a certain teaching category that is included in {list(categories_mapping.keys())}
-    #     it takes a category as argument''',
-    #     args_schema= ScrapePageModel
-    # )
+    StructuredTool.from_function(
+        name='Search Articles',
+        func=Search_Articles,
+        description= f'''Get a some informations about a certain category from edutopia website ,
+        this tool is useful when you want to have more informations from the web about a certain teaching category ,
+        it takes a category as argument that is included in {list(categories_mapping.keys())}''',
+        args_schema= SearchArticlesModel
+    )
 ]
 
 prompt = hub.pull("hwchase17/react") #structured-chat-agent
@@ -126,11 +128,5 @@ Agent_executor = AgentExecutor.from_agent_and_tools(
     tools=tools,
     verbose=True,
     handle_parsing_errors="Check your output formatting, ensure correct syntax.",
-    max_iterations=6
+    max_iterations=20
 )
-
-# user_input = 'I teach data analysis to undergrade students from new york and they love memes and music'
-
-# result = Agent_executor.invoke({'input':Prompt_query(user_input)})
-
-# print(result['output'])
