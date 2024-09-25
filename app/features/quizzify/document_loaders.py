@@ -61,19 +61,16 @@ def get_docs(file_url: str, file_type: str, lang: str = "en", verbose=True):
                 logger.info("text/html in content_type: change file_type to url")  
 
         except requests.exceptions.RequestException as e:
-            # Handling all requests-related exceptions in one block
-            if isinstance(e, requests.exceptions.MissingSchema):
-                error_message = "Invalid URL format."
-            elif isinstance(e, requests.exceptions.ConnectionError):
-                error_message = "Failed to connect to the server."
-            elif isinstance(e, requests.exceptions.Timeout):
-                error_message = "Request timed out."
-            else:
-                error_message = f"Request failed: {e}"
-        
+            exception_map = {
+                requests.exceptions.MissingSchema: "Invalid URL format.",
+                requests.exceptions.ConnectionError: "Failed to connect to the server.",
+                requests.exceptions.Timeout: "Request timed out.",
+            }
+            # Check if the exception is in the map; if not, default to a generic message
+            error_message = exception_map.get(type(e), f"Request failed: {e}")
             logger.error(error_message)
             raise FileHandlerError(error_message, file_url)
-        
+  
     try:
         file_loader = file_loader_map[FileType(file_type)]
         if "generate_docs_from_audio_gcloud" in file_loader.__name__:
@@ -451,7 +448,7 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
         audio = AudioSegment.from_mp3(mp3_file_path)
         audio.export(wav_file_path, format="wav")
         if verbose:
-            logger.info("Conversion to WAV successful!")
+            print("Conversion to WAV successful!")
     except Exception as e:
         logger.error(f"Failed to convert MP3 to WAV: {e}")
         raise Exception(f"Failed to convert MP3 to WAV: {e}")
@@ -488,7 +485,7 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
                     text = recognizer.recognize_google(audio_data)
                     docs.append(Document(page_content=text))  # Create Document objects from text
                     if verbose:
-                        logger.info(f"Transcription for chunk {i} successful: {text}")
+                        print(f"Transcription for chunk {i} successful: {text}")
                 except sr.UnknownValueError:
                     logger.warning(f"Chunk {i}: Google Speech Recognition could not understand the audio.")
                 except sr.RequestError as e:
@@ -504,24 +501,22 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
         if os.path.exists(wav_file_path):
             os.remove(wav_file_path)
             if verbose:
-                logger.info(f"Temporary WAV file {wav_file_path} deleted.")
+                print(f"Temporary WAV file {wav_file_path} deleted.")
         if os.path.exists(mp3_file_path):
             os.remove(mp3_file_path)
             if verbose:
-                logger.info(f"Temporary MP3 file {mp3_audio} deleted.")
+                print(f"Temporary MP3 file {mp3_audio} deleted.")
         shutil.rmtree(temp_dir, ignore_errors=True)
         if verbose:
-            logger.info("Temporary directory deleted.")
+            print("Temporary directory deleted.")
     
     except OSError as e:
         logger.error(f"Error during cleanup temporary files: {e}")
         if verbose:
-            logger.info(f"Error during cleanup: {e}")
+            print(f"Error during cleanup: {e}")
 
     if docs:
-        logger.info(f"docs successfully created   , execute IF and split")
         split_docs = splitter.split_documents(docs)
-        logger.info(f"after splitter ,")
         if verbose:
             logger.info("Found transcript")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
@@ -576,7 +571,7 @@ def generate_docs_from_audio_gcloud(audio_url: str, lang: str, verbose=False):
     audio = AudioSegment.from_mp3(mp3_file_path)
     audio.export(wav_file_path, format="wav")
     if verbose:
-        logger.info("Conversion to WAV successful!")
+        print("Conversion to WAV successful!")
 
     # Split WAV file into smaller chunks with a slightly reduced length to avoid exceeding the limit
     chunk_length_ms = 59000  # 59 seconds to ensure it's under the 1-minute limit for the API
@@ -635,7 +630,7 @@ def generate_docs_from_audio_gcloud(audio_url: str, lang: str, verbose=False):
                 text = result['alternatives'][0]['transcript']
                 docs.append(Document(page_content=text))
             if verbose:
-                logger.info(f"Transcription for chunk {i} successful: {text}")
+                print(f"Transcription for chunk {i} successful: {text}")
 
         except FileNotFoundError:
             logger.error(f"Chunk file not found: {chunk_file_path}")
@@ -649,24 +644,22 @@ def generate_docs_from_audio_gcloud(audio_url: str, lang: str, verbose=False):
         if os.path.exists(wav_file_path):
             os.remove(wav_file_path)
             if verbose:
-                logger.info(f"Temporary WAV file {wav_file_path} deleted.")
+                print(f"Temporary WAV file {wav_file_path} deleted.")
         if os.path.exists(mp3_file_path):
             os.remove(mp3_file_path)
             if verbose:
-                logger.info(f"Temporary MP3 file {mp3_audio} deleted.")
+                print(f"Temporary MP3 file {mp3_audio} deleted.")
         shutil.rmtree(temp_dir, ignore_errors=True)
         if verbose:
-            logger.info("Temporary directory deleted.")
+            print("Temporary directory deleted.")
     
     except OSError as e:
         logger.error(f"Error during cleanup temporary files: {e}")
         if verbose:
-            logger.info(f"Error during cleanup: {e}")
+            print(f"Error during cleanup: {e}")
 
     if docs:
-        logger.info(f"docs successfully created   , execute IF and split")
         split_docs = splitter.split_documents(docs)
-        logger.info(f"after splitter ,")
         if verbose:
             logger.info("Found transcript")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
