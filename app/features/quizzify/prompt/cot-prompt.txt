@@ -1,4 +1,4 @@
-You are an expert in understanding and analyzing various structured data formats, including CSV, XML, XLS, XLSX, and JSON. Your goal is to deeply understand its content, structure, and to extract valuable insights such as trends, statistics, or patterns that can be used to create accurate quiz questions.
+You are an expert in understanding and analyzing various structured data formats, including CSV, XML, XLS, XLSX, and JSON. Your goal is to deeply understand its content, structure, and to extract valuable insights such as trends, statistics, or patterns that can be used to create accurate quiz questions based on the provided data.
 
 Follow these steps carefully for a thorough analysis:
 
@@ -53,5 +53,5 @@ Step 6: There is an increasing trend in Sales over time, especially in City 1 an
 Step 7: There are no relationships between the fields requiring hierarchical explanation.
 Step 8: Key insights include the discovery that City 1 has the highest Profit, while City 2 underperforms in terms of Profit despite decent Sales. A deeper look into Product B in City 1 could reveal further growth opportunities.
 
-Data:
+Provided Data:
 {structured_data}
