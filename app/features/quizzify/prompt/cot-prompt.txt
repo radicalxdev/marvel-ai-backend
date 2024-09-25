@@ -1,40 +1,57 @@
-You are an expert in understanding various structured data formats such as CSV, XML, XLS, XLSX, and JSON. Your task is to perform a detailed analysis of the provided data to gain a comprehensive understanding of its structure and content. This understanding is crucial for accurately generating quiz questions based on this data.
+You are an expert in understanding and analyzing various structured data formats, including CSV, XML, XLS, XLSX, and JSON. Your goal is to deeply understand its content, structure, and to extract valuable insights such as trends, statistics, or patterns that can be used to create accurate quiz questions.
 
-Follow these steps to analyze the data:
+Follow these steps carefully for a thorough analysis:
 
-1. **Identify the Format:**
-- Determine the format of the data (CSV, XML, XLS, XLSX, JSON). This will help in understanding the specific characteristics and structure associated with this format.
+File Format Identification:
+Identify the file format (CSV, XML, JSON, XLS, or XLSX).
+Describe key characteristics of the format, such as how data is organized (e.g., rows and columns for CSV/XLS, hierarchical for XML/JSON).
 
-2. **Examine the Structure:**
-- Analyze the data to identify its key components:
-    - For CSV: Columns, headers, and rows.
-    - For XML: Tags, attributes, and hierarchical structure.
-    - For XLS/XLSX: Sheets, rows, columns, and cell content.
-    - For JSON: Keys, values, nested objects, and arrays.
+Table Identification and Structure:
+Identify the number of tables in the file and their names or labels.
+For each table, describe the structure (e.g., columns/fields in CSV/XLS, elements/nodes in XML/JSON).
+If applicable, outline any relationships between tables (e.g., foreign keys in relational data).
 
-3. **Describe Relationships:**
-- Identify and describe relationships between the components:
-    - Are there hierarchical structures (e.g., parent-child relationships in XML)?
-    - Are there key-value pairs (e.g., JSON objects)?
-    - Are there tabular relationships (e.g., rows and columns in CSV/XLS)?
+Header and Field Analysis:
+Identify all headers (column names in CSV/XLS or keys in JSON/XML) and explain the likely meaning of each.
+If headers are missing, infer the possible meaning of each column or field by inspecting the data.
 
-4. **Identify Key Attributes and Patterns:**
-- Look for important attributes or patterns:
-    - Numerical patterns, categorical fields, or text descriptions.
-    - Common fields or recurring values that might be significant.
+Data Type and Distribution Analysis:
+For each column or field, infer the data type (e.g., numeric, categorical, text, date).
+Describe the distribution of the data (e.g., range, averages, most common values).
+Highlight any missing or anomalous data.
 
-5. **Infer the Purpose:**
-- Make logical inferences about the data’s purpose:
-    - What might the data be used for? 
-    - What is the subject matter or context?
-    - How are the pieces of information connected?
+Statistical Summary:
+For numeric fields: Calculate summary statistics such as mean, median, minimum, maximum, and standard deviation.
+For categorical fields: Identify the frequency of each category, highlighting the most and least common values.
+For date fields: Look for time-based trends or patterns, such as seasonality or frequency over time.
 
-6. **Summarize the Data:**
-- Provide a summary of your findings:
-    - A coherent interpretation of the data’s overall meaning.
-    - Key components, relationships, attributes, and inferred purpose.
+Trend and Pattern Identification:
+Identify any trends or correlations within the data. For example:
+Look for increasing or decreasing trends over time or across specific categories.
+Identify relationships between numeric fields (e.g., does a higher Age correlate with a higher Salary?).
+Group data by relevant categories (e.g., City, Gender) and analyze any patterns or differences between groups.
+Point out any outliers or unusual data points that might indicate an error or an important discovery.
 
-**Data:**
+Relationships Between Data (Optional for Relational or Hierarchical Data):
+Explain any relationships between fields or tables, such as parent-child relationships in hierarchical formats (XML/JSON) or foreign keys in tabular formats (CSV/XLS).
+How do these relationships provide structure and meaning to the data?
+
+Key Insights and Conclusions:
+Based on the identified trends, statistics, and patterns, provide insights such as:
+Important trends or correlations (e.g., higher salaries in specific cities or a time-based increase in sales).
+Unusual findings (e.g., outliers, missing data, or significant deviations).
+Potential areas for further exploration (e.g., comparing specific groups, understanding seasonal trends).
+Summarize the most important findings from the analysis.
+
+Example CoT Output for a CSV File:
+Step 1: The file is in CSV format, organizing data into rows and columns.
+Step 2: There is one table with five columns: Date, City, Product, Sales, and Profit.
+Step 3: The headers are clear. Date is a time field, City and Product are categorical, Sales and Profit are numeric.
+Step 4: Sales and Profit are numeric fields with ranges from $100 to $10,000. There are no missing values. The City field contains five unique cities.
+Step 5: Summary statistics show the average Sales is $2,500, and the average Profit is $500. The most common product is 'Product A.'
+Step 6: There is an increasing trend in Sales over time, especially in City 1 and City 3. Profit tends to be higher for 'Product B' in City 1 compared to other cities. City 2 shows an anomaly with consistently low Profit despite moderate Sales.
+Step 7: There are no relationships between the fields requiring hierarchical explanation.
+Step 8: Key insights include the discovery that City 1 has the highest Profit, while City 2 underperforms in terms of Profit despite decent Sales. A deeper look into Product B in City 1 could reveal further growth opportunities.
+
+Data:
 {structured_data}
-
-Your response should reflect a thorough understanding of the data's structure and content, helping to ensure accurate quiz generation based on this information.

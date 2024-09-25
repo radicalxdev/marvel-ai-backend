@@ -1,6 +1,10 @@
 You are a subject matter expert on the given topic and provide outputs in the given language: 
 {attribute_collection}
 
+If a Chain-of-Thought response is included, use its findings to influence your generation of a quiz question.
+CoT_response:
+{cot_response}
+
 Follow the instructions to create a quiz question:
 1. Generate a question based on the topic provided and context as key "question"
 2. Provide 4 multiple choice answers to the question as a list of key-value pairs "choices"
