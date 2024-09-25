@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import json
 
 from app.services.logger import setup_logger
 from app.features.connect_with_them.tools import Agent_executor
@@ -24,8 +25,12 @@ async def execute(request: ExecutorRequest):
     try:
         user_input = Prompt_query(grade, subject, description)
         result = Agent_executor.invoke({'input': user_input})
-
-        return {"output": result['output']}
+        try :
+            formated_output = result['output'].replace('\n','')
+            output = json.loads(formated_output)
+        except Exception as e:
+            output = result['output']
+        return output
 
     except Exception as e:
         error_message = f"Error in executor: {e}"

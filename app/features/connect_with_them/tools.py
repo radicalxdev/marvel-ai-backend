@@ -3,7 +3,7 @@ from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 from langchain import hub
 from langchain.agents import AgentExecutor,create_react_agent,tool
-from langchain.document_loaders.web_base import WebBaseLoader
+from langchain_community.document_loaders import WebBaseLoader
 from langchain.chains.summarize.chain import load_summarize_chain
 from langchain.tools.base import StructuredTool
 from langchain_groq import ChatGroq
@@ -82,10 +82,15 @@ def scrape_page(category: str, num_articles: int) -> list:
 
 def Search_Articles(category: str) -> str:
     try:
-        category = category.replace("'","")
-        if category not in categories_mapping:
-            print(category)
-            return f"Invalid category: '{category}'. Valid categories are: {list(categories_mapping.keys())}"
+        if category not in list(categories_mapping.keys()) :
+            print(f"\n category before changing : {category}")
+            if "'" in category :
+                category = category.replace("'","")
+            if '"' in category :
+                category = category.replace('"','')
+            print(f"\n category after changing : {category}")
+            if category not in list(categories_mapping.keys()) :
+                return f"Invalid category: {category}. Valid categories are: {list(categories_mapping.keys())}"
 
         links = scrape_page(category, 3)
         if not links:
