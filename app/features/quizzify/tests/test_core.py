@@ -124,7 +124,7 @@ def test_executor_pptx_url_invalid():
     quizzify_args = QuizzifyArgs(
         topic = "college",
         n_questions = 1,
-        file_url = "https://scholar.harvard.edu/files/torman_personal/files/dummy.pptx",
+        file_url = "https://scholar.harvard.edu/files/torman_personal/files/dummies.pptx",
         file_type = "pptx"
     )
 
@@ -334,6 +334,58 @@ def test_executor_gpdfs_url_invalid():
         n_questions = 1,
         file_url = "https://drive.google.com/file/d/1gBeAzJKTaZFwEbub8wkXrF3/view?usp=sharing",
         file_type = "gpdf"
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        quiz = executor(quizzify_args)
+
+    assert isinstance(exc_info.value, ValueError)
+
+def test_executor_mp3_url_valid():
+    quizzify_args = QuizzifyArgs(
+        topic = "college",
+        n_questions = 1,
+        file_url = "https://raw.githubusercontent.com/asleem/uploaded_files/main/secretgarden_01_burnett.mp3",
+        file_type = "mp3"
+    )
+
+    quiz = executor(quizzify_args)
+
+    assert isinstance(quiz, list)
+    assert len(quiz) == quizzify_args.n_questions
+
+def test_executor_mp3_url_invalid():
+    quizzify_args = QuizzifyArgs(
+        topic = "college",
+        n_questions = 1,
+        file_url = "https://raw.githubusercontent.com/asleem/uploaded_files/main/dummy.mp3",
+        file_type = "mp3"
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        quiz = executor(quizzify_args)
+
+    assert isinstance(exc_info.value, ValueError)
+
+def test_executor_gmp3_url_valid():
+    quizzify_args = QuizzifyArgs(
+        topic = "college",
+        n_questions = 1,
+        file_url = "https://raw.githubusercontent.com/asleem/uploaded_files/main/secretgarden_01_burnett.mp3",
+        file_type = "gmp3"
+    )
+
+    quiz = executor(quizzify_args)
+
+    assert isinstance(quiz, list)
+    assert len(quiz) == quizzify_args.n_questions
+
+def test_executor_gmp3_url_invalid():
+    quizzify_args = QuizzifyArgs(
+        topic = "college",
+        n_questions = 1,
+        file_url = "https://raw.githubusercontent.com/asleem/uploaded_files/main/dummy.mp3",
+        file_type = "gmp3"
     )
 
     with pytest.raises(ValueError) as exc_info:

@@ -55,11 +55,13 @@ def get_docs(file_url: str, file_type: str, lang: str = "en", verbose=True):
             # Make a HEAD request to get content type
             head_response = requests.head(file_url, allow_redirects=True)
             content_type = head_response.headers.get('Content-Type') 
+            if content_type is None:
+                raise FileHandlerError(f"Failed to retrieve Content-Type from URL ", file_url)
             # If the content type is HTML
             if 'text/html' in content_type:
                 file_type = "url"
                 logger.info("text/html in content_type: change file_type to url")  
-
+        
         except requests.exceptions.RequestException as e:
             exception_map = {
                 requests.exceptions.MissingSchema: "Invalid URL format.",
@@ -92,6 +94,10 @@ def load_url_documents(url: str, verbose=False):
         # Using the global session to load documents with custom headers
         url_loader = UnstructuredURLLoader(urls=[url])
         docs = url_loader.load()
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"HTTP error occurred: {e}")
+        raise FileHandlerError(f"Failed to load document from URL due to HTTP error", url) from e
     except Exception as e:
         logger.error(f"Failed to load document from URL: {e}")
         raise FileHandlerError(f"Failed to load document from URL", url)
@@ -104,6 +110,7 @@ def load_url_documents(url: str, verbose=False):
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         return split_docs
+
 
 
 
