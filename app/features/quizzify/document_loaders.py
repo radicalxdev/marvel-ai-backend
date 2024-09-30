@@ -46,7 +46,6 @@ def read_text_file(file_path):
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
-#def get_docs(file_url: str, file_type: str,verbose=True):
 def get_docs(file_url: str, file_type: str, lang: str = "en", verbose=True):
     file_type = file_type.lower()
 
@@ -422,7 +421,8 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
     try:
         # Attempt to create a temporary directory
         temp_dir = tempfile.mkdtemp()
-        logger.info(f"Temporary directory created: {temp_dir}")
+        if verbose:
+            print(f"Temporary directory created: {temp_dir}")
 
     except OSError as e:
         # Handle any errors that occur while interacting with the file system
@@ -474,14 +474,13 @@ def generate_docs_from_audio(audio_url: str, verbose=False):
         try:
             # Export the chunk to a file
             chunk.export(chunk_file_path, format="wav")
-            logger.info(f"Chunk file created: {chunk_file_path}")
         except Exception as e:
             raise Exception(f"Failed to export chunk {i} to file: {e}")
 
         try:
             with sr.AudioFile(chunk_file_path) as source:
                 audio_data = recognizer.record(source)
-                logger.info(f"Audio data recorded for chunk {i}. Duration: {len(audio_data.frame_data) / audio_data.sample_rate:.2f} seconds")
+                logger.info(f"Audio data recorded for chunk {i} :{chunk_file_path}. Duration: {len(audio_data.frame_data) / audio_data.sample_rate:.2f} seconds")
 
                 if len(audio_data.frame_data) == 0:
                     logger.warning(f"Warning: No audio data recorded for chunk {i}")
@@ -546,7 +545,8 @@ def generate_docs_from_audio_gcloud(audio_url: str, lang: str, verbose=False):
     try:
         # Attempt to create a temporary directory
         temp_dir = tempfile.mkdtemp()
-        logger.info(f"Temporary directory created: {temp_dir}")
+        if verbose:
+            print(f"Temporary directory created: {temp_dir}")
 
     except OSError as e:
         # Handle any errors that occur while interacting with the file system
@@ -594,7 +594,6 @@ def generate_docs_from_audio_gcloud(audio_url: str, lang: str, verbose=False):
         try:
             # Export the chunk to a file
             chunk.export(chunk_file_path, format="wav")
-            logger.info(f"Chunk file created: {chunk_file_path}")
         except Exception as e:
             raise Exception(f"Failed to export chunk {i} to file: {e}")
         
@@ -697,8 +696,6 @@ def split_audio_fixed_intervals(audio: AudioSegment, interval_ms: int):
     # Verify the length of each chunk
     for i, chunk in enumerate(chunks):
         logger.info(f"Chunk {i} length: {len(chunk)} ms")
-        if len(chunk) >= interval_ms:
-            logger.info(f"Warning: Chunk {i} is very close or exceeds the limit of {interval_ms} ms.")
 
     return chunks
 

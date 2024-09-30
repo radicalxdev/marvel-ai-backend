@@ -124,7 +124,7 @@ def test_executor_pptx_url_invalid():
     quizzify_args = QuizzifyArgs(
         topic = "college",
         n_questions = 1,
-        file_url = "https://scholar.harvard.edu/files/torman_personal/files/dummies.pptx",
+        file_url = "https://scholar.harvard.edu/files/torman_personal/files/dummy.pptx",
         file_type = "pptx"
     )
 
@@ -345,7 +345,7 @@ def test_executor_mp3_url_valid():
     quizzify_args = QuizzifyArgs(
         topic = "college",
         n_questions = 1,
-        file_url = "https://raw.githubusercontent.com/asleem/uploaded_files/main/secretgarden_01_burnett.mp3",
+        file_url = "https://github.com/asleem/uploaded_files/raw/refs/heads/main/Burnett.mp3",
         file_type = "mp3"
     )
 
@@ -371,7 +371,7 @@ def test_executor_gmp3_url_valid():
     quizzify_args = QuizzifyArgs(
         topic = "college",
         n_questions = 1,
-        file_url = "https://raw.githubusercontent.com/asleem/uploaded_files/main/secretgarden_01_burnett.mp3",
+        file_url = "https://github.com/asleem/uploaded_files/raw/refs/heads/main/Burnett.mp3",
         file_type = "gmp3"
     )
 
