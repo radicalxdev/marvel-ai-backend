@@ -47,7 +47,7 @@ class FileHandlerError(Exception):
 
     def __str__(self):
         return f"{self.message}"
-
+    
 class ImageHandlerError(Exception):
     """Raised when an image cannot be loaded. Used for tools which require image handling."""
     def __init__(self, message, url):
