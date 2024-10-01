@@ -12,6 +12,6 @@ Formatting:
 -----------------------------
 {format_instructions}
 
-Respond only according to the format instructions. The examples included are best responses noted by an input and output example.
+Respond only according to the format instructions. The examples included are best responses noted by an input and output example. You must provide the response in "{lang}" language. 
 
 Output:

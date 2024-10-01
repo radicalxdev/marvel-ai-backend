@@ -1,8 +1,13 @@
 {
     "inputs": [
         {
-            "label": "Youtube URL",
-            "name": "youtube_url",
+            "label": "File Url",
+            "name": "file_url",
+            "type": "string"
+        },
+        {
+            "label": "File Type",
+            "name": "file_type",
             "type": "string"
         }
     ],

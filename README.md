@@ -1,4 +1,4 @@
-# Kai AI Platform
+# Marvel AI Platform
 
 ![Static Badge](https://img.shields.io/badge/v3.10.12-blue?logo=python&logoColor=yellow&labelColor=gray)
 ![Static Badge](https://img.shields.io/badge/Gemini%201.0-blue?logo=googlegemini&logoColor=blue&labelColor=gray)
@@ -7,48 +7,85 @@
 
 ## Table of Contents
 
-- [Architecture](#Architecture)
-- [Folder Structure](#folder-structure)
-- [Setup](#Setup)
-- [Local Development](#local-development)
-- [Contributing](#Contributing)
-  ![Architectural Diagram](diagram.png)
+1. [Architecture](#architecture)
+2. [Folder Structure](#folder-structure)
+3. [Installation](#installation)
+   - [Navigate to the App Directory](#navigate-to-the-app-directory)
+   - [Create and Activate Virtual Environment](#create-and-activate-virtual-environment)
+   - [Install Required Libraries](#install-required-libraries)
+4. [Running Locally and Testing](#running-locally-and-testing)
+   - [Prerequisites](#prerequisites)
+   - [Steps for Authentication Setup](#steps-for-authentication-setup)
+     - [Step 1: Create a Google Cloud Project](#step-1-create-a-google-cloud-project)
+     - [Step 2: Enable the Google Cloud APIs](#step-2-enable-the-google-cloud-apis)
+     - [Step 3: Create a new AI Studio API Key](#step-3-create-a-new-ai-studio-api-key)
+     - [Step 4: Create a new .env and Store the API Key](#step-4-create-a-new-env-and-store-the-api-key)
+     - [Step 5: Run the Application with Local Shell Script](#step-5-run-the-application-with-local-shell-script)
+     - [Step 6: Set the API Header](#step-6-set-the-api-header)
+5. [Docker Setup Guide](#docker-setup-guide)
+   - [Overview](#overview)
+   - [Prerequisites for Docker](#prerequisites-for-docker)
+   - [Installation Instructions](#installation-instructions)
+     - [Step 1: Build the Docker Image](#step-1-build-the-docker-image)
+     - [Step 2: Run the Docker Container](#step-2-run-the-docker-container)
+6. [Environment Variables](#environment-variables)
+7. [Accessing the Application](#accessing-the-application)
+
+## Architecture
+  ![Architecture](diagram.png)
 
 ## Folder Structure
 
 ```plaintext
-backend/
+marvel-ai-backend/
 ├── app/                     # Contains the main application code
-│   ├── Api/                 # Contains the API router for handling requests
+│   ├── api/                 # Contains the API router for handling requests
+│   │   ├── tests/
 │   │   └── router.py        # Endpoints for FastAPI to test features and handle incoming requests
-│   ├── chats/               # Handles chat functionalities
-│   ├── Features/            # Contains feature-specific modules
-│   │   ├── Feature1/
+│   │   └── error_utilities.py        
+│   │   └── tool_utilities.py        
+│   │   └── tools_config.json        
+│   ├── features/            # Contains feature-specific modules
+│   │   ├── feature1/
 │   │   │   ├── core.py
 │   │   │   ├── tools.py
-│   │   │   ├── Prompt/
+│   │   │   ├── prompt/
+│   │   │   ├── tests/
 │   │   │   └── metadata.json
-│   │   ├── Feature2/
+│   │   ├── feature2/
 │   │   │   ├── core.py
 │   │   │   ├── tools.py
-│   │   │   ├── Prompt/
+│   │   │   ├── prompt/
+│   │   │   ├── tests/
+│   │   │   └── metadata.json
+│   │   ├── featureN/
+│   │   │   ├── core.py
+│   │   │   ├── tools.py
+│   │   │   ├── prompt/
+│   │   │   ├── tests/
 │   │   │   └── metadata.json
 │   ├── services/            # Contains service modules
+│   │   ├── logger.py
+│   │   ├── schemas.py
+│   │   ├── tool_registry.py
 │   ├── utils/               # Contains utility modules
-│   ├── app.yaml             # Application configuration file
-│   ├── Dependencies.py      # Dependency management
-│   ├── Main.py              # Main entry point for the application
-│   └── requirements.txt     # Python dependencies
+│   │   ├── auth.py
+│   ├── .env.sample              # Contains the required env variables (CREATE AN .env file using it)
+│   ├── main.py              # Main entry point for the application
 ├── Dockerfile               # Dockerfile for containerizing the application
+├── requirements.txt         # Python dependencies 
+├── app.yaml                 # Application configuration file
+├── load_env.sh              # Loads env variables
+├── local-start.sh           # Starts the local server
 └── README.md                # Documentation file
 ```
 
-## Install all the necessary libraries:
+## Installation:
 
 ### Navigate to the app directory
 
 ```bash
-cd backend/app
+cd marvel-ai-backend/app
 ```
 
 ### Create and activate Virtual Environment
@@ -58,11 +95,12 @@ python -m venv env
 source env/bin/activate
 ```
 
+### Install Required Libraries
 ```bash
 pip install -r requirements.txt
 ```
 
-## To Run Locally and Test
+## Running Locally and Testing
 
 ## Prerequisites
 
@@ -91,13 +129,16 @@ pip install -r requirements.txt
 3. Replace the placeholder values with your API key and project ID.
 4. Set the `ENV_TYPE` variable to `dev`.
 
-### Step 4: Run the Application with Local Shell Script
+### Step 5: Run the Application with Local Shell Script
 
 1. Run the following command to start the application:
 
 ```bash
 ./local-start.sh
 ```
+### Step 6: Set the API Header
+1. Set the api-header to `dev`.
+2. Send the request payload to whichever endpoint you want to test!
 
 # Docker Setup Guide
 
@@ -105,7 +146,7 @@ pip install -r requirements.txt
 
 This guide is designed to help contributors set up and run the backend service using Docker. Follow these steps to ensure that your development environment is configured correctly.
 
-## Prerequisites
+## Prerequisites for Docker
 
 Before you start, ensure you have the following installed:
 
@@ -114,7 +155,7 @@ Before you start, ensure you have the following installed:
 
 ## Installation Instructions
 
-### 1. Build the Docker Image
+### Step 1: Build the Docker Image
 
 Navigate to the project's root directory and build the Docker image. Typically, this is done with the following command:
 
@@ -122,7 +163,7 @@ Navigate to the project's root directory and build the Docker image. Typically, 
 docker build -t <image_name> .
 ```
 
-### 3 Run the Docker Container
+### Step 2: Run the Docker Container
 
 Run the Docker container using the following command:
 

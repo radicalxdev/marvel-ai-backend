@@ -54,3 +54,9 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+class QuizzifyArgs(BaseModel):
+    topic: str
+    n_questions: int
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
