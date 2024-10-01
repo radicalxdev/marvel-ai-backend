@@ -8,7 +8,7 @@ from langchain_google_vertexai import VertexAI
 class CWTRecommendationGenerator:
     def __init__(self, grade: str, subject: str, students_description: str):
         """
-        Initializes the RecommendationGenerator with the necessary inputs.
+        Initializes the CWTRecommendationGenerator with the necessary inputs.
         
         :param grade: The grade level taught by the teacher.
         :param subject: The subject or topic taught by the teacher.
@@ -80,43 +80,3 @@ def validate_input(subject: str, students_description: str) -> bool:
     Validate that the input includes a teaching subject and a student description.
     """
     return bool(subject and students_description)
-
-"""
-# Main program logic
-if __name__ == "__main__":
-    # Gather user input
-    print("Welcome to 'Connect With Them' - Personalized Student Engagement!")
-
-    grade = "University"
-    subject = "I teach Big Data Analytics"
-    students_description = "They are from NYU, mostly from New York with a few international students. They are Gen Z and love memes. They also love music."
-
-    # Project ID and location for Vertex AI initialization
-    project_id = "gemini-quizify-431202"
-    location = "us-central1"
-
-    # Initialize the Vertex AI project with the given project ID and location
-    vertexai.init(project=project_id, location=location)
-    
-    # Validate input
-    if not validate_input(subject, students_description):
-        print("Error: Please provide both a teaching subject and a description of your students.")
-    else:
-        print("\nGenerating personalized recommendations for classroom engagement...\n")
-        
-        # Create a recommendation generator instance
-        generator = CWTRecommendationGenerator(grade, subject, students_description)
-        
-        # Generate recommendations
-        recommendations = generator.generate_recommendations()
-
-        # Print recommendations
-        print("Here are your personalized recommendations:\n")
-        print(recommendations)
-
-        # Write recommendations to a file
-        with open('recommendations_output.json', 'w') as outfile:
-            json.dump(recommendations, outfile, indent=4)
-
-        print("Recommendations have been saved to 'recommendations_output.json'.")
-        """
