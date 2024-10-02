@@ -1,0 +1,9 @@
+{
+    "inputs": [
+        {
+            "label": "Rubric Generator Args.",
+            "name": "rubric_generator_args",
+            "type": "rubric_generator_args"
+        }
+    ]
+}

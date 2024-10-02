@@ -6,6 +6,8 @@ from app.api.error_utilities import VideoTranscriptError, InputValidationError, 
 from typing import Dict, Any, List
 from fastapi import HTTPException
 from pydantic import ValidationError
+from app.services.schemas import RubricGeneratorArgs
+from features.rubric_generator.core import executor
 
 logger = setup_logger(__name__)
 
@@ -17,6 +19,7 @@ def load_config():
 tools_config = load_config()
 
 def get_executor_by_name(module_path):
+    print("INSIDE---get_executor_by_name(tool_config['path']) ")
     try:
         module = __import__(module_path, fromlist=['executor'])
         return getattr(module, 'executor')
@@ -93,6 +96,8 @@ def validate_input_type(input_name: str, input_value: Any, expected_type: str):
         raise_type_error(input_name, input_value, "string")
     elif expected_type == 'number' and not isinstance(input_value, (int, float)):
         raise_type_error(input_name, input_value, "number")
+    elif expected_type == 'rubric_generator_args' and not isinstance(input_value, dict):
+        raise_type_error(input_name, input_value, "rubric_generator_args")
     elif expected_type == 'file':
         validate_file_input(input_name, input_value)
 
@@ -117,20 +122,30 @@ def convert_files_to_tool_files(inputs: Dict[str, Any]) -> Dict[str, Any]:
         inputs['files'] = [ToolFile(**file_object) for file_object in inputs['files']]
     return inputs
 
+def convert_rubric_generator_args_to_pydantic(inputs: Dict[str, Any]) -> Dict[str, Any]:
+    if 'rubric_generator_args' in inputs:
+        inputs['rubric_generator_args'] = RubricGeneratorArgs(**inputs['rubric_generator_args'])
+    return inputs
+
 def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str, Any]:
     inputs = prepare_input_data(input_data)
     validate_inputs(inputs, validate_data)
     inputs = convert_files_to_tool_files(inputs)
+    inputs = convert_rubric_generator_args_to_pydantic(inputs)
     return inputs
 
 def execute_tool(tool_id, request_inputs_dict):
+    print("INSIDE---execute_tool() ")
     try:
         tool_config = tools_config.get(str(tool_id))
         
         if not tool_config:
             raise HTTPException(status_code=404, detail="Tool executable not found")
-        
+        print("NEXT---execute_function = get_executor_by_name(tool_config['path']) ")
+        print(f"module_path = {tool_config['path']}")
+
         execute_function = get_executor_by_name(tool_config['path'])
+        print("DONE---execute_function = get_executor_by_name(tool_config['path']) ")
         request_inputs_dict['verbose'] = True
         
         return execute_function(**request_inputs_dict)

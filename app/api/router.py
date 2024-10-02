@@ -20,13 +20,13 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
     try: 
         # Unpack GenericRequest for tool data
         request_data = data.tool_data
-        
+        print("DONE---request_data = data.tool_data")
         requested_tool = load_tool_metadata(request_data.tool_id)
-        
+        print("DONE---requested_tool = load_tool_metadata(request_data.tool_id)")
         request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
-
+        print("DONE---request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])")
         result = execute_tool(request_data.tool_id, request_inputs_dict)
-        
+        print("DONE---result = execute_tool(request_data.tool_id, request_inputs_dict)")
         return ToolResponse(data=result)
     
     except InputValidationError as e:
