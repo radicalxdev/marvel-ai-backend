@@ -2,6 +2,7 @@ from services.logger import setup_logger
 from app.api.error_utilities import LoaderError, ToolExecutorError
 from app.services.schemas import RubricGeneratorArgs
 from app.features.rubric_generator.document_loaders import get_docs
+from app.features.rubric_generator.tools import RubricGenerator
 
 logger = setup_logger()
 
@@ -16,9 +17,9 @@ def executor(rubric_generator_args: RubricGeneratorArgs, verbose=False):
 
         docs = get_docs(rubric_generator_args.file_url, rubric_generator_args.file_type, verbose=True)
         
-        # Create and return the quiz questions
-        #output = RubricGenerator(args=rubric_generator_args, verbose=verbose).create_rubric(docs)
-        output = docs
+        # Create and return the Rubric
+        output = RubricGenerator(args=rubric_generator_args, verbose=verbose).create_rubric(docs)
+        
 
         logger.info(f"Rubric generated successfully")
     
