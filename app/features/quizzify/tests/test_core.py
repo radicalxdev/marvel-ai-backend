@@ -124,7 +124,7 @@ def test_executor_pptx_url_invalid():
     quizzify_args = QuizzifyArgs(
         topic = "college",
         n_questions = 1,
-        file_url = "https://scholar.harvard.edu/files/torman_personal/files/dummy.pptx",
+        file_url = "https://filesamples.com/samples/document/samplepptx.pptx",
         file_type = "pptx"
     )
 
