@@ -46,6 +46,8 @@ class RubricGenerator:
         if vectorstore_class is None: raise ValueError("Vectorstore must be provided")
         if args.grade_level is None: raise ValueError("Grade Level must be provided")
         if args.point_scale is None: raise ValueError("Point Scale must be provided")
+        if int(args.point_scale) < 2 or int(args.point_scale) > 10:
+            raise ValueError("Point Scale must be between 2 and 10. Suggested value is 4 for optimal granularity in grading.")
         if args.standard is None: raise ValueError("Learning Standard must be provided")
         if args.lang is None: raise ValueError("Language must be provided")
 
@@ -83,8 +85,32 @@ class RubricGenerator:
 
         chain = self.compile(documents)
 
-        response = chain.invoke(f"Grade Level: {self.args.grade_level}, Point Scale: {self.args.point_scale}, Standard: {self.args.standard}, Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}")
+         # Log the input parameters
+        input_parameters = (
+            f"Grade Level: {self.args.grade_level}, "
+            f"Point Scale: {self.args.point_scale}, "
+            f"Standard: {self.args.standard}, "
+            f"Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}"
+        )
+        logger.info(f"Input parameters: {input_parameters}")
 
+        try:
+            response = chain.invoke(input_parameters)
+            logger.info(f"Rubric generation response: {response}")
+
+        except Exception as e:
+            logger.error(f"Error during rubric generation: {str(e)}")
+            raise e  # Optionally re-raise the error after logging
+
+        if "criterias" not in response or len(response["criterias"]) == 0:
+            logger.error("Rubric generation failed, try again please.")
+            raise ValueError("Invalid rubric format.")
+
+        for criterion in response["criterias"]:
+            if "criteria_description" not in criterion or len(criterion["criteria_description"]) != int(self.args.point_scale):
+                logger.error("Mismatch between point scale and criteria description count. try again please")
+                raise ValueError("Invalid rubric format. try again please")
+  
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
 
@@ -92,7 +118,7 @@ class RubricGenerator:
 
 
 class CriteriaDescription(BaseModel):
-    point_scale: str = Field(..., description="The point scale for grading")
+    points: str = Field(..., description="The total points gained by the student according to the point_scale an the level name")
     description: List[str] = Field(..., description="Description for the specific point on the scale")
 
 class RubricCriteria(BaseModel):
@@ -100,7 +126,8 @@ class RubricCriteria(BaseModel):
     criteria_description: List[CriteriaDescription] = Field(..., description="Descriptions for each point on the scale")
     
 class RubricOutput(BaseModel):
-    standard: str = Field(..., description="objective related to the assignment")
+    title: str = Field(..., description="the rubric title of the assignment based on the standard input parameter")
     grade_level: str = Field(..., description="The grade level for which the rubric is created")
     criterias: List[RubricCriteria] = Field(..., description="The grading criteria for the rubric")
+    feedback: str = Field(..., description="the feedback provided by the AI model on the generated rubric")
     
