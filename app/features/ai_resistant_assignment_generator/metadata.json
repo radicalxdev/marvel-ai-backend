@@ -1,0 +1,14 @@
+{
+    "inputs":[
+        {
+            "label":"grade",
+            "name":"grade",
+            "type":"text"
+        },
+        {
+            "label":"assignment",
+            "name":"assignment",
+            "type":"text"
+        }
+    ]
+}

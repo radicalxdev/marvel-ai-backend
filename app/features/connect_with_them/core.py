@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+
 import json
 
 from app.services.logger import setup_logger
@@ -16,7 +18,7 @@ class ExecutorRequest(BaseModel):
     description: str
 
 @app.post("/execute/")
-async def execute(request: ExecutorRequest):
+async def execute(request: ExecutorRequest, file: UploadFile = File(None)):
     grade = request.grade
     subject = request.subject
     description = request.description
