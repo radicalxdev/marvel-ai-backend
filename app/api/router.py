@@ -1,3 +1,4 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
@@ -7,6 +8,9 @@ from app.utils.auth import key_check
 from app.services.logger import setup_logger
 from app.api.error_utilities import InputValidationError, ErrorResponse
 from app.api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
+
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -27,7 +31,24 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
         print("DONE---request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])")
         result = execute_tool(request_data.tool_id, request_inputs_dict)
         print("DONE---result = execute_tool(request_data.tool_id, request_inputs_dict)")
-        return ToolResponse(data=result)
+        #return FileResponse(result, media_type='application/pdf', filename="rubric.pdf")
+        logger.info(f"result from execute_tool method: {result}")
+        # Log the current directory
+        logger.info(f"current_directory: {os.getcwd()}")
+
+        # You can't use os.path() like this, so removing it. Perhaps you meant to use a function like abspath?
+        logger.info(f"absolute_path_of_result: {os.path.abspath(result)}")
+
+        # Check if the file exists
+        if not os.path.exists(result):
+            raise HTTPException(status_code=404, detail="PDF file not found")
+        
+        return FileResponse(
+            path=result, 
+            media_type='application/pdf', 
+            filename="rubric.pdf",
+            background=BackgroundTask(lambda: os.remove(result))
+        )
     
     except InputValidationError as e:
         logger.error(f"InputValidationError: {e}")

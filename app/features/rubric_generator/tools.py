@@ -8,6 +8,8 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from pylatex import Document, Section, Subsection, Command
+from pylatex.utils import italic, NoEscape
 
 from app.services.logger import setup_logger
 
@@ -79,6 +81,36 @@ class RubricGenerator:
         logger.info(f"Chain compilation complete")
 
         return chain
+    
+    def create_pdf_from_rubric(self, rubric_data):
+        # Create a LaTeX document
+        doc = Document()
+        doc.preamble.append(Command('title', 'Rubric'))
+        doc.preamble.append(Command('author', 'AI Generated'))
+        doc.preamble.append(Command('date', NoEscape(r'\today')))
+        doc.append(NoEscape(r'\maketitle'))
+
+        # Add sections based on rubric data
+        for criteria in rubric_data['criterias']:
+            with doc.create(Section(criteria['criteria'])):
+                for description in criteria['criteria_description']:
+                    doc.append(f"{description['points']} Points: {description['description']}\n")
+                
+         # Generate the PDF
+      
+        pdf_filename = 'generated_rubric'
+        doc.generate_pdf(pdf_filename, clean_tex=False)
+
+        # Construct the full path with .pdf extension
+        full_path = f"{os.path.abspath(pdf_filename)}.pdf"
+
+         # Check if the file was created successfully
+        if not os.path.exists(full_path):
+            logger.error(f"Failed to create PDF file: {full_path}")
+        else:
+            logger.info(f"PDF file created successfully: {full_path}")
+
+        return full_path
 
     def create_rubric(self, documents: List[Document]):
         logger.info(f"Creating the Rubric")
@@ -114,7 +146,8 @@ class RubricGenerator:
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
 
-        return response
+        return self.create_pdf_from_rubric(response)
+        
 
 
 class CriteriaDescription(BaseModel):
