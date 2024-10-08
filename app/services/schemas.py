@@ -54,3 +54,11 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+class InputData(BaseModel):
+    grade: str
+    subject: str
+    Syllabus_type: Optional[str] = 'exam_based'
+    instructions : Optional[str] = 'None'
+
+
+

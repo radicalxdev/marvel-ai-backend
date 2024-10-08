@@ -30,7 +30,7 @@ class AI_resistant :
     def __init__(self,grade,assignment,path=""):
         self.grade = grade
         self.assignment = assignment
-        self.model = ChatGroq(model=model_name,temperature=0.3,api_key="")
+        self.model = ChatGroq(model=model_name,temperature=0.3,api_key="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")
 
     def read_text_file(self,filepath):
 

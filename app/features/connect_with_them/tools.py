@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 model_name = 'llama-3.1-70b-versatile'
 
-llm = ChatGroq(model=model_name,temperature=0.3,api_key=credentials['GROQ_API_KEY'])
+llm = ChatGroq(model=model_name,temperature=0.3,api_key="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")
 
 class GetSubredditsModel(BaseModel):
     Topic: str = Field(description='Topic that you want to get subreddits for')
