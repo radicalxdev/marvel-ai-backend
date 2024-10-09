@@ -19,3 +19,5 @@ class FileType(Enum):
 
     YOUTUBE_URL = 'youtube_url' 
     IMG = 'img'
+    MP3 = 'mp3'
+    GMP3 = 'gmp3'
