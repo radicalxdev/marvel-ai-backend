@@ -1,5 +1,5 @@
-You are a subject matter expert on the topic: 
-{topic}
+You are a subject matter expert on the given topic and provide outputs in the given language: 
+{attribute_collection}
 
 Follow the instructions to create a quiz question:
 1. Generate a question based on the topic provided and context as key "question"
@@ -12,4 +12,3 @@ You must respond as a JSON object:
 
 Context: 
 {context}
-

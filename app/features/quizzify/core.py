@@ -1,26 +1,21 @@
-from app.services.tool_registry import ToolFile
+from app.features.quizzify.document_loaders import get_docs
 from app.services.logger import setup_logger
-from app.features.quizzify.tools import RAGpipeline
 from app.features.quizzify.tools import QuizBuilder
 from app.api.error_utilities import LoaderError, ToolExecutorError
+from app.services.schemas import QuizzifyArgs
 
 logger = setup_logger()
 
-def executor(files: list[ToolFile], topic: str, num_questions: int, verbose=False):
+def executor(quizzify_args: QuizzifyArgs, verbose=True):
     
     try:
-        if verbose: logger.debug(f"Files: {files}")
+        if verbose:
+            logger.info(f"File URL loaded: {quizzify_args.file_url}")
 
-        # Instantiate RAG pipeline with default values
-        pipeline = RAGpipeline(verbose=verbose)
-        
-        pipeline.compile()
-        
-        # Process the uploaded files
-        db = pipeline(files)
-        
-        # Create and return the quiz questions
-        output = QuizBuilder(db, topic, verbose=verbose).create_questions(num_questions)
+        docs = get_docs(quizzify_args.file_url, quizzify_args.file_type, quizzify_args.lang, verbose=True)
+
+    
+        output = QuizBuilder(quizzify_args.topic, quizzify_args.lang, verbose=verbose).create_questions(docs, quizzify_args.n_questions)
     
     except LoaderError as e:
         error_message = e
