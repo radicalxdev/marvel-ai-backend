@@ -16,7 +16,7 @@ import os
 from dotenv import load_dotenv, find_dotenv
 
 from app.features.ai_resistant_assignment_generator.core import executor
-from app.services.schemas import ToolResponse,InputData
+from app.services.schemas import ToolResponse,InputData, AIRAGRequest
 
 load_dotenv(find_dotenv())
 
@@ -55,8 +55,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content=error_response.dict()
     )
 
-@app.post("/get_syllabus")
-async def ai_resistant(inputs:InputData,Type: str = ''):
+@app.post("/ai_reisistant_assignment_generator")
+async def ai_resistant(inputs:AIRAGRequest,Type: str = ''):
     try:
         # Call the executor function
         if not Type:

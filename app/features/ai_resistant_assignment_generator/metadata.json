@@ -9,6 +9,11 @@
             "label":"assignment",
             "name":"assignment",
             "type":"text"
+        },
+        {
+            "label":"description",
+            "name":"description",
+            "type":"text"
         }
     ]
 }

@@ -4,33 +4,40 @@ import time
 import requests
 import pandas as pd
 from langchain_core.prompts import PromptTemplate
-from langchain_google_vertexai import VertexAI
+# from langchain_google_vertexai import VertexAI
 import re
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Table, TableStyle
-from reportlab.lib import colors
+# from reportlab.lib.pagesizes import letter
+# from reportlab.pdfgen import canvas
+# from reportlab.platypus import Table, TableStyle
+# from reportlab.lib import colors
 from docx import Document
 from requests.exceptions import HTTPError
 from io import BytesIO
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 import requests
-import praw
-import prawcore
+# import praw
+# import prawcore
 from app.services.logger import setup_logger
 from langchain_groq import ChatGroq
+import requests
+import os
+from io import BytesIO
+from PyPDF2 import PdfReader
+from docx import Document
 #from app.features.syllabus_generator import credentials
 
 logger = setup_logger(__name__)
 
 model_name = 'llama-3.1-70b-versatile'
 # Entire syllabus generator pipeline with all functions in this class
-class AI_resistant :
+class AIRAG :
 
-    def __init__(self,grade,assignment,path=""):
+    def __init__(self,grade,assignment,description='',path=""):
         self.grade = grade
         self.assignment = assignment
-        self.model = ChatGroq(model=model_name,temperature=0.3,api_key="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")
+        self.description = description
+        self.path = path
+        self.model = ChatGroq(model=model_name,temperature=0.3,api_key="")
 
     def read_text_file(self,filepath):
 
@@ -44,7 +51,7 @@ class AI_resistant :
         prompt = PromptTemplate.from_template(template)
         return prompt
 
-    def Validator(self,response):
+    def validator(self,response):
         data = []
         try:
             data = json.loads(response)
@@ -59,19 +66,61 @@ class AI_resistant :
             except json.JSONDecodeError as e:
                 print("Failed to parse corrected JSON")
         return data
+    
+    def extract_text_from_txt(self,file_content):
+        return file_content.decode('utf-8')
+
+    def extract_text_from_pdf(self,file_content):
+        pdf_reader = PdfReader(BytesIO(file_content))
+        text = ''
+        for page in pdf_reader.pages:
+            text += page.extract_text()
+        return text
+
+    def extract_text_from_docx(self,file_content):
+        doc = Document(BytesIO(file_content))
+        text = '\n'.join([para.text for para in doc.paragraphs])
+        return text
+
+    def download_file(self,url):
+        response = requests.get(url)
+        if response.status_code == 200:
+            content_type = response.headers['Content-Type']
+            return response.content, content_type
+        else:
+            raise Exception(f"Failed to download the file. Status code: {response.status_code}")
+
+    def extract_content_from_url(self,file_url):
+        file_content, content_type = self.download_file(file_url)
+
+        # Check the Content-Type header for file type
+        if 'application/pdf' in content_type:
+            print("Extracting content from PDF...")
+            return self.extract_text_from_pdf(file_content)
+        elif 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' in content_type:
+            print("Extracting content from Word Document (.docx)...")
+            return self.extract_text_from_docx(file_content)
+        elif 'text/plain' in content_type:
+            print("Extracting content from Text File...")
+            return self.extract_text_from_txt(file_content)
+        else:
+            raise Exception(f"Unsupported file type: {content_type}. Unable to extract content.")
 
     def run(self):
         # Important study resources and their specific function
 
-        prompt = self.build_prompt('prompts/prompt.txt')
+        prompt = self.build_prompt('ABSOLUTE FILE PATH')
         chain = prompt | self.model
-
+        assignment_content = self.extract_content_from_url(self.assignment)
+        print(assignment_content)
         response = chain.invoke(
                         {
                             'grade' : self.grade,
-                            'assignment' : self.assignment,
+                            'assignment' : assignment_content,
+                            'description':self.description
                         })
-        response = self.Validator(response)
+        print(response)
+        response = self.validator(response.content)
         print(response)
         return response
     
