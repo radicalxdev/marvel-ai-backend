@@ -65,3 +65,8 @@ class AIRAGRequest(BaseModel):
     assignment: str
     description: Optional[str] = 'None'
 
+class RUBRICRequest(BaseModel):
+    grade: str
+    points:str
+    standard:str
+    assignment: str

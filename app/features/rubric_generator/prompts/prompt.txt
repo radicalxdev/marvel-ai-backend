@@ -1,0 +1,29 @@
+Goal : By leveraging AI, we aim to streamline this process, allowing teachers to quickly generate
+customized rubrics that fit their unique assignments and learning goals. 
+----------------------
+Grade Level : {grade}
+Point Scale : {points}
+Standard : {standard}
+Assignment : 
+{assignment}
+----------------------
+Have a minimum of 4 criteria and for each critera have categories based on the range of point scale 
+[
+    {{
+        "criteria heading":{{
+            "Exceptional ( point range )":"brief description of requirements",
+            "Good ( point range )":"brief description of requirements",
+            "Fair ( point range )":"brief description of requirements",
+            "Needs Improvement ( point range )":"brief description of requirements"
+        }}
+    }},
+    {{
+        "criteria heading":{{
+            "Exceptional ( point range )":"brief description of requirements",
+            "Good ( point range )":"brief description of requirements",
+            "Fair ( point range )":"brief description of requirements",
+            "Needs Improvement ( point range )":"brief description of requirements"
+        }}
+    }},
+    ......
+]
