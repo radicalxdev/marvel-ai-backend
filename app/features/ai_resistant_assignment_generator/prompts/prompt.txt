@@ -8,18 +8,25 @@ Context : {description}
 Assignment : 
 {assignment}
 ----------------------
-The result output should be exactly in this schema. Ensure to have maximum 3 suggsestions! ONLY 3 ASSIGNMENTS IN TOTAL OVERALL
+The result output should be exactly in this schema. Ensure to have maximum 3 suggestions in TOTAL! ONLY 3 ASSIGNMENTS IN TOTAL OVERALL
+*CHOOSE ONLY THE 3 BEST QUESTIONS FROM THE ASSIGNMENT AND MODIFY THEM INTO AI-RESISTANT
 [
     {{
-        'assignment description':'step by step procedure',
-        'explanation':'reasoning behind assignment and how modifications make it AI resistant'
+        "assignment description":{{
+            "step 1":"step 1 of the assignment",
+            "step 2":"step 2 of the assignment",
+            "step 3":"step 3 of the assignment",
+            ....
+        }},
+        "explanation":"reasoning behind assignment and how modifications make it AI resistant"
     }},
     {{
-        'assignment description':'step by step procedure',
-        'explanation':'reasoning behind assignment and how modifications make it AI resistant'
-    }},
-    {{
-        'assignment description':'step by step procedure',
-        'explanation':'reasoning behind assignment and how modifications make it AI resistant'
+        "assignment description":{{
+            "step 1":"step 1 of the assignment",
+            "step 2":"step 2 of the assignment",
+            "step 3":"step 3 of the assignment",
+            ....
+        }},
+        "explanation":"reasoning behind assignment and how modifications make it AI resistant"
     }}
 ]
