@@ -1,0 +1,23 @@
+{
+"inputs":[
+    {
+        "label":"grade",
+        "name":"grade",
+        "type":"text"
+    },
+    {
+        "label":"points",
+        "name":"points",
+        "type":"text"
+    },
+    {
+        "label":"standard",
+        "name":"standard",
+        "type":"text"
+    },
+    {
+        "label":"assignment",
+        "name":"assignment",
+        "type":"assignment"
+    }
+]}

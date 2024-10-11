@@ -54,3 +54,19 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+class InputData(BaseModel):
+    grade: str
+    subject: str
+    Syllabus_type: Optional[str] = 'exam_based'
+    instructions : Optional[str] = 'None'
+
+class AIRAGRequest(BaseModel):
+    grade: str
+    assignment: str
+    description: Optional[str] = 'None'
+
+class RUBRICRequest(BaseModel):
+    grade: str
+    points:str
+    standard:str
+    assignment: str
