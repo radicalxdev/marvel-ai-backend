@@ -126,23 +126,56 @@ class RubricGenerator:
         )
         logger.info(f"Input parameters: {input_parameters}")
 
-        try:
-            response = chain.invoke(input_parameters)
-            logger.info(f"Rubric generation response: {response}")
+        attempt = 0
+        max_attempt = 5
 
-        except Exception as e:
-            logger.error(f"Error during rubric generation: {str(e)}")
-            raise e  # Optionally re-raise the error after logging
 
-        if "criterias" not in response or len(response["criterias"]) == 0:
-            logger.error("Rubric generation failed, try again please.")
-            raise ValueError("Invalid rubric format.")
 
-        for criterion in response["criterias"]:
-            if "criteria_description" not in criterion or len(criterion["criteria_description"]) != int(self.args.point_scale):
-                logger.error("Mismatch between point scale and criteria description count. try again please")
-                raise ValueError("Invalid rubric format. try again please")
-  
+        while attempt < max_attempt:
+            try:
+                response = chain.invoke(input_parameters)
+                logger.info(f"Rubric generation response: {response}")
+            except Exception as e:
+                logger.error(f"Error during rubric generation: {str(e)}")
+                attempt += 1
+                continue
+            if response == None:
+                logger.error(f"could not generate Rubric, trying again")
+                attempt += 1
+                continue
+
+            # Check if "criterias" exist and are valid
+            if "criterias" not in response or len(response["criterias"]) == 0:
+                logger.error("Rubric generation failed, try again please.")
+                attempt += 1
+                continue
+
+            if "feedback" not in response:
+                logger.error("Rubric generation failed, try again please.")
+                attempt += 1
+                continue
+
+            # Validate each criterion
+            criteria_valid = True
+            for criterion in response["criterias"]:
+                logger.info(f'criterion: {criterion }')
+                logger.info(f'len(criterion["criteria_description"]) : {len(criterion["criteria_description"]) }')
+                if "criteria_description" not in criterion or len(criterion["criteria_description"]) != int(self.args.point_scale):
+                    logger.info(f'len(criterion["criteria_description"]) : {len(criterion["criteria_description"]) }')
+                    logger.error("Mismatch between point scale and criteria description count. Try again please.")
+                    criteria_valid = False
+                    break  # Exit the for loop if a criterion is invalid
+    
+            if not criteria_valid:
+                attempt += 1
+                continue  # Retry the rubric generation if validation failed
+
+            # If everything is valid, break the outer loop
+            break
+
+        if attempt >= max_attempt:
+            raise ValueError("Error: Unable to generate the Rubric after 5 attempts.")
+
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
 
