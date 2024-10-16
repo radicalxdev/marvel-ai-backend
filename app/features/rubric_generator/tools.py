@@ -8,8 +8,9 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from pylatex import Document, Section, Subsection, Command
-from pylatex.utils import italic, NoEscape
+from pylatex import Document, Section, Command, NoEscape, Tabular, MultiColumn
+from pylatex import Tabular, Tabularx, LongTable
+from pylatex.utils import italic, NoEscape, bold
 
 from app.services.logger import setup_logger
 
@@ -85,26 +86,80 @@ class RubricGenerator:
     def create_pdf_from_rubric(self, rubric_data):
         # Create a LaTeX document
         doc = Document()
+        # Add the geometry package with minimum left and right margins
+        doc.preamble.append(Command('usepackage', 'geometry'))
+        doc.preamble.append(NoEscape(r'\geometry{left=1em,right=1em}'))
+        # Add longtable package for multi-page tables
+        doc.preamble.append(Command('usepackage', 'longtable'))
+        doc.preamble.append(Command('usepackage', 'tabularx'))
+        
         doc.preamble.append(Command('title', 'Rubric'))
         doc.preamble.append(Command('author', 'AI Generated'))
         doc.preamble.append(Command('date', NoEscape(r'\today')))
+
+        # Add the title page
         doc.append(NoEscape(r'\maketitle'))
 
-        # Add sections based on rubric data
-        for criteria in rubric_data['criterias']:
-            with doc.create(Section(criteria['criteria'])):
-                for description in criteria['criteria_description']:
-                    doc.append(f"{description['points']} Points: {description['description']}\n")
-                
-         # Generate the PDF
-      
+        # Add title and grade level without starting a new page
+        doc.append(NoEscape(r'\noindent\textbf{Title:} ' + rubric_data['title'] + r'\\'))
+        doc.append(NoEscape(r'\noindent\textbf{Grade Level:} ' + rubric_data['grade_level'] + r'\\'))   
+
+        # Determine the point scale
+        num_points = int(self.args.point_scale)
+
+        first_criteria_description = rubric_data['criterias'][0]['criteria_description']
+        points = []
+
+        for i in range(num_points):
+            # Append each 'points' from the first_criteria_points to the points list
+            points.append(first_criteria_description[i]['points']) 
+
+        logger.info(f"points is a list that contains all the points in the point_scale: {points}")
+        # Create a table for the rubric
+        doc.append(NoEscape(r'\section*{Rubric Criterias}')) 
+        
+        doc.append(NoEscape(r'\begin{center}'))
+        col_definition = 'X' * (num_points + 1)  # +1 for the "Criteria" column
+            
+        # Create the table with the correct number of columns
+        with doc.create(Tabularx(col_definition)) as table:
+             # Add table headers
+            table.add_hline()
+            logger.info(f"header row created")
+            header_row = ["Criteria"] + points # Adding point scale as headers
+            logger.info(f"header_row: {header_row}")
+            table.add_row(header_row)
+            table.add_hline()
+
+            # Add rows for each criterion
+            for criteria in rubric_data['criterias']:
+                # Initialize row with the criterion name
+                row = [criteria['criteria']]
+                # Append scores for each point description
+                for point in range(1, num_points + 1):
+                    # Find the corresponding description for this point (if exists)
+                    description = next(
+                        (desc['description'] for desc in criteria['criteria_description']), 
+                                ""
+                        )
+                    row.append(description)  # Append description or empty string if not found
+                table.add_row(row)
+                table.add_hline()
+        doc.append(NoEscape(r'\end{center}'))  # End the center environment
+
+
+        # Add feedback section
+        doc.append(NoEscape(r'\section*{Feedback/Rubric Evaluation}'))
+        doc.append(rubric_data['feedback'] + "\n")
+
+        # Generate the PDF
         pdf_filename = 'generated_rubric'
         doc.generate_pdf(pdf_filename, clean_tex=False)
 
         # Construct the full path with .pdf extension
         full_path = f"{os.path.abspath(pdf_filename)}.pdf"
 
-         # Check if the file was created successfully
+        # Check if the file was created successfully
         if not os.path.exists(full_path):
             logger.error(f"Failed to create PDF file: {full_path}")
         else:
