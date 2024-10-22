@@ -7,10 +7,9 @@ from app.features.rubric_generator.tools import RubricGenerator
 logger = setup_logger()
 
 def executor(rubric_generator_args: RubricGeneratorArgs, verbose=False):
-    print("INSIDE---def executor(rubric_generator_args) ")
     try:
         if verbose: 
-            print(f"Args.: {rubric_generator_args}")
+            logger.info(f"Args = rubric_generator_args: {rubric_generator_args}")
             logger.info(f"File URL loaded: {rubric_generator_args.file_url}")
 
         logger.info(f"Generating docs from {rubric_generator_args.file_type}")
@@ -20,8 +19,7 @@ def executor(rubric_generator_args: RubricGeneratorArgs, verbose=False):
         # Create and return the Rubric
         output = RubricGenerator(args=rubric_generator_args, verbose=verbose).create_rubric(docs)
         
-
-        logger.info(f"Rubric generated successfully")
+        logger.info(f"Rubric generated successfully in a pdf file")
     
     except LoaderError as e:
         error_message = e

@@ -24,20 +24,11 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
     try: 
         # Unpack GenericRequest for tool data
         request_data = data.tool_data
-        print("DONE---request_data = data.tool_data")
         requested_tool = load_tool_metadata(request_data.tool_id)
-        print("DONE---requested_tool = load_tool_metadata(request_data.tool_id)")
         request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
-        print("DONE---request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])")
         result = execute_tool(request_data.tool_id, request_inputs_dict)
-        print("DONE---result = execute_tool(request_data.tool_id, request_inputs_dict)")
-        #return FileResponse(result, media_type='application/pdf', filename="rubric.pdf")
-        logger.info(f"result from execute_tool method: {result}")
-        # Log the current directory
-        logger.info(f"current_directory: {os.getcwd()}")
-
-        # You can't use os.path() like this, so removing it. Perhaps you meant to use a function like abspath?
-        logger.info(f"absolute_path_of_result: {os.path.abspath(result)}")
+        
+        logger.info(f"absolute_path_to_result: {os.path.abspath(result)}")
 
         # Check if the file exists
         if not os.path.exists(result):

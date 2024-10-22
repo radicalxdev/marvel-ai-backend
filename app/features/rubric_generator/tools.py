@@ -49,8 +49,8 @@ class RubricGenerator:
         if vectorstore_class is None: raise ValueError("Vectorstore must be provided")
         if args.grade_level is None: raise ValueError("Grade Level must be provided")
         if args.point_scale is None: raise ValueError("Point Scale must be provided")
-        if int(args.point_scale) < 2 or int(args.point_scale) > 10:
-            raise ValueError("Point Scale must be between 2 and 10. Suggested value is 4 for optimal granularity in grading.")
+        if int(args.point_scale) < 2 or int(args.point_scale) > 8:
+            raise ValueError("Point Scale must be between 2 and 8. Suggested value is 4 for optimal granularity in grading.")
         if args.standard is None: raise ValueError("Learning Standard must be provided")
         if args.lang is None: raise ValueError("Language must be provided")
 
@@ -87,23 +87,19 @@ class RubricGenerator:
         # Create a LaTeX document
         doc = Document()
 
-        # Add required packages
         doc.packages.append(Package('geometry'))
         doc.packages.append(Package('longtable'))
         doc.packages.append(Package('tabularx'))
 
-        # Set margins
-        doc.preamble.append(NoEscape(r'\geometry{left=1em,right=1em}'))
+        doc.preamble.append(NoEscape(r'\geometry{left=1em,right=0.5em}'))
 
         # Set up the document preamble
         doc.preamble.append(Command('title', 'Rubric'))
         doc.preamble.append(Command('author', 'AI Generated'))
         doc.preamble.append(Command('date', NoEscape(r'\today')))
 
-        # Add the title page
         doc.append(NoEscape(r'\maketitle'))
 
-        # Add title and grade level
         doc.append(NoEscape(r'\noindent\textbf{Title:} ' + rubric_data['title'] + r'\\'))
         doc.append(NoEscape(r'\noindent\textbf{Grade Level:} ' + rubric_data['grade_level'] + r'\\'))   
 
@@ -114,14 +110,14 @@ class RubricGenerator:
         points = []
 
         for i in range(num_points):
-            # Append each 'points' from the first_criteria_points to the points list
+            # Append each 'points' from the first_criteria_description to the points list
             points.append(first_criteria_description[i]['points']) 
 
         # Create the table
         doc.append(NoEscape(r'\section*{Rubric Criterias}'))
 
         total_columns = num_points + 1
-        col_width = f'{0.9/total_columns:.2f}\\textwidth'  # Adjust to fit within margins
+        col_width = f'{0.8/total_columns:.2f}\\textwidth'  # Adjust to fit within margins
 
         # Create a column definition where each column has equal width
         col_definition = '|' + '|'.join([f'p{{{col_width}}}' for _ in range(total_columns)]) + '|'
@@ -144,7 +140,6 @@ class RubricGenerator:
                 table.end_table_last_footer()
 
                 # Add rows for each criterion
-                # Add rows for each criterion
                 for criteria in rubric_data['criterias']:
                     row = [criteria['criteria']]  # First column is the 'Criteria' name
                     
@@ -155,7 +150,6 @@ class RubricGenerator:
                     
                     table.add_row(row)
                     table.add_hline()
-
 
         except Exception as e:
             logger.error(f"Error creating table: {str(e)}")
@@ -180,9 +174,32 @@ class RubricGenerator:
         if not os.path.exists(full_path):
             logger.error(f"Failed to create PDF file: {full_path}")
         else:
-            logger.info(f"PDF file created successfully: {full_path}")
+            logger.info(f"Rubric PDF file created successfully: {full_path}")
 
         return full_path
+    
+    def validate_rubric(self, response: Dict) -> bool:
+         # Check if "criterias" exist and are valid
+        if "criterias" not in response or len(response["criterias"]) == 0:
+            logger.error("Rubric generation failed, criterias not created successfully, trying agian.")
+            return False
+
+        if "feedback" not in response:
+            logger.error("Rubric generation failed, feedback not created successfully, trying again.")
+            return False
+
+        # Validate each criterion
+        criteria_valid = True
+        for criterion in response["criterias"]:
+            if "criteria_description" not in criterion or len(criterion["criteria_description"]) != int(self.args.point_scale):
+                logger.error("Mismatch between point scale nb and a criteria description. Trying again.")
+                criteria_valid = False
+                break  # Exit the for loop if a criterion is invalid
+
+        if not criteria_valid:
+            return False
+        
+        return True
    
     def create_rubric(self, documents: List[Document]):
         logger.info(f"Creating the Rubric")
@@ -198,15 +215,13 @@ class RubricGenerator:
         )
         logger.info(f"Input parameters: {input_parameters}")
 
-        attempt = 0
-        max_attempt = 5
-
-
+        attempt = 1
+        max_attempt = 6
 
         while attempt < max_attempt:
             try:
                 response = chain.invoke(input_parameters)
-                logger.info(f"Rubric generation response: {response}")
+                logger.info(f"Rubric generated during attempt nb: {attempt}")
             except Exception as e:
                 logger.error(f"Error during rubric generation: {str(e)}")
                 attempt += 1
@@ -216,37 +231,17 @@ class RubricGenerator:
                 attempt += 1
                 continue
 
-            # Check if "criterias" exist and are valid
-            if "criterias" not in response or len(response["criterias"]) == 0:
-                logger.error("Rubric generation failed, try again please.")
+            if self.validate_rubric(response) == False:
                 attempt += 1
                 continue
-
-            if "feedback" not in response:
-                logger.error("Rubric generation failed, try again please.")
-                attempt += 1
-                continue
-
-            # Validate each criterion
-            criteria_valid = True
-            for criterion in response["criterias"]:
-                logger.info(f'criterion: {criterion }')
-                logger.info(f'len(criterion["criteria_description"]) : {len(criterion["criteria_description"]) }')
-                if "criteria_description" not in criterion or len(criterion["criteria_description"]) != int(self.args.point_scale):
-                    logger.info(f'len(criterion["criteria_description"]) : {len(criterion["criteria_description"]) }')
-                    logger.error("Mismatch between point scale and criteria description count. Try again please.")
-                    criteria_valid = False
-                    break  # Exit the for loop if a criterion is invalid
-    
-            if not criteria_valid:
-                attempt += 1
-                continue  # Retry the rubric generation if validation failed
 
             # If everything is valid, break the outer loop
             break
 
         if attempt >= max_attempt:
             raise ValueError("Error: Unable to generate the Rubric after 5 attempts.")
+        else:
+            logger.info(f"Rubric successfully generated after {attempt} attempt(s).")
 
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
