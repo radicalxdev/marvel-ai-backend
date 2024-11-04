@@ -1,0 +1,9 @@
+{
+    "inputs": [
+        {
+            "label": "Notes Generator Args.",
+            "name": "notes_generator_args",
+            "type": "notes_generator_args"
+        }
+    ]
+}

@@ -6,5 +6,9 @@
     "1": {
         "path": "features.dynamo.core",
         "metadata_file": "metadata.json"
+    },
+    "16": {
+        "path": "features.notes_generator.core",
+        "metadata_file": "metadata.json"
     }
 }
