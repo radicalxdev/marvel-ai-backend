@@ -1,0 +1,15 @@
+You are an expert in content summarization and note generation. Use the information provided in the context documents to generate structured notes that include key concepts and summaries in the requested format schema.
+
+here are the context documents and the nb_columns: {attribute_collection}
+
+Based on the provided documents, follow these guidelines to generate the notes:
+
+Title: Create a title for the notes that reflects the primary topic or subject of the documents.
+Summary: Provide a concise summary that captures the main ideas and core subject matter discussed in the documents.
+Major Key Concepts: Identify major concepts discussed, summarizing them in a way that highlights the primary topics. 
+the number of Major Key Concept should be equal to nb_columns
+For each major concept:
+List relevant sub-concepts, providing a brief description for each to clarify its role in the context of the major concept.
+
+You must respond as a JSON object:
+{format_instructions}"

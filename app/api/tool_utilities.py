@@ -6,7 +6,7 @@ from app.api.error_utilities import VideoTranscriptError, InputValidationError, 
 from typing import Dict, Any, List
 from fastapi import HTTPException
 from pydantic import ValidationError
-from app.services.schemas import NotesGeneratorArgs
+from app.services.schemas import NotesGeneratorArgs, GivenFiles
 from features.notes_generator.core import executor
 
 logger = setup_logger(__name__)
@@ -100,7 +100,21 @@ def validate_input_type(input_name: str, input_value: Any, expected_type: str):
     elif expected_type == 'file':
         validate_file_input(input_name, input_value)
 
+
+def validate_givenfileslist(givenfileslist: List[Dict[str, Any]]) -> bool:
+    logger.info("INSIDE validate_givenfileslist")
+    for file_info in givenfileslist:
+        try:
+            # Try to parse each dictionary in 'givenfileslist' using GivenFiles model
+            GivenFiles.model_validate(file_info)
+            logger.info(f"Validated file info: {file_info}")
+        except ValidationError as e:
+            logger.error(f"Validation error for file info: {file_info} - Error: {e}")
+            raise  # Re-raise the validation error after logging it
+    return True
+
 def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, str]]) -> bool:
+    logger.info("INSIDE validate_inputs")
     validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}
     
     # Check for missing inputs
@@ -113,6 +127,11 @@ def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, 
 
         expected_type = validate_inputs[input_name]
         validate_input_type(input_name, input_value, expected_type)
+        
+        # Special check for 'givenfileslist'
+        if input_name == "givenfileslist":
+            if isinstance(input_value, list):
+                validate_givenfileslist(input_value)  # Call the separate validation function for 'givenfileslist'
 
     return True
 
@@ -122,15 +141,25 @@ def convert_files_to_tool_files(inputs: Dict[str, Any]) -> Dict[str, Any]:
     return inputs
 
 def convert_notes_generator_args_to_pydantic(inputs: Dict[str, Any]) -> Dict[str, Any]:
+    logger.info("INSIDE convert_notes_generator_args_to_pydantic")
     if 'notes_generator_args' in inputs:
-        inputs['notes_generator_args'] = NotesGeneratorArgs(**inputs['notes_generator_args'])
+        logger.info(f"BEFORE CONVERT TO Pydantic: {inputs['notes_generator_args']}")
+        try:
+            inputs['notes_generator_args'] = NotesGeneratorArgs(**inputs['notes_generator_args'])
+        except ValidationError as e:
+            logger.error(f"Validation error: {e}")
+            raise
     return inputs
 
 def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str, Any]:
+    logger.info(F"INSIDE FINALIZE_INPUTS, input_data: {input_data}")
     inputs = prepare_input_data(input_data)
+    logger.info(F"AFTER PREPARE_INPUT_DATA, inputs: {inputs}")
     validate_inputs(inputs, validate_data)
+    logger.info(F"AFTER VALIDATE_INPUTS")
     inputs = convert_files_to_tool_files(inputs)
     inputs = convert_notes_generator_args_to_pydantic(inputs)
+    logger.info(F"AFTER CONVERT_NOTES_GENERATOR_ARGS_TO_PYDANTIC, inputs: {inputs}")
     return inputs
 
 def execute_tool(tool_id, request_inputs_dict):

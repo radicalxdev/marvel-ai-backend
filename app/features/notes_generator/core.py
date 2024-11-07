@@ -1,6 +1,6 @@
 from app.services.logger import setup_logger
 from app.api.error_utilities import LoaderError, ToolExecutorError
-from app.services.schemas import NotesGeneratorArgs, InputFiles
+from app.services.schemas import NotesGeneratorArgs, GivenFiles
 from app.features.notes_generator.document_loaders import get_docs
 from app.features.notes_generator.tools import NotesGenerator
 from typing import List
@@ -8,7 +8,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logger = setup_logger()
 
-def process_file(input_file: InputFiles, verbose=True):
+def process_file(input_file: GivenFiles, verbose=True):
     """Process an individual file to retrieve documents."""
     try:
         if verbose: 
@@ -24,7 +24,7 @@ def process_all_filesinputs(notes_generator_args: NotesGeneratorArgs) -> List:
     """Process all files in the input list concurrently and return a combined list of documents."""
     all_docs = []
     with ThreadPoolExecutor() as thread_pool:
-        futures = [thread_pool.submit(process_file, input_file) for input_file in notes_generator_args.inputs]
+        futures = [thread_pool.submit(process_file, input_file) for input_file in notes_generator_args.givenfileslist]
         
         for future in as_completed(futures):
             docs = future.result()

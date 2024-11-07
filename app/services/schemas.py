@@ -54,7 +54,7 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
-class InputFiles(BaseModel):
+class GivenFiles(BaseModel):
     file_type: str = Field(..., description="Type of file being handled")
     file_url: str = Field(..., description="URL or path of the file to be processed to retrieve the notes")
     lang: Optional[str] = Field(..., description="Language in which the file or content is written")
@@ -62,6 +62,6 @@ class InputFiles(BaseModel):
 class NotesGeneratorArgs(BaseModel):
     nb_columns: int = Field(..., description="number of columns for the key concept notes generated")
     orientation: Literal["landscape", "portrait"] = Field(..., description="orientation of the notes document created")
-    inputs: List[InputFiles] = Field(..., description="upload or specify the various inputs to retrive notes from")
+    givenfileslist: List[GivenFiles] = Field(..., description="upload or specify the various inputs to retrive notes from")
 
 
