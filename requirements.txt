@@ -31,3 +31,8 @@ pytest
 PyPDF2
 python-dotenv
 psutil
+
+pydub
+ffmpeg-python
+speechrecognition
+google-cloud-speech
