@@ -1,6 +1,11 @@
-runtime: python310
+runtime: python312
 entrypoint: uvicorn app.main:app --host 0.0.0.0 --port $PORT
 instance_class: F2
 automatic_scaling:
   min_instances: 1
   max_instances: 3
+
+env_variables:
+  ENV_TYPE: "dev"
+  GOOGLE_API_KEY: "AIzaSyAlXHdNPGTg7Nk7ZBYK0VGpLr_dBA7hvV8"
+  PROJECT_ID: "kai-platform-sandbox"

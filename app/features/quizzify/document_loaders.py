@@ -8,12 +8,12 @@ from langchain_core.messages import HumanMessage
 from app.services.logger import setup_logger
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-from pydub import AudioSegment
-from google.cloud import speech
-from google.cloud.speech import RecognitionAudio, RecognitionConfig
-from google.cloud import speech_v1p1beta1 as speech
+# from pydub import AudioSegment
+# from google.cloud import speech
+# from google.cloud.speech import RecognitionAudio, RecognitionConfig
+# from google.cloud import speech_v1p1beta1 as speech
 from dotenv import load_dotenv, find_dotenv
-import speech_recognition as sr
+# import speech_recognition as sr
 import tempfile
 import uuid
 import requests
@@ -416,117 +416,118 @@ def generate_docs_from_img(img_url, verbose: bool=False):
 
 #USING GOOGLE WEB SPEECH API (FREE SERVICE USED FOR WEB TRANSCRIPT)
 def generate_docs_from_audio(audio_url: str, verbose=False):
+    logger.info("DISABLED generate_docs_from_audio")
+    return []
+    # logger.info("INSIDE generate_docs_from_audio")
+    # try:
+    #     # Attempt to create a temporary directory
+    #     temp_dir = tempfile.mkdtemp()
+    #     if verbose:
+    #         print(f"Temporary directory created: {temp_dir}")
+
+    # except OSError as e:
+    #     # Handle any errors that occur while interacting with the file system
+    #     logger.error(f"Failed to create temporary directory: {e}")
+    #     raise Exception(f"An error occurred while creating the temporary directory: {e}")
+
+
+    # # Generate unique file names for the MP3 and WAV files
+    # mp3_audio = f'mp3_audio_{uuid.uuid4()}.mp3'
+    # wav_audio = f'wav_audio_{uuid.uuid4()}.wav'
+    # wav_file_path = os.path.join(temp_dir, wav_audio)
     
-    logger.info("INSIDE generate_docs_from_audio")
-    try:
-        # Attempt to create a temporary directory
-        temp_dir = tempfile.mkdtemp()
-        if verbose:
-            print(f"Temporary directory created: {temp_dir}")
+    # docs = []
 
-    except OSError as e:
-        # Handle any errors that occur while interacting with the file system
-        logger.error(f"Failed to create temporary directory: {e}")
-        raise Exception(f"An error occurred while creating the temporary directory: {e}")
+    # # Download the file from the URL and save it to a temporary file
+    # try:
+    #     response = requests.get(audio_url)
+    #     response.raise_for_status()  # Ensure the request was successful
+    # except (requests.exceptions.RequestException) as req_err:
+    #     logger.error(f"Error occurred while downloading audio: {req_err}")
+    #     raise Exception(f"Error occurred while downloading audio: {req_err}")
+
+    # with tempfile.NamedTemporaryFile(delete=False, prefix=mp3_audio) as temp_file:
+    #     temp_file.write(response.content)
+    #     mp3_file_path = temp_file.name
+    #     logger.info(f"mp3_file_path: {mp3_file_path}")
+
+    # # Convert the MP3 file to WAV
+    # try:
+    #     audio = AudioSegment.from_mp3(mp3_file_path)
+    #     audio.export(wav_file_path, format="wav")
+    #     if verbose:
+    #         print("Conversion to WAV successful!")
+    # except Exception as e:
+    #     logger.error(f"Failed to convert MP3 to WAV: {e}")
+    #     raise Exception(f"Failed to convert MP3 to WAV: {e}")
 
 
-    # Generate unique file names for the MP3 and WAV files
-    mp3_audio = f'mp3_audio_{uuid.uuid4()}.mp3'
-    wav_audio = f'wav_audio_{uuid.uuid4()}.wav'
-    wav_file_path = os.path.join(temp_dir, wav_audio)
+    # # Split WAV file into smaller chunks
+    # chunk_length_ms = 60000  # 1-minute chunks
+    # chunks = split_audio_fixed_intervals(audio, chunk_length_ms)
+
+    # # Create a recognizer instance
+    # recognizer = sr.Recognizer()
+
+    # # Process each chunk
+    # for i, chunk in enumerate(chunks):
+    #     chunk_file_path = os.path.join(temp_dir, f'chunk_{i}.wav')
+    #     try:
+    #         # Export the chunk to a file
+    #         chunk.export(chunk_file_path, format="wav")
+    #     except Exception as e:
+    #         raise Exception(f"Failed to export chunk {i} to file: {e}")
+
+    #     try:
+    #         with sr.AudioFile(chunk_file_path) as source:
+    #             audio_data = recognizer.record(source)
+    #             logger.info(f"Audio data recorded for chunk {i} :{chunk_file_path}. Duration: {len(audio_data.frame_data) / audio_data.sample_rate:.2f} seconds")
+
+    #             if len(audio_data.frame_data) == 0:
+    #                 logger.warning(f"Warning: No audio data recorded for chunk {i}")
+    #                 continue
+
+    #             try:
+    #                 # Recognize speech using Google web speech API
+    #                 text = recognizer.recognize_google(audio_data)
+    #                 docs.append(Document(page_content=text))  # Create Document objects from text
+    #                 if verbose:
+    #                     print(f"Transcription for chunk {i} successful: {text}")
+    #             except sr.UnknownValueError:
+    #                 logger.warning(f"Chunk {i}: Google Speech Recognition could not understand the audio.")
+    #             except sr.RequestError as e:
+    #                 logger.error(f"Chunk {i}: Could not request results from Google Speech Recognition service: {e}")
+    #     except FileNotFoundError:
+    #         logger.error(f"Chunk file not found: {chunk_file_path}")
+    #     except Exception as e:
+    #         logger.error(f"Unexpected error occurred while processing chunk {i}: {e}")
+    #         raise Exception(f"Unexpected error during chunk processing: {e}")
+
+    # # Clean up temporary files
+    # try:    
+    #     if os.path.exists(wav_file_path):
+    #         os.remove(wav_file_path)
+    #         if verbose:
+    #             print(f"Temporary WAV file {wav_file_path} deleted.")
+    #     if os.path.exists(mp3_file_path):
+    #         os.remove(mp3_file_path)
+    #         if verbose:
+    #             print(f"Temporary MP3 file {mp3_audio} deleted.")
+    #     shutil.rmtree(temp_dir, ignore_errors=True)
+    #     if verbose:
+    #         print("Temporary directory deleted.")
     
-    docs = []
+    # except OSError as e:
+    #     logger.error(f"Error during cleanup temporary files: {e}")
+    #     if verbose:
+    #         print(f"Error during cleanup: {e}")
 
-    # Download the file from the URL and save it to a temporary file
-    try:
-        response = requests.get(audio_url)
-        response.raise_for_status()  # Ensure the request was successful
-    except (requests.exceptions.RequestException) as req_err:
-        logger.error(f"Error occurred while downloading audio: {req_err}")
-        raise Exception(f"Error occurred while downloading audio: {req_err}")
-
-    with tempfile.NamedTemporaryFile(delete=False, prefix=mp3_audio) as temp_file:
-        temp_file.write(response.content)
-        mp3_file_path = temp_file.name
-        logger.info(f"mp3_file_path: {mp3_file_path}")
-
-    # Convert the MP3 file to WAV
-    try:
-        audio = AudioSegment.from_mp3(mp3_file_path)
-        audio.export(wav_file_path, format="wav")
-        if verbose:
-            print("Conversion to WAV successful!")
-    except Exception as e:
-        logger.error(f"Failed to convert MP3 to WAV: {e}")
-        raise Exception(f"Failed to convert MP3 to WAV: {e}")
-
-
-    # Split WAV file into smaller chunks
-    chunk_length_ms = 60000  # 1-minute chunks
-    chunks = split_audio_fixed_intervals(audio, chunk_length_ms)
-
-    # Create a recognizer instance
-    recognizer = sr.Recognizer()
-
-    # Process each chunk
-    for i, chunk in enumerate(chunks):
-        chunk_file_path = os.path.join(temp_dir, f'chunk_{i}.wav')
-        try:
-            # Export the chunk to a file
-            chunk.export(chunk_file_path, format="wav")
-        except Exception as e:
-            raise Exception(f"Failed to export chunk {i} to file: {e}")
-
-        try:
-            with sr.AudioFile(chunk_file_path) as source:
-                audio_data = recognizer.record(source)
-                logger.info(f"Audio data recorded for chunk {i} :{chunk_file_path}. Duration: {len(audio_data.frame_data) / audio_data.sample_rate:.2f} seconds")
-
-                if len(audio_data.frame_data) == 0:
-                    logger.warning(f"Warning: No audio data recorded for chunk {i}")
-                    continue
-
-                try:
-                    # Recognize speech using Google web speech API
-                    text = recognizer.recognize_google(audio_data)
-                    docs.append(Document(page_content=text))  # Create Document objects from text
-                    if verbose:
-                        print(f"Transcription for chunk {i} successful: {text}")
-                except sr.UnknownValueError:
-                    logger.warning(f"Chunk {i}: Google Speech Recognition could not understand the audio.")
-                except sr.RequestError as e:
-                    logger.error(f"Chunk {i}: Could not request results from Google Speech Recognition service: {e}")
-        except FileNotFoundError:
-            logger.error(f"Chunk file not found: {chunk_file_path}")
-        except Exception as e:
-            logger.error(f"Unexpected error occurred while processing chunk {i}: {e}")
-            raise Exception(f"Unexpected error during chunk processing: {e}")
-
-    # Clean up temporary files
-    try:    
-        if os.path.exists(wav_file_path):
-            os.remove(wav_file_path)
-            if verbose:
-                print(f"Temporary WAV file {wav_file_path} deleted.")
-        if os.path.exists(mp3_file_path):
-            os.remove(mp3_file_path)
-            if verbose:
-                print(f"Temporary MP3 file {mp3_audio} deleted.")
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        if verbose:
-            print("Temporary directory deleted.")
-    
-    except OSError as e:
-        logger.error(f"Error during cleanup temporary files: {e}")
-        if verbose:
-            print(f"Error during cleanup: {e}")
-
-    if docs:
-        split_docs = splitter.split_documents(docs)
-        if verbose:
-            logger.info("Found transcript")
-            logger.info(f"Splitting documents into {len(split_docs)} chunks")
-        return split_docs
+    # if docs:
+    #     split_docs = splitter.split_documents(docs)
+    #     if verbose:
+    #         logger.info("Found transcript")
+    #         logger.info(f"Splitting documents into {len(split_docs)} chunks")
+    #     return split_docs
 
 #########################################################################################################
 #########################################################################################################
@@ -535,145 +536,147 @@ GOOGLE_CLOUD_API_KEY = os.getenv('GOOGLE_API_KEY')
 if not GOOGLE_CLOUD_API_KEY:
     raise ValueError("API key not found. Please check your .env file.")
 
-GOOGLE_CLOUD_SPEECH_TO_TEXT_URL = os.getenv('GOOGLE_SPEECH_URL')
-if not GOOGLE_CLOUD_SPEECH_TO_TEXT_URL:
-    raise ValueError("GOOGLE_CLOUD_SPEECH_TO_TEXT_URL not found. Please check your .env file.")
+# GOOGLE_CLOUD_SPEECH_TO_TEXT_URL = os.getenv('GOOGLE_SPEECH_URL')
+# if not GOOGLE_CLOUD_SPEECH_TO_TEXT_URL:
+#     raise ValueError("GOOGLE_CLOUD_SPEECH_TO_TEXT_URL not found. Please check your .env file.")
 
 #USING GOOGLE SPEECH-TO-TEXT API (PAID SERVICE)(RECOMMENDED FOR LARGE AUDIO FILES)
 def generate_docs_from_audio_gcloud(audio_url: str, lang: str, verbose=False):
-    logger.info("INSIDE generate_docs_from_audio_gcloud")
-    try:
-        # Attempt to create a temporary directory
-        temp_dir = tempfile.mkdtemp()
-        if verbose:
-            print(f"Temporary directory created: {temp_dir}")
+    logger.info("DISABLED generate_docs_from_audio_gcloud")
+    return []
+#     logger.info("INSIDE generate_docs_from_audio_gcloud")
+#     try:
+#         # Attempt to create a temporary directory
+#         temp_dir = tempfile.mkdtemp()
+#         if verbose:
+#             print(f"Temporary directory created: {temp_dir}")
 
-    except OSError as e:
-        # Handle any errors that occur while interacting with the file system
-        logger.error(f"Failed to create temporary directory: {e}")
-        raise Exception(f"An error occurred while creating the temporary directory: {e}")
+#     except OSError as e:
+#         # Handle any errors that occur while interacting with the file system
+#         logger.error(f"Failed to create temporary directory: {e}")
+#         raise Exception(f"An error occurred while creating the temporary directory: {e}")
     
 
-    # Generate unique file names for the MP3 and WAV files
-    mp3_audio = f'mp3_audio_{uuid.uuid4()}.mp3'
-    wav_audio = f'wav_audio_{uuid.uuid4()}.wav'
-    wav_file_path = os.path.join(temp_dir, wav_audio)
+#     # Generate unique file names for the MP3 and WAV files
+#     mp3_audio = f'mp3_audio_{uuid.uuid4()}.mp3'
+#     wav_audio = f'wav_audio_{uuid.uuid4()}.wav'
+#     wav_file_path = os.path.join(temp_dir, wav_audio)
 
-    docs = []
+#     docs = []
 
-    # Download the file from the URL and save it to a temporary file
-    try:
-        response = requests.get(audio_url)
-        response.raise_for_status()  # Ensure the request was successful
-    except (requests.exceptions.RequestException) as req_err:
-        logger.error(f"Error occurred while downloading audio: {req_err}")
-        raise Exception(f"Error occurred while downloading audio: {req_err}")
+#     # Download the file from the URL and save it to a temporary file
+#     try:
+#         response = requests.get(audio_url)
+#         response.raise_for_status()  # Ensure the request was successful
+#     except (requests.exceptions.RequestException) as req_err:
+#         logger.error(f"Error occurred while downloading audio: {req_err}")
+#         raise Exception(f"Error occurred while downloading audio: {req_err}")
 
-    with tempfile.NamedTemporaryFile(delete=False, prefix=mp3_audio) as temp_file:
-        temp_file.write(response.content)
-        mp3_file_path = temp_file.name
-        logger.info(f"mp3_file_path: {mp3_file_path}")
+#     with tempfile.NamedTemporaryFile(delete=False, prefix=mp3_audio) as temp_file:
+#         temp_file.write(response.content)
+#         mp3_file_path = temp_file.name
+#         logger.info(f"mp3_file_path: {mp3_file_path}")
 
-    # Convert the MP3 file to WAV
-    audio = AudioSegment.from_mp3(mp3_file_path)
-    audio.export(wav_file_path, format="wav")
-    if verbose:
-        print("Conversion to WAV successful!")
+#     # Convert the MP3 file to WAV
+#     audio = AudioSegment.from_mp3(mp3_file_path)
+#     audio.export(wav_file_path, format="wav")
+#     if verbose:
+#         print("Conversion to WAV successful!")
 
-    # Split WAV file into smaller chunks with a slightly reduced length to avoid exceeding the limit
-    chunk_length_ms = 59000  # 59 seconds to ensure it's under the 1-minute limit for the API
-    chunks = split_audio_fixed_intervals(audio, chunk_length_ms)
+#     # Split WAV file into smaller chunks with a slightly reduced length to avoid exceeding the limit
+#     chunk_length_ms = 59000  # 59 seconds to ensure it's under the 1-minute limit for the API
+#     chunks = split_audio_fixed_intervals(audio, chunk_length_ms)
 
 
-    # Google Cloud Speech-to-Text API URL
-    url = GOOGLE_CLOUD_SPEECH_TO_TEXT_URL
+#     # Google Cloud Speech-to-Text API URL
+#     url = GOOGLE_CLOUD_SPEECH_TO_TEXT_URL
 
-    # Process each chunk
-    for i, chunk in enumerate(chunks): 
-        chunk_file_path = os.path.join(temp_dir, f'chunk_{i}.wav')
-        try:
-            # Export the chunk to a file
-            chunk.export(chunk_file_path, format="wav")
-        except Exception as e:
-            raise Exception(f"Failed to export chunk {i} to file: {e}")
+#     # Process each chunk
+#     for i, chunk in enumerate(chunks): 
+#         chunk_file_path = os.path.join(temp_dir, f'chunk_{i}.wav')
+#         try:
+#             # Export the chunk to a file
+#             chunk.export(chunk_file_path, format="wav")
+#         except Exception as e:
+#             raise Exception(f"Failed to export chunk {i} to file: {e}")
         
-        try:
-            # Load the audio data and encode it in base64
-            with open(chunk_file_path, "rb") as audio_file:
-                content = base64.b64encode(audio_file.read()).decode('utf-8')
+#         try:
+#             # Load the audio data and encode it in base64
+#             with open(chunk_file_path, "rb") as audio_file:
+#                 content = base64.b64encode(audio_file.read()).decode('utf-8')
 
-            headers = {
-                'Content-Type': 'application/json',
-            }
+#             headers = {
+#                 'Content-Type': 'application/json',
+#             }
 
-            params = {
-                'key': GOOGLE_CLOUD_API_KEY,
-            }
+#             params = {
+#                 'key': GOOGLE_CLOUD_API_KEY,
+#             }
 
-            data = {
-                "config": {
-                    "encoding": "LINEAR16",
+#             data = {
+#                 "config": {
+#                     "encoding": "LINEAR16",
                     
-                    "languageCode": lang,
-                },
-                "audio": {
-                    "content": content
-                }
-            }
+#                     "languageCode": lang,
+#                 },
+#                 "audio": {
+#                     "content": content
+#                 }
+#             }
 
-            # Send the request to the Speech-to-Text API
-            try:
-                response = requests.post(url, headers=headers, params=params, json=data)
-                response.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                logger.error(f"API request failed for chunk {i}: {e}")
-                logger.error(f"Response content: {response.content}")
-                continue
+#             # Send the request to the Speech-to-Text API
+#             try:
+#                 response = requests.post(url, headers=headers, params=params, json=data)
+#                 response.raise_for_status()
+#             except requests.exceptions.RequestException as e:
+#                 logger.error(f"API request failed for chunk {i}: {e}")
+#                 logger.error(f"Response content: {response.content}")
+#                 continue
 
-            # Process the response
-            result = response.json()
-            for result in result.get('results', []):
-                text = result['alternatives'][0]['transcript']
-                docs.append(Document(page_content=text))
-            if verbose:
-                print(f"Transcription for chunk {i} successful: {text}")
+#             # Process the response
+#             result = response.json()
+#             for result in result.get('results', []):
+#                 text = result['alternatives'][0]['transcript']
+#                 docs.append(Document(page_content=text))
+#             if verbose:
+#                 print(f"Transcription for chunk {i} successful: {text}")
 
-        except FileNotFoundError:
-            logger.error(f"Chunk file not found: {chunk_file_path}")
-        except Exception as e:
-            logger.error(f"Unexpected error occurred while processing chunk {i}: {e}")
-            raise Exception(f"Unexpected error during chunk processing: {e}")
+#         except FileNotFoundError:
+#             logger.error(f"Chunk file not found: {chunk_file_path}")
+#         except Exception as e:
+#             logger.error(f"Unexpected error occurred while processing chunk {i}: {e}")
+#             raise Exception(f"Unexpected error during chunk processing: {e}")
 
 
-   # Clean up temporary files
-    try:    
-        if os.path.exists(wav_file_path):
-            os.remove(wav_file_path)
-            if verbose:
-                print(f"Temporary WAV file {wav_file_path} deleted.")
-        if os.path.exists(mp3_file_path):
-            os.remove(mp3_file_path)
-            if verbose:
-                print(f"Temporary MP3 file {mp3_audio} deleted.")
-        shutil.rmtree(temp_dir, ignore_errors=True)
-        if verbose:
-            print("Temporary directory deleted.")
+#    # Clean up temporary files
+#     try:    
+#         if os.path.exists(wav_file_path):
+#             os.remove(wav_file_path)
+#             if verbose:
+#                 print(f"Temporary WAV file {wav_file_path} deleted.")
+#         if os.path.exists(mp3_file_path):
+#             os.remove(mp3_file_path)
+#             if verbose:
+#                 print(f"Temporary MP3 file {mp3_audio} deleted.")
+#         shutil.rmtree(temp_dir, ignore_errors=True)
+#         if verbose:
+#             print("Temporary directory deleted.")
     
-    except OSError as e:
-        logger.error(f"Error during cleanup temporary files: {e}")
-        if verbose:
-            print(f"Error during cleanup: {e}")
+#     except OSError as e:
+#         logger.error(f"Error during cleanup temporary files: {e}")
+#         if verbose:
+#             print(f"Error during cleanup: {e}")
 
-    if docs:
-        split_docs = splitter.split_documents(docs)
-        if verbose:
-            logger.info("Found transcript")
-            logger.info(f"Splitting documents into {len(split_docs)} chunks")
-        return split_docs
+#     if docs:
+#         split_docs = splitter.split_documents(docs)
+#         if verbose:
+#             logger.info("Found transcript")
+#             logger.info(f"Splitting documents into {len(split_docs)} chunks")
+#         return split_docs
 
 
 
-def split_audio_fixed_intervals(audio: AudioSegment, interval_ms: int):
+def split_audio_fixed_intervals(audio: any, interval_ms: int):
     """
     Split audio into chunks of fixed length.
 
@@ -684,20 +687,20 @@ def split_audio_fixed_intervals(audio: AudioSegment, interval_ms: int):
     Returns:
         List[AudioSegment]: List of audio chunks.
     """
-    chunks = []
-    length_ms = len(audio)
+    # chunks = []
+    # length_ms = len(audio)
 
-    # Split the audio into chunks
-    for start in range(0, length_ms, interval_ms):
-        end = min(start + interval_ms, length_ms)
-        chunk = audio[start:end]
-        chunks.append(chunk)
+    # # Split the audio into chunks
+    # for start in range(0, length_ms, interval_ms):
+    #     end = min(start + interval_ms, length_ms)
+    #     chunk = audio[start:end]
+    #     chunks.append(chunk)
 
-    # Verify the length of each chunk
-    for i, chunk in enumerate(chunks):
-        logger.info(f"Chunk {i} length: {len(chunk)} ms")
+    # # Verify the length of each chunk
+    # for i, chunk in enumerate(chunks):
+    #     logger.info(f"Chunk {i} length: {len(chunk)} ms")
 
-    return chunks
+    # return chunks
 
 #########################################################################################################
 #########################################################################################################
@@ -721,5 +724,5 @@ file_loader_map = {
     FileType.YOUTUBE_URL: load_docs_youtube_url,
     FileType.IMG: generate_docs_from_img,
     FileType.MP3: generate_docs_from_audio,
-    FileType.GMP3: generate_docs_from_audio_gcloud
+    # FileType.GMP3: generate_docs_from_audio_gcloud
 }

@@ -22,4 +22,12 @@ echo "ENV_TYPE: $ENV_TYPE"
 echo "PROJECT_ID: $PROJECT_ID"
 echo "GOOGLE_API_KEY: $GOOGLE_API_KEY"
 
-fastapi dev app/main.py
+export PYENV_ROOT="$HOME/.pyenv"
+export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init --path)"
+eval "$(pyenv init -)"
+pyenv global 3.12
+python --version
+
+# fastapi dev app/main.py
+python -m uvicorn app.main:app --reload
