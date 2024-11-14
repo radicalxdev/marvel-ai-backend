@@ -8,9 +8,11 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-#from pylatex import Document, Section, Command, NoEscape, Tabular, MultiColumn, Package
-#from pylatex import Tabular, Tabularx, LongTable
-#from pylatex.utils import italic, NoEscape, bold
+from reportlab.lib.pagesizes import LETTER, landscape, portrait
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+import roman  # For Roman numeral conversion
 
 from app.services.logger import setup_logger
 
@@ -76,32 +78,68 @@ class NotesGenerator:
         chain = self.runner | prompt | self.model | self.parser
 
         logger.info(f"Chain compilation complete")
+        print(f"Chain compilation complete")
 
         return chain
-    
+
     def create_pdf_from_notes(self, notes_data):
-        # Create a LaTeX document
-        doc = Document()
-        #################################
-        # Generate the PDF
-        pdf_filename = 'generated_notes'
+        # Set up PDF document orientation and filename
+        orientation = self.args.orientation
+        pdf_filename = "generated_notes.pdf"
+        pagesize = landscape(LETTER) if orientation.lower() == "landscape" else portrait(LETTER)
+        logger.info(f"Inside create_pdf_from_notes, orientation =  {orientation}")
+        # Create document
+        doc = SimpleDocTemplate(pdf_filename, pagesize=pagesize, rightMargin=0.5*inch, leftMargin=0.5*inch)
+        styles = getSampleStyleSheet()
+
+        # Custom styles
+        title_style = ParagraphStyle(
+            "TitleStyle", parent=styles["Title"], fontSize=16, alignment=1, spaceAfter=12
+        )
+        concept_style = ParagraphStyle(
+            "ConceptStyle", parent=styles["Normal"], leftIndent=24, spaceAfter=6
+        )
+
+        # Build PDF content
+        content = []
+
+        # Title
+        content.append(Paragraph(notes_data["title"], title_style))
+        content.append(Spacer(1, 0.2 * inch))
+
+        # Summary
+        content.append(Paragraph(notes_data["summary"], styles["BodyText"]))
+        content.append(Spacer(1, 0.2 * inch))
+
+        # Numbered Major Key Concepts
+        for idx, major_concept in enumerate(notes_data["majorkeyconceptslist"], start=1):
+            # Display major concept title with numbering
+            major_concept_title = f"{idx}. {major_concept['majorconcept']}"
+            content.append(Paragraph(major_concept_title, styles["Heading2"]))
+
+            # Numbered sub-key concepts in Roman numerals
+            for sub_idx, key_concept in enumerate(major_concept["keyconceptdetails"], start=1):
+                sub_concept_title = f"{roman.toRoman(sub_idx)}. {key_concept['concept']}"
+                content.append(Paragraph(sub_concept_title, concept_style))
+
+                # Add each description as a paragraph below the concept title
+                for description in key_concept["conceptdescription"]:
+                    content.append(Paragraph(description, styles["BodyText"]))
+                    content.append(Spacer(1, 0.1 * inch))
+
+            # Add a spacer between major concepts
+            content.append(Spacer(1, 0.3 * inch))
+
+        # Generate PDF
         try:
-            doc.generate_pdf(pdf_filename, clean_tex=False)
+            doc.build(content)
         except Exception as e:
-            logger.error(f"LaTeX Error: {str(e)}")
-            with open(f'{pdf_filename}.log', 'r') as log_file:
-                logger.error(log_file.read())
+            print(f"Error generating PDF: {str(e)}")
 
-        # Construct the full path with .pdf extension
-        full_path = f"{os.path.abspath(pdf_filename)}.pdf"
-
-        # Check if the file was created successfully
-        if not os.path.exists(full_path):
-            logger.error(f"Failed to create PDF file: {full_path}")
-        else:
-            logger.info(f"Notes PDF file created successfully: {full_path}")
-
+        # Return the absolute path to the PDF file
+        full_path = os.path.abspath(pdf_filename)
         return full_path
+
     
     def validate_notes(self, response: Dict) -> bool:
         ######################
@@ -114,8 +152,7 @@ class NotesGenerator:
 
          # Log the input parameters
         input_parameters = (
-            f"Nb of columns: {self.args.nb_columns}, "
-            f"Orientation: {self.args.orientation}"
+            f"Nb of columns: {self.args.nb_columns}"
         )
         logger.info(f"Input parameters: {input_parameters}")
 
@@ -125,6 +162,7 @@ class NotesGenerator:
         while attempt < max_attempt:
             try:
                 response = chain.invoke(input_parameters)
+                print(f"Notes generated")
                 logger.info(f"Notes generated during attempt nb: {attempt}")
             except Exception as e:
                 logger.error(f"Error during notes generation: {str(e)}")
@@ -150,8 +188,7 @@ class NotesGenerator:
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
 
-        #return self.create_pdf_from_notes(response)
-        return response
+        return self.create_pdf_from_notes(response)       
         
 
 

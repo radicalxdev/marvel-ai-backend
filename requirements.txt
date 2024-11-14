@@ -218,4 +218,5 @@ yarl==1.9.4
 youtube-transcript-api==0.6.2
 zipp==3.20.0
 
-pylatex
+reportlab
+roman
