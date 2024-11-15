@@ -60,6 +60,7 @@ class QuizzifyArgs(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+    
 class WorksheetQuestionModel(BaseModel):
     question_type: str
     number: int
