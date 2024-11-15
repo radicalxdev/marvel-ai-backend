@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 langchain
 langchain-core
-langchain-google-vertexai
+langchain-google-genai
 langchain-chroma
 langchain-community
 google-cloud-secret-manager
@@ -19,3 +19,4 @@ unstructured
 python-docx
 python-pptx
 sentence-transformers
+python-dotenv

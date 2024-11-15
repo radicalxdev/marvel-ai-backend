@@ -1,6 +1,6 @@
-from langchain_google_vertexai import VertexAI
+from langchain_google_genai import GoogleGenerativeAI
 from langchain.prompts import PromptTemplate
-from services.schemas import ChatMessage, Message
+from app.services.schemas import ChatMessage, Message
 import os
 
 def read_text_file(file_path):
@@ -40,7 +40,7 @@ def executor(user_name: str, user_query: str, messages: list[Message], k=10):
 
     prompt = build_prompt()
     
-    llm = VertexAI(model_name="gemini-1.0-pro") 
+    llm = GoogleGenerativeAI(model="gemini-1.0-pro") 
     
     chain =  prompt | llm
     
