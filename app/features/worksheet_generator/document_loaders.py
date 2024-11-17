@@ -302,17 +302,13 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
 def load_docs_youtube_url(youtube_url: str, verbose=False) -> str:
     try:
-        loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
+        loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=False)
     except Exception as e:
         logger.error(f"No such video found at {youtube_url}")
         raise VideoTranscriptError(f"No video found", youtube_url) from e
 
     try:
         docs = loader.load()
-        length = docs[0].metadata["length"]
-        title = docs[0].metadata["title"]
-        logger.info("Length of the video: ",length)
-        logger.info("Title of the video: ",title)
     except Exception as e:
         logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
