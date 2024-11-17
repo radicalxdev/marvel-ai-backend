@@ -87,6 +87,7 @@ class SyllabusGeneratorArgsModel(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+    
 class AIResistantArgs(BaseModel):
     topic: str = Field(..., min_length=1, max_length=255, description="Topic or subject related to the content")
     assignment: str = Field(..., min_length=1, max_length=255, description="The given assignment")
