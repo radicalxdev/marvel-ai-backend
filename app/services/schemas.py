@@ -61,6 +61,18 @@ class QuizzifyArgs(BaseModel):
     file_type: str
     lang: Optional[str] = "en"
     
+class WorksheetQuestionModel(BaseModel):
+    question_type: str
+    number: int
+
+class WorksheetGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    worksheet_list: List[WorksheetQuestionModel]
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
+    
 class SyllabusGeneratorArgsModel(BaseModel):
     grade_level: str
     course: str
