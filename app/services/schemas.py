@@ -65,6 +65,11 @@ class WorksheetQuestionModel(BaseModel):
     question_type: str
     number: int
 
+class DynamoArgs(BaseModel):
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
+
 class WorksheetGeneratorArgs(BaseModel):
     grade_level: str
     topic: str
