@@ -50,7 +50,7 @@ class SyllabusBuilder:
     ):
         """Initialize SyllabusBuilder with default configurations."""
         default_config = {
-            "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
+            "model": GoogleGenerativeAI(model="gemini-1.5-pro"),
             "parser": JsonOutputParser(pydantic_object=SyllabusModel),
             "prompt": read_text_file("prompt/syllabus_prompt.txt"),
         }
