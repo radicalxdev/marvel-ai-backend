@@ -87,6 +87,7 @@ class SyllabusGeneratorArgsModel(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+    
 class ConnectWithThemArgs(BaseModel):
     grade_level: str = Field(..., description="The grade level the teacher is instructing.")
     task_description: str = Field(..., description="A brief description of the subject or topic the teacher is instructing.")
