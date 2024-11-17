@@ -1,0 +1,9 @@
+{
+    "inputs": [
+        {
+            "label": "Syllabus Generator Args.",
+            "name": "syllabus_generator_args",
+            "type": "syllabus_generator_args"
+        }
+    ]
+}

@@ -47,7 +47,7 @@ class FileHandlerError(Exception):
 
     def __str__(self):
         return f"{self.message}"
-    
+
 class ImageHandlerError(Exception):
     """Raised when an image cannot be loaded. Used for tools which require image handling."""
     def __init__(self, message, url):
@@ -57,3 +57,15 @@ class ImageHandlerError(Exception):
 
     def __str__(self):
         return f"{self.message}"
+    
+class WorksheetGeneratorError(Exception):
+    """Base class for errors related to the worksheet generator."""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+    
+class SyllabusGeneratorError(Exception):
+    """Base class for errors related to the syllabus generator."""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)

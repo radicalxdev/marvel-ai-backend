@@ -54,6 +54,39 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+class QuizzifyArgs(BaseModel):
+    topic: str
+    n_questions: int
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
+    
+class WorksheetQuestionModel(BaseModel):
+    question_type: str
+    number: int
+
+class WorksheetGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    worksheet_list: List[WorksheetQuestionModel]
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
+    
+class SyllabusGeneratorArgsModel(BaseModel):
+    grade_level: str
+    course: str
+    instructor_name: str
+    instructor_title: str
+    unit_time: str
+    unit_time_value: int
+    start_date: str
+    start_date: str
+    assessment_methods: str
+    grading_scale: str
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
 class ConnectWithThemArgs(BaseModel):
     grade_level: str = Field(..., description="The grade level the teacher is instructing.")
     task_description: str = Field(..., description="A brief description of the subject or topic the teacher is instructing.")
