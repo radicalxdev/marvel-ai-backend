@@ -1,0 +1,9 @@
+{
+    "inputs": [
+        {
+            "label": "Worksheet Generator Args. (Grade level, topic, questions (type and number), file URL, file type and language)",
+            "name": "worksheet_generator_args",
+            "type": "worksheet_generator_args"
+        }
+    ]
+}

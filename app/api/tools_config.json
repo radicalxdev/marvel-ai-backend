@@ -7,6 +7,14 @@
         "path": "features.dynamo.core",
         "metadata_file": "metadata.json"
     },
+    "2": {
+        "path": "features.worksheet_generator.core",
+        "metadata_file": "metadata.json"
+    },
+    "6": {
+        "path": "features.syllabus_generator.core",
+        "metadata_file": "metadata.json"
+    },
     "5": {
         "path": "features.ai_resistant_assignment_generator.core",
         "metadata_file": "metadata.json"
