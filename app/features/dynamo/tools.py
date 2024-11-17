@@ -400,15 +400,13 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
 def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, verbose=False) -> str:
     try:
-        loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=True)
+        loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=False)
     except Exception as e:
         logger.error(f"No such video found at {youtube_url}")
         raise VideoTranscriptError(f"No video found", youtube_url) from e
     
     try:
         docs = loader.load()
-        length = docs[0].metadata["length"]
-        title = docs[0].metadata["title"]
     except Exception as e:
         logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
@@ -418,11 +416,9 @@ def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, ver
     full_transcript = [doc.page_content for doc in split_docs]
     full_transcript = " ".join(full_transcript)
 
-    if length > max_video_length:
-        raise VideoTranscriptError(f"Video is {length} seconds long, please provide a video less than {max_video_length} seconds long", youtube_url)
 
     if verbose:
-        print(f"Found video with title: {title} and length: {length}")
+        print(f"Found video")
         print(f"Combined documents into a single string.")
         print(f"Beginning to process transcript...")
     
