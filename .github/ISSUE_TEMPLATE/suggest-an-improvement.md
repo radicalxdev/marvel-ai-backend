@@ -4,7 +4,7 @@ about: suggesting improvements to a feature or technical improvements
 title: Improvement - what the improvement does
 labels: type:enhancement
 assignees: ''
-
+projects: marvelai-org/8
 ---
 
 Which feature do you want to improve? Please name the feature and what it does. 
