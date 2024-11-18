@@ -4,7 +4,7 @@ about: Create a report to help us improve
 title: BUG - [feature_name]-[problem in a short sentence]
 labels: type:bug
 assignees: ''
-
+projects: marvelai-org/8
 ---
 
 **Describe the bug**
