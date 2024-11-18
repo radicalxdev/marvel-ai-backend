@@ -6,16 +6,21 @@ from app.services.schemas import QuizzifyArgs
 
 logger = setup_logger()
 
-def executor(quizzify_args: QuizzifyArgs, verbose=True):
+def executor(topic: str,
+             n_questions: int,
+             file_url: str,
+             file_type: str,
+             lang: str,
+             verbose=True):
     
     try:
         if verbose:
-            logger.info(f"File URL loaded: {quizzify_args.file_url}")
+            logger.info(f"File URL loaded: {file_url}")
 
-        docs = get_docs(quizzify_args.file_url, quizzify_args.file_type, quizzify_args.lang, verbose=True)
+        docs = get_docs(file_url, file_type, lang, verbose=True)
 
     
-        output = QuizBuilder(quizzify_args.topic, quizzify_args.lang, verbose=verbose).create_questions(docs, quizzify_args.n_questions)
+        output = QuizBuilder(topic, lang, verbose=verbose).create_questions(docs, n_questions)
     
     except LoaderError as e:
         error_message = e

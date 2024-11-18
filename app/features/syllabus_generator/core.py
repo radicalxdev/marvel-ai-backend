@@ -7,23 +7,49 @@ from app.services.schemas import SyllabusGeneratorArgsModel
 
 logger = setup_logger()
 
-def executor(syllabus_generator_args: SyllabusGeneratorArgsModel,
-            verbose: bool = True):
+def executor(grade_level: str,
+             course: str,
+             instructor_name: str,
+             instructor_title: str,
+             unit_time: str,
+             unit_time_value: int,
+             start_date: str,
+             assessment_methods: str,
+             grading_scale: str,
+             file_url: str,
+             file_type: str,
+             lang: str,
+             verbose: bool = True):
     
     if verbose:
-        logger.info(f"File URL loaded: {syllabus_generator_args.file_url}")
+        logger.info(f"File URL loaded: {file_url}")
     
     try:
         
-        if syllabus_generator_args.file_type == 'img':
-            summary = generate_summary_from_img(syllabus_generator_args.file_url)
-        elif syllabus_generator_args.file_type == 'youtube_url':
-            summary = summarize_transcript_youtube_url(syllabus_generator_args.file_url, verbose=verbose)
+        if file_type == 'img':
+            summary = generate_summary_from_img(file_url)
+        elif file_type == 'youtube_url':
+            summary = summarize_transcript_youtube_url(file_url, verbose=verbose)
         else:
-            summary = get_summary(syllabus_generator_args.file_url, syllabus_generator_args.file_type, verbose=verbose)
+            summary = get_summary(file_url, file_type, verbose=verbose)
     
+        syllabus_args_model = SyllabusGeneratorArgsModel(
+            grade_level = grade_level,
+            course = course,
+            instructor_name = instructor_name,
+            instructor_title = instructor_title,
+            unit_time = unit_time,
+            unit_time_value = unit_time_value,
+            start_date = start_date,
+            assessment_methods = assessment_methods,
+            grading_scale = grading_scale,
+            file_url = file_url,
+            file_type = file_type,
+            lang = lang
+        )
+
         request_args = SyllabusRequestArgs(
-                                syllabus_generator_args,
+                                syllabus_args_model,
                                 summary)
         
         syllabus = generate_syllabus(request_args, verbose=verbose)
