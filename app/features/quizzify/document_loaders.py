@@ -288,6 +288,7 @@ class FileHandlerForGoogleDrive:
         try:
             gdown.download(url=url, output=unique_filename, fuzzy=True)
         except Exception as e:
+            logger.error(e)
             logger.error(f"File content might be private or unavailable or the URL is incorrect.")
             raise FileHandlerError(f"No file content available") from e
 
