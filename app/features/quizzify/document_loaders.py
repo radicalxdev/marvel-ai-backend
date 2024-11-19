@@ -300,6 +300,7 @@ class FileHandlerForGoogleDrive:
         try:
             documents = loader.load()
         except Exception as e:
+            logger.error(e)
             logger.error(f"File content might be private or unavailable or the URL is incorrect.")
             raise FileHandlerError(f"No file content available") from e
 
