@@ -6,6 +6,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.pydantic_v1 import BaseModel, Field
 from typing import List
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
+from app.services.schemas import WorksheetQuestionModel
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -55,6 +56,55 @@ class CourseTypeGenerator(BaseGenerator):
         )
 
         chain = prompt | self.model | self.parser
+
+        if self.verbose:
+            logger.info(f"Chain compilation complete")
+
+        return chain
+    
+class WorksheetQuestionTypeGenerator(BaseGenerator):
+    def __init__(self, prompt=None, model=None, parser=None, 
+                vectorstore_class=None, embedding_model=None, 
+                 verbose: bool = False):
+        
+        self.vectorstore_class = vectorstore_class or self.get_default_config()["vectorstore_class"]
+        self.embedding_model = embedding_model or self.get_default_config()["embedding_model"]
+        self.vectorstore, self.retriever, self.runner = None, None, None
+
+        super().__init__(prompt, model, parser, verbose)
+
+    def get_default_config(self):
+        return {
+            "model": GoogleGenerativeAI(model="gemini-1.5-pro"),
+            "parser": JsonOutputParser(pydantic_object=WorksheetQuestionModel),
+            "prompt": read_text_file("prompts/generate-worksheet-question-types-prompt.txt"),
+            "vectorstore_class": Chroma,
+            "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001')
+        }
+
+    def compile(self, documents):
+    
+        prompt = PromptTemplate(
+            template=self.prompt,
+            input_variables=["attribute_collection"],
+            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+        )
+        if self.runner is None:
+            logger.info(f"Creating vectorstore from {len(documents)} documents") if self.verbose else None
+            self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+            logger.info(f"Vectorstore created") if self.verbose else None
+
+            self.retriever = self.vectorstore.as_retriever()
+            logger.info(f"Retriever created successfully") if self.verbose else None
+
+            self.runner = RunnableParallel(
+                {"context": self.retriever, 
+                "attribute_collection": RunnablePassthrough()
+                }
+            )
+
+        chain = self.runner | prompt | self.model | self.parser
+
 
         if self.verbose:
             logger.info(f"Chain compilation complete")
@@ -141,18 +191,32 @@ class WorksheetGenerator(BaseGenerator):
         except Exception as e:
             logger.warning(f"Invalid question format: {e}") if self.verbose else None
             return False
+        
+def worksheet_question_type_generator(course_type, grade_level, documents, verbose):
+    logger.info(f"Generating questions types for the Worksheet") if verbose else None
+    attribute_collection = f"""
+        1. Course type: {course_type}
+        2. Grade level: {grade_level}
+    """
+    worksheet_question_type_generator = WorksheetQuestionTypeGenerator(verbose=verbose)
+    chain = worksheet_question_type_generator.compile(documents)
+    result = chain.invoke(attribute_collection)
+    logger.info(f"The question types are successfully generated: {result}") if verbose else None
+    if verbose: logger.info(f"Deleting vectorstore")
+    worksheet_question_type_generator.vectorstore.delete_collection()
+    return result
 
 def worksheet_generator(course_type, grade_level, worksheet_list, documents, lang, verbose):
     previous_questions = []
     results = {}
     generated_questions = []
     worksheet_generator = WorksheetGenerator(question_type="default", lang=lang, verbose=verbose)
-    for worksheet in worksheet_list.worksheet_question_list:
-        logger.info(f"Generating questions for [{worksheet.question_type}] type question") if verbose else None
-        chain = worksheet_generator.compile(documents, question_type=worksheet.question_type)
+    for worksheet in worksheet_list['worksheet_question_list']:
+        logger.info(f"Generating questions for [{worksheet['question_type']}] type question") if verbose else None
+        chain = worksheet_generator.compile(documents, question_type=worksheet['question_type'])
         attempts = 0
-        max_attempts = worksheet.number * 5  # 5 attempts per question
-        while len(generated_questions) < worksheet.number and attempts < max_attempts:        
+        max_attempts = worksheet['number'] * 5  # 5 attempts per question
+        while len(generated_questions) < worksheet['number'] and attempts < max_attempts:        
         # for _ in range(worksheet.number):
 
             attribute_collection = f"""
@@ -177,7 +241,7 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
                 logger.warning(f"Invalid question format. Attempt {attempts + 1}/{max_attempts}") if verbose else None
             attempts += 1
 
-        results[worksheet.question_type] = generated_questions
+        results[worksheet['question_type']] = generated_questions
         generated_questions = []
         previous_questions = []
 

@@ -11,11 +11,6 @@
             "type": "text"
         },
         {
-            "label": "Worksheet List",
-            "name": "worksheet_list",
-            "type": "worksheet_list"
-        },
-        {
             "label": "File URL",
             "name": "file_url",
             "type": "text"
