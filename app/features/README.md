@@ -426,19 +426,6 @@
             "value": "Machine Learning"
          },
          {
-            "name": "worksheet_list",
-            "value": [
-               {
-                  "question_type": "fill_in_the_blank",
-                  "number": 2
-               },
-               {
-                  "question_type": "multiple_choice_question",
-                  "number": 2
-               }
-            ]
-         },
-         {
             "name": "file_url",
             "value": "https://www.interactions.com/wp-content/uploads/2017/06/machine_learning_wp-5.pdf"
          },
@@ -474,19 +461,6 @@
          {
             "name": "topic",
             "value": "Books"
-         },
-         {
-            "name": "worksheet_list",
-            "value": [
-               {
-                  "question_type": "fill_in_the_blank",
-                  "number": 2
-               },
-               {
-                  "question_type": "multiple_choice_question",
-                  "number": 2
-               }
-            ]
          },
          {
             "name": "file_url",
@@ -526,19 +500,6 @@
             "value": "Machine Learning"
          },
          {
-            "name": "worksheet_list",
-            "value": [
-               {
-                  "question_type": "fill_in_the_blank",
-                  "number": 2
-               },
-               {
-                  "question_type": "multiple_choice_question",
-                  "number": 2
-               }
-            ]
-         },
-         {
             "name": "file_url",
             "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
          },
@@ -576,19 +537,6 @@
             "value": "OpenAI"
          },
          {
-            "name": "worksheet_list",
-            "value": [
-               {
-                  "question_type": "fill_in_the_blank",
-                  "number": 2
-               },
-               {
-                  "question_type": "multiple_choice_question",
-                  "number": 2
-               }
-            ]
-         },
-         {
             "name": "file_url",
             "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
@@ -624,19 +572,6 @@
          {
             "name": "topic",
             "value": "AWS Architecture"
-         },
-         {
-            "name": "worksheet_list",
-            "value": [
-               {
-                  "question_type": "fill_in_the_blank",
-                  "number": 2
-               },
-               {
-                  "question_type": "multiple_choice_question",
-                  "number": 2
-               }
-            ]
          },
          {
             "name": "file_url",
