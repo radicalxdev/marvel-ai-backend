@@ -1,21 +1,25 @@
 from app.services.logger import setup_logger
 from app.features.syllabus_generator.tools import SyllabusRequestArgs
 from app.features.syllabus_generator.tools import generate_syllabus
-from app.features.syllabus_generator.document_loaders import generate_summary_from_img, summarize_transcript_youtube_url, get_summary
+from app.features.syllabus_generator.document_loaders import (
+    generate_summary_from_img, 
+    summarize_transcript_youtube_url, 
+    get_summary
+)
 from app.api.error_utilities import SyllabusGeneratorError
 from app.services.schemas import SyllabusGeneratorArgsModel
 
 logger = setup_logger()
 
 def executor(grade_level: str,
-             course: str,
-             instructor_name: str,
-             instructor_title: str,
-             unit_time: str,
-             unit_time_value: int,
-             start_date: str,
-             assessment_methods: str,
-             grading_scale: str,
+             subject: str,
+             course_description: str,
+             objectives: str,
+             required_materials: str,
+             grading_policy: str,
+             policies_expectations: str,
+             course_outline: str,
+             additional_notes: str,
              file_url: str,
              file_type: str,
              lang: str,
@@ -35,14 +39,14 @@ def executor(grade_level: str,
     
         syllabus_args_model = SyllabusGeneratorArgsModel(
             grade_level = grade_level,
-            course = course,
-            instructor_name = instructor_name,
-            instructor_title = instructor_title,
-            unit_time = unit_time,
-            unit_time_value = unit_time_value,
-            start_date = start_date,
-            assessment_methods = assessment_methods,
-            grading_scale = grading_scale,
+            subject = subject,
+            course_description = course_description,
+            objectives = objectives,
+            required_materials = required_materials,
+            grading_policy = grading_policy,
+            policies_expectations = policies_expectations,
+            course_outline = course_outline,
+            additional_notes = additional_notes,
             file_url = file_url,
             file_type = file_type,
             lang = lang
