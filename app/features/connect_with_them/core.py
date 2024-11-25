@@ -6,14 +6,27 @@ from app.api.error_utilities import LoaderError, ToolExecutorError
 
 logger = setup_logger()
 
-def executor(connect_with_them_args: ConnectWithThemArgs, verbose=False):
+def executor(grade_level: str,
+             task_description: str,
+             students_description: str,
+             file_url: str,
+             file_type: str,
+             lang: str,
+             verbose=False):
     
     try:
-        if verbose: print(f"Args.: {connect_with_them_args}")
+        logger.info(f"Generating docs. from {file_type}")
 
-        logger.info(f"Generating docs. from {connect_with_them_args.file_type}")
+        docs = get_docs(file_url, file_type, True)
 
-        docs = get_docs(connect_with_them_args.file_url, connect_with_them_args.file_type, True)
+        connect_with_them_args = ConnectWithThemArgs(
+            grade_level=grade_level,
+            task_description=task_description,
+            students_description=students_description,
+            file_url=file_url,
+            file_type=file_type,
+            lang=lang
+        )
 
         output = AIConnectWithThemGenerator(args=connect_with_them_args, verbose=verbose).generate_suggestion(docs)
 
