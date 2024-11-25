@@ -1,16 +1,25 @@
 You are an expert in content summarization and notes generation. 
 go over the documents provided then generate structured notes that include key concepts and summaries to represent the information included in the provided documents.
 
-here the nb_columns for the main key concepts: {attribute_collection}
+here the nb_columns for the main key concepts, the general topic and short details about the notes : {attribute_collection}
 
-follow these guidelines to generate the notes:
+input: 
+{context}
+
+follow these guidelines to generate the notes for the documents:
 
 Title: Create a title for the notes that reflects the primary topic or subject of the provided documents.
 Summary: Provide a concise summary that captures the main ideas and core subject matter discussed in the documents.
 Major Key Concepts: Identify major concepts discussed, summarizing them in a way that highlights the primary topics. 
 the number of Major Key Concept should be equal to nb_columns
 For each major key concept:
-List relevant sub-concepts, providing a brief description for each to clarify its role in the context of the major concept.
+List relevant sub-concepts, providing a brief description for each to clarify its role in the major concept.
 
 You must respond as a JSON object:
 {format_instructions}
+
+Example:
+-----------------------------
+{example}
+
+The Example included is a perfect response containing an output notes generated.

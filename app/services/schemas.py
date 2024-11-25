@@ -60,6 +60,8 @@ class GivenFiles(BaseModel):
     lang: Optional[str] = Field(..., description="Language in which the file or content is written")
 
 class NotesGeneratorArgs(BaseModel):
+    topic: str = Field(..., description="Topic of the notes")
+    details: str = Field(..., description="what should the notes talk about")
     nb_columns: int = Field(..., description="number of columns for the key concept notes generated")
     orientation: Literal["landscape", "portrait"] = Field(..., description="orientation of the notes document created")
     givenfileslist: List[GivenFiles] = Field(..., description="upload or specify the various inputs to retrive notes from")

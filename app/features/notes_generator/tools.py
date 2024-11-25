@@ -42,6 +42,8 @@ class NotesGenerator:
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
         self.embedding_model = embedding_model or default_config["embedding_model"]
+        self.example = read_text_file("prompt/example.txt")
+        print(f"Example content: {self.example}")
 
         self.vectorstore_class = vectorstore_class or default_config["vectorstore_class"]
         self.vectorstore, self.retriever, self.runner = None, None, None
@@ -51,15 +53,22 @@ class NotesGenerator:
         if vectorstore_class is None: raise ValueError("Vectorstore must be provided")
         if args.orientation is None: raise ValueError("Orientattion must be provided")
         if args.nb_columns is None: raise ValueError("nb_columns must be provided")
+        if args.details is None: raise ValueError("details about the notes must be provided")
+        if args.topic is None: raise ValueError("topic must be provided")
 
 
     def compile(self, documents: List[Document]):
-        # Return the chain
         prompt = PromptTemplate(
             template=self.prompt,
             input_variables=["attribute_collection"],
-            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+            partial_variables={"format_instructions": self.parser.get_format_instructions(),
+                               "example": self.example 
+                               }
         )
+        if not isinstance(self.example, str):
+            raise TypeError(f"`example` must be a string, but got {type(self.example)}")
+        else: 
+            print("example is a string")
 
         if self.runner is None:
             logger.info(f"Creating vectorstore from {len(documents)} documents") if self.verbose else None
@@ -71,7 +80,7 @@ class NotesGenerator:
 
             self.runner = RunnableParallel(
                 {"context": self.retriever,
-                "attribute_collection": RunnablePassthrough()
+                 "attribute_collection": RunnablePassthrough()
                 }
             )
 
@@ -152,9 +161,15 @@ class NotesGenerator:
 
          # Log the input parameters
         input_parameters = (
-            f"Nb of columns: {self.args.nb_columns}"
+            f"Nb of columns: {self.args.nb_columns}, "
+            f"Topic: {self.args.topic}, "
+            f"Details: {self.args.details}"
         )
         logger.info(f"Input parameters: {input_parameters}")
+        if not isinstance(input_parameters, str):
+            raise TypeError(f"`input_parameters` must be a string, but got {type(input_parameters)}")
+        else: 
+            print("input_parameters is a string")
 
         attempt = 1
         max_attempt = 6
@@ -201,7 +216,7 @@ class MajorKeyConcepts(BaseModel):
     keyconceptdetails: List[KeyConcepts] = Field(..., description="Details for the major concept")
     
 class NotesOutput(BaseModel):
-    title: str = Field(..., description="title for the notes created based on the uploaded documents")
-    summary: str = Field(..., description="A summary containing the main idea and subject discussed in the uploaded documents")
-    majorkeyconceptslist: List[MajorKeyConcepts] = Field(..., description="The major key concepts, or the big large title discussed in the uploaded documents")
+    title: str = Field(..., description="title or main topic for the notes created")
+    summary: str = Field(..., description="A summary containing the main idea and subject discussed")
+    majorkeyconceptslist: List[MajorKeyConcepts] = Field(..., description="The major key concepts, or the big large title discussed")
     
