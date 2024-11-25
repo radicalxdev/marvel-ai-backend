@@ -147,7 +147,7 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
     results = {}
     generated_questions = []
     worksheet_generator = WorksheetGenerator(question_type="default", lang=lang, verbose=verbose)
-    for worksheet in worksheet_list:
+    for worksheet in worksheet_list.worksheet_question_list:
         logger.info(f"Generating questions for [{worksheet.question_type}] type question") if verbose else None
         chain = worksheet_generator.compile(documents, question_type=worksheet.question_type)
         attempts = 0

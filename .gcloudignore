@@ -11,3 +11,4 @@ README.md
 .github/
 app/__pycache__/
 __pycache__/
+/env
