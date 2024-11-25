@@ -5,14 +5,14 @@
 1. [**AVAILABLE DOCUMENT LOADERS FOR DIFFERENT FILE TYPES**](#available-document-loaders-for-different-file-types)
 
 2. [**PAYLOADS FOR TESTING**](#payloads-for-testing)
-   - [**Epic 7.1 - Quizzify**](#epic-71---quizzify)
+   - [**Epic 7.1 - Multiple Choice Quiz Generator**](#epic-71---multiple-choice-quiz-generator)
      - [PDF](#pdf-1)
      - [Structured Data (EXCEL)](#structured-data-excel)
      - [Youtube Videos](#youtube-videos)
      - [Google Drive (GDocs)](#google-drive-gdocs)
      - [Google Drive (GPDF)](#google-drive-gpdf)
      - [Images](#images-1)
-   - [**Epic 7.2 - Dynamo**](#epic-72---dynamo)
+   - [**Epic 7.2 - Flashcards Generator**](#epic-72---flashcards-generator)
      - [PDF](#pdf-2)
      - [Structured Data (XML)](#structured-data-xml)
      - [Youtube Videos](#youtube-videos-1)
@@ -54,7 +54,7 @@
 
 ## PAYLOADS FOR TESTING:
 
-## Epic 7.1 - Quizzify:
+## Epic 7.1 - Multiple Choice Quiz Generator:
 ### PDF:
 ```json 
 { 
@@ -278,7 +278,7 @@
 }
 ```
 
-## Epic 7.2 - Dynamo:
+## Epic 7.2 - Flashcards Generator:
 ### PDF:
 ```json
 {
