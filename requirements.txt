@@ -36,3 +36,5 @@ pydub
 ffmpeg-python
 speechrecognition
 google-cloud-speech
+reportlab
+pdflatex

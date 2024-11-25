@@ -24,22 +24,14 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
     try: 
         # Unpack GenericRequest for tool data
         request_data = data.tool_data
+        
         requested_tool = load_tool_metadata(request_data.tool_id)
+        
         request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
+
         result = execute_tool(request_data.tool_id, request_inputs_dict)
         
-        logger.info(f"absolute_path_to_result: {os.path.abspath(result)}")
-
-        # Check if the file exists
-        if not os.path.exists(result):
-            raise HTTPException(status_code=404, detail="PDF file not found")
-        
-        return FileResponse(
-            path=result, 
-            media_type='application/pdf', 
-            filename="rubric.pdf",
-            background=BackgroundTask(lambda: os.remove(result))
-        )
+        return ToolResponse(data=result)
     
     except InputValidationError as e:
         logger.error(f"InputValidationError: {e}")

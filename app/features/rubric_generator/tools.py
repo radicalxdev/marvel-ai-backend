@@ -8,11 +8,12 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from pylatex import Document, Section, Command, NoEscape, Tabular, MultiColumn, Package
-from pylatex import Tabular, Tabularx, LongTable
-from pylatex.utils import italic, NoEscape, bold
-
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 from app.services.logger import setup_logger
+import subprocess
 
 logger = setup_logger(__name__)
 
@@ -52,8 +53,8 @@ class RubricGenerator:
         if int(args.point_scale) < 2 or int(args.point_scale) > 8:
             raise ValueError("Point Scale must be between 2 and 8. Suggested value is 4 for optimal granularity in grading.")
         if args.standard is None: raise ValueError("Learning Standard must be provided")
+        if args.assignment_desc is None: raise ValueError("Assignment description must be provided")
         if args.lang is None: raise ValueError("Language must be provided")
-
 
     def compile(self, documents: List[Document]):
         # Return the chain
@@ -82,125 +83,7 @@ class RubricGenerator:
         logger.info(f"Chain compilation complete")
 
         return chain
-    
-    def create_pdf_from_rubric(self, rubric_data):
-        # Create a LaTeX document
-        doc = Document()
 
-        doc.packages.append(Package('geometry'))
-        doc.packages.append(Package('longtable'))
-        doc.packages.append(Package('tabularx'))
-
-        doc.preamble.append(NoEscape(r'\geometry{left=1em,right=0.5em}'))
-
-        # Set up the document preamble
-        doc.preamble.append(Command('title', 'Rubric'))
-        doc.preamble.append(Command('author', 'AI Generated'))
-        doc.preamble.append(Command('date', NoEscape(r'\today')))
-
-        doc.append(NoEscape(r'\maketitle'))
-
-        doc.append(NoEscape(r'\noindent\textbf{Title:} ' + rubric_data['title'] + r'\\'))
-        doc.append(NoEscape(r'\noindent\textbf{Grade Level:} ' + rubric_data['grade_level'] + r'\\'))   
-
-        # Determine the point scale
-        num_points = int(self.args.point_scale)
-
-        first_criteria_description = rubric_data['criterias'][0]['criteria_description']
-        points = []
-
-        for i in range(num_points):
-            # Append each 'points' from the first_criteria_description to the points list
-            points.append(first_criteria_description[i]['points']) 
-
-        # Create the table
-        doc.append(NoEscape(r'\section*{Rubric Criterias}'))
-
-        total_columns = num_points + 1
-        col_width = f'{0.8/total_columns:.2f}\\textwidth'  # Adjust to fit within margins
-
-        # Create a column definition where each column has equal width
-        col_definition = '|' + '|'.join([f'p{{{col_width}}}' for _ in range(total_columns)]) + '|'
-
-        try:
-            with doc.create(LongTable(col_definition)) as table:
-                # Add table headers
-                table.add_hline()
-                header_row = ["Criteria"] + points
-                table.add_row(header_row)
-                table.add_hline()
-                table.end_table_header()
-                
-                # Add footer for continuation
-                table.add_hline()
-                table.add_row((MultiColumn(num_points + 1, align='r', data='Continued on next page'),))
-                table.add_hline()
-                table.end_table_footer()
-                
-                table.end_table_last_footer()
-
-                # Add rows for each criterion
-                for criteria in rubric_data['criterias']:
-                    row = [criteria['criteria']]  # First column is the 'Criteria' name
-                    
-                    for criteria_desc in criteria['criteria_description']:
-                        # Iterate through the list of descriptions and add each description in a new cell
-                        description = ' '.join(criteria_desc['description'])  # Join descriptions with spaces or commas
-                        row.append(description)  # Add the concatenated description to the row
-                    
-                    table.add_row(row)
-                    table.add_hline()
-
-        except Exception as e:
-            logger.error(f"Error creating table: {str(e)}")
-
-        # Add feedback section
-        doc.append(NoEscape(r'\section*{Feedback/Rubric Evaluation}'))
-        doc.append(rubric_data['feedback'] + "\n")
-
-        # Generate the PDF
-        pdf_filename = 'generated_rubric'
-        try:
-            doc.generate_pdf(pdf_filename, clean_tex=False)
-        except Exception as e:
-            logger.error(f"LaTeX Error: {str(e)}")
-            with open(f'{pdf_filename}.log', 'r') as log_file:
-                logger.error(log_file.read())
-
-        # Construct the full path with .pdf extension
-        full_path = f"{os.path.abspath(pdf_filename)}.pdf"
-
-        # Check if the file was created successfully
-        if not os.path.exists(full_path):
-            logger.error(f"Failed to create PDF file: {full_path}")
-        else:
-            logger.info(f"Rubric PDF file created successfully: {full_path}")
-
-        return full_path
-    
-    def validate_rubric(self, response: Dict) -> bool:
-         # Check if "criterias" exist and are valid
-        if "criterias" not in response or len(response["criterias"]) == 0:
-            logger.error("Rubric generation failed, criterias not created successfully, trying agian.")
-            return False
-
-        if "feedback" not in response:
-            logger.error("Rubric generation failed, feedback not created successfully, trying again.")
-            return False
-
-        # Validate each criterion
-        criteria_valid = True
-        for criterion in response["criterias"]:
-            if "criteria_description" not in criterion or len(criterion["criteria_description"]) != int(self.args.point_scale):
-                logger.error("Mismatch between point scale nb and a criteria description. Trying again.")
-                criteria_valid = False
-                break  # Exit the for loop if a criterion is invalid
-
-        if not criteria_valid:
-            return False
-        
-        return True
-   
     def create_rubric(self, documents: List[Document]):
         logger.info(f"Creating the Rubric")
 
@@ -211,6 +94,8 @@ class RubricGenerator:
             f"Grade Level: {self.args.grade_level}, "
             f"Point Scale: {self.args.point_scale}, "
             f"Standard: {self.args.standard}, "
+            f"Assignment Description: {self.args.assignment_desc}, "
+            f"Additional Customization: {self.args.additional_customization}, "
             f"Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}"
         )
         logger.info(f"Input parameters: {input_parameters}")
@@ -246,10 +131,31 @@ class RubricGenerator:
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
 
-        return self.create_pdf_from_rubric(response)
+        return response 
+    
+    def validate_rubric(self, response: Dict) -> bool:
+         # Check if "criterias" exist and are valid
+        if "criterias" not in response or len(response["criterias"]) == 0:
+            logger.error("Rubric generation failed, criterias not created successfully, trying agian.")
+            return False
+
+        if "feedback" not in response:
+            logger.error("Rubric generation failed, feedback not created successfully, trying again.")
+            return False
+
+        # Validate each criterion
+        criteria_valid = True
+        for criterion in response["criterias"]:
+            if "criteria_description" not in criterion or len(criterion["criteria_description"]) != int(self.args.point_scale):
+                logger.error("Mismatch between point scale nb and a criteria description. Trying again.")
+                criteria_valid = False
+                break  # Exit the for loop if a criterion is invalid
+
+        if not criteria_valid:
+            return False
         
-
-
+        return True
+    
 class CriteriaDescription(BaseModel):
     points: str = Field(..., description="The total points gained by the student according to the point_scale an the level name")
     description: List[str] = Field(..., description="Description for the specific point on the scale")

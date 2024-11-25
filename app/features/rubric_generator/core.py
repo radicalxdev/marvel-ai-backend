@@ -6,18 +6,38 @@ from app.features.rubric_generator.tools import RubricGenerator
 
 logger = setup_logger()
 
-def executor(rubric_generator_args: RubricGeneratorArgs, verbose=False):
+def executor(standard: str,
+             point_scale: int,
+             grade_level: str,
+             assignment_desc: str,
+             additional_customization: str,
+             file_type: str,
+             file_url: str,
+             lang: str,
+             verbose=False):
     try:
         if verbose: 
-            logger.info(f"Args = rubric_generator_args: {rubric_generator_args}")
-            logger.info(f"File URL loaded: {rubric_generator_args.file_url}")
+            logger.info(f"File URL loaded: {file_url}")
 
-        logger.info(f"Generating docs from {rubric_generator_args.file_type}")
+        logger.info(f"Generating docs from {file_type}")
 
-        docs = get_docs(rubric_generator_args.file_url, rubric_generator_args.file_type, verbose=True)
+        docs = get_docs(file_url, file_type, verbose=True)
         
         # Create and return the Rubric
+        rubric_generator_args = RubricGeneratorArgs(
+            standard=standard,
+            point_scale=point_scale,
+            grade_level=grade_level,
+            assignment_desc=assignment_desc,
+            additional_customization=additional_customization,
+            file_type=file_type,
+            file_url=file_url,
+            lang=lang
+        )
+        
         output = RubricGenerator(args=rubric_generator_args, verbose=verbose).create_rubric(docs)
+
+        print(output)
         
         logger.info(f"Rubric generated successfully in a pdf file")
     
