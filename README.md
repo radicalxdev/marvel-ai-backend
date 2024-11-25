@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/04e5f5a4-9ba7-4887-a158-bca181f7391c)
+
 # Marvel AI Platform
 
 ![Static Badge](https://img.shields.io/badge/v3.10.12-blue?logo=python&logoColor=yellow&labelColor=gray)

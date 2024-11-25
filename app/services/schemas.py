@@ -60,15 +60,18 @@ class QuizzifyArgs(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
-    
-class WorksheetQuestionModel(BaseModel):
+
+class WorksheetQuestion(BaseModel):
     question_type: str
     number: int
+    
+class WorksheetQuestionModel(BaseModel):
+    worksheet_question_list: List[WorksheetQuestion]
 
 class WorksheetGeneratorArgs(BaseModel):
     grade_level: str
     topic: str
-    worksheet_list: List[WorksheetQuestionModel]
+    worksheet_list: WorksheetQuestionModel
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
@@ -80,7 +83,6 @@ class SyllabusGeneratorArgsModel(BaseModel):
     instructor_title: str
     unit_time: str
     unit_time_value: int
-    start_date: str
     start_date: str
     assessment_methods: str
     grading_scale: str
