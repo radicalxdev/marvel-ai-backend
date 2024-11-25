@@ -1,5 +1,5 @@
 from app.services.logger import setup_logger
-from app.features.dynamo.tools import get_summary, summarize_transcript_youtube_url, generate_flashcards, generate_concepts_from_img
+from app.features.flashcards_generator.tools import get_summary, summarize_transcript_youtube_url, generate_flashcards, generate_concepts_from_img
 from app.api.error_utilities import ToolExecutorError, VideoTranscriptError
 
 logger = setup_logger(__name__)

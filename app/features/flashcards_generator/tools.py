@@ -11,7 +11,7 @@ from langchain_community.document_loaders import (
     UnstructuredXMLLoader
 )
 from langchain_google_genai import ChatGoogleGenerativeAI
-from app.utils.allowed_file_extensions_dynamo import FileType
+from app.utils.allowed_file_extensions_flashcards_generator import FileType
 from app.api.error_utilities import FileHandlerError, ImageHandlerError
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
@@ -71,9 +71,9 @@ def generate_flashcards(summary: str, lang:str, verbose=False) -> list:
     # Receive the summary from the map reduce chain and generate flashcards
     parser = JsonOutputParser(pydantic_object=Flashcard)
     
-    if verbose: print(f"Beginning to process flashcards from summary")
+    if verbose: logger.info(f"Beginning to process flashcards from summary")
     
-    template = read_text_file(r"prompt/dynamo-prompt.txt")
+    template = read_text_file(r"prompt/flashcards-generator-prompt.txt")
     examples = read_text_file(r"prompt/examples.txt")
     
     cards_prompt = PromptTemplate(
@@ -145,8 +145,8 @@ def load_pdf_documents(pdf_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
 
         if verbose:
-            print(f"Found PDF file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found PDF file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -160,8 +160,8 @@ def load_csv_documents(csv_url: str, verbose=False):
 
     if docs:
         if verbose:
-            print(f"Found CSV file")
-            print(f"Splitting documents into {len(docs)} chunks")
+            logger.info(f"Found CSV file")
+            logger.info(f"Splitting documents into {len(docs)} chunks")
 
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
@@ -177,8 +177,8 @@ def load_txt_documents(notes_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
         
         if verbose:
-            print(f"Found TXT file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found TXT file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -194,8 +194,8 @@ def load_md_documents(notes_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
 
         if verbose:
-            print(f"Found MD file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found MD file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -210,8 +210,8 @@ def load_url_documents(url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
 
         if verbose:
-            print(f"Found URL")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found URL")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -227,8 +227,8 @@ def load_pptx_documents(pptx_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
 
         if verbose:
-            print(f"Found PPTX file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found PPTX file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
         
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -243,8 +243,8 @@ def load_docx_documents(docx_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
         
         if verbose:
-            print(f"Found DOCX file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found DOCX file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -259,8 +259,8 @@ def load_xls_documents(xls_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
         
         if verbose:
-            print(f"Found XLS file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found XLS file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -275,8 +275,8 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
         
         if verbose:
-            print(f"Found XLSX file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found XLSX file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -291,8 +291,8 @@ def load_xml_documents(xml_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
         
         if verbose:
-            print(f"Found XML file")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found XML file")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -350,8 +350,8 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
         
         if verbose:
-            print(f"Found Google Docs files")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found Google Docs files")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -365,8 +365,8 @@ def load_gsheets_documents(drive_folder_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
 
         if verbose:
-            print(f"Found Google Sheets files")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found Google Sheets files")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -381,8 +381,8 @@ def load_gslides_documents(drive_folder_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
 
         if verbose:
-            print(f"Found Google Slides files")
-            print(f"Splitting documents into {len(split_docs)} chunks")
+            logger.info(f"Found Google Slides files")
+            logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
@@ -397,8 +397,8 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
     if docs: 
 
         if verbose:
-            print(f"Found Google PDF files")
-            print(f"Splitting documents into {len(docs)} chunks")
+            logger.info(f"Found Google PDF files")
+            logger.info(f"Splitting documents into {len(docs)} chunks")
 
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
@@ -426,9 +426,9 @@ def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, ver
 
 
     if verbose:
-        print(f"Found video")
-        print(f"Combined documents into a single string.")
-        print(f"Beginning to process transcript...")
+        logger.info(f"Found video")
+        logger.info(f"Combined documents into a single string.")
+        logger.info(f"Beginning to process transcript...")
     
     prompt_template = read_text_file(r"prompt/summarize-youtube-video-prompt.txt")
     summarize_prompt = PromptTemplate.from_template(prompt_template)
