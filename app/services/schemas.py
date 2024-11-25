@@ -54,6 +54,41 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
+class QuizzifyArgs(BaseModel):
+    topic: str
+    n_questions: int
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
+
+class WorksheetQuestion(BaseModel):
+    question_type: str
+    number: int
+    
+class WorksheetQuestionModel(BaseModel):
+    worksheet_question_list: List[WorksheetQuestion]
+
+class WorksheetGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    worksheet_list: WorksheetQuestionModel
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
+    
+class SyllabusGeneratorArgsModel(BaseModel):
+    grade_level: str
+    course: str
+    instructor_name: str
+    instructor_title: str
+    unit_time: str
+    unit_time_value: int
+    start_date: str
+    assessment_methods: str
+    grading_scale: str
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
 class RubricGeneratorArgs(BaseModel):
     standard: str = Field(..., min_length=1, max_length=255, description="the learning standard or objective")
     point_scale: int = Field(..., description="Point scale for the rubric, must be between 1 and 10")
