@@ -6,14 +6,25 @@ from app.api.error_utilities import LoaderError, ToolExecutorError
 
 logger = setup_logger()
 
-def executor(ai_resistant_args: AIResistantArgs, verbose=False):
+def executor(assignment: str,
+             grade_level: str,
+             file_url: str,
+             file_type: str,
+             lang: str, 
+             verbose=False):
     
     try:
-        if verbose: print(f"Args.: {ai_resistant_args}")
+        logger.info(f"Generating docs. from {file_type}")
 
-        logger.info(f"Generating docs. from {ai_resistant_args.file_type}")
+        docs = get_docs(file_url, file_type, True)
 
-        docs = get_docs(ai_resistant_args.file_url, ai_resistant_args.file_type, True)
+        ai_resistant_args = AIResistantArgs(
+            assignment=assignment,
+            grade_level=grade_level,
+            file_type=file_type,
+            file_url=file_url,
+            lang=lang
+        )
 
         output = AIResistantAssignmentGenerator(args=ai_resistant_args, verbose=verbose).create_assignments(docs)
 

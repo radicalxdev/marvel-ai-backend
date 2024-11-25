@@ -3,8 +3,11 @@ each modified to be AI-resistant while maintaining the core educational objectiv
 for AI tools to solve or generate responses. Provide a detailed explanation for each version, specifically highlighting how and why the changes make the assignment
 resistant to AI tools, considering limitations such as understanding nuanced questions, producing original thought-provoking responses, or solving complex problems.
 
-Here is the topic, assignment, grade level, and language of the assignment:
+Here is the assignment, grade level, and language of the assignment:
 {attribute_collection}
+
+Here is the context:
+{context}
 
 Your response should be in the following format:
 {format_instructions}

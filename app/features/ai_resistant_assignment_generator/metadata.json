@@ -1,9 +1,29 @@
 {
     "inputs": [
         {
-            "label": "AI Resistant Assignment Generator Args.",
-            "name": "ai_resistant_args",
-            "type": "ai_resistant_args"
+            "label": "Assignment",
+            "name": "assignment",
+            "type": "assignment"
+        },
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "grade_level"
+        },
+        {
+            "label": "File URL",
+            "name": "file_url",
+            "type": "file_url"
+        },
+        {
+            "label": "File Type",
+            "name": "file_type",
+            "type": "file_type"
+        },
+        {
+            "label": "Language",
+            "name": "lang",
+            "type": "lang"
         }
     ]
 }

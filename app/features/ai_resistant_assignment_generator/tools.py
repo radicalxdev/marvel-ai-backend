@@ -44,10 +44,9 @@ class AIResistantAssignmentGenerator:
         self.verbose = verbose
 
         if vectorstore_class is None: raise ValueError("Vectorstore must be provided")
-        if args.topic is None: raise ValueError("Topic must be provided")
         if args.assignment is None: raise ValueError("Assignment must be provided")
         if args.grade_level is None: raise ValueError("Grade Level must be provided")
-        if args.grade_level is None: raise ValueError("Language must be provided")
+        if args.lang is None: raise ValueError("Language must be provided")
 
 
     def compile(self, documents: List[Document]):
@@ -83,7 +82,7 @@ class AIResistantAssignmentGenerator:
 
         chain = self.compile(documents)
 
-        response = chain.invoke(f"Topic: {self.args.topic}, Assignment: {self.args.assignment}, Grade Level: {self.args.grade_level}, Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}")
+        response = chain.invoke(f"Assignment: {self.args.assignment}, Grade Level: {self.args.grade_level}, Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}")
 
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
@@ -91,6 +90,7 @@ class AIResistantAssignmentGenerator:
         return response
 
 class AIResistanceIdea(BaseModel):
+    title: str = Field(..., description="The main title of the idea")
     assignment_description: str = Field(..., description="Detailed description of the modified assignment")
     explanation: str = Field(..., description="Explanation of how this modification makes the assignment AI-resistant")
 
