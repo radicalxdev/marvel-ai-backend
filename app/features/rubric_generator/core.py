@@ -39,7 +39,7 @@ def executor(standard: str,
 
         print(output)
         
-        logger.info(f"Rubric generated successfully in a pdf file")
+        logger.info(f"Rubric generated successfully")
     
     except LoaderError as e:
         error_message = e

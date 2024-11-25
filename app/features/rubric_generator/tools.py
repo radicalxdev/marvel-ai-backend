@@ -8,12 +8,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from reportlab.lib.pagesizes import letter
-from reportlab.lib import colors
-from reportlab.platypus import BaseDocTemplate, PageTemplate, Frame, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
 from app.services.logger import setup_logger
-import subprocess
 
 logger = setup_logger(__name__)
 
