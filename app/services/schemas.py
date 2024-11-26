@@ -89,3 +89,13 @@ class SyllabusGeneratorArgsModel(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+
+class PresentationGeneratorInput(BaseModel):
+    grade_level: str
+    n_slides: int
+    topic: str
+    objectives: str
+    additional_comments: str
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
