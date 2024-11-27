@@ -1,4 +1,4 @@
-from app.features.presentation_generator.document_loaders import get_docs
+from app.utils.document_loaders import get_docs
 from app.features.presentation_generator.tools import PresentationGenerator
 from app.services.schemas import PresentationGeneratorInput
 from app.services.logger import setup_logger
