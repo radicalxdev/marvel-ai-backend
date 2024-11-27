@@ -5,7 +5,7 @@ from app.features.worksheet_generator.tools import (
     worksheet_generator, 
     worksheet_question_type_generator
 )
-from app.features.worksheet_generator.document_loaders import get_docs
+from app.utils.document_loaders import get_docs
 
 logger = setup_logger()
 
