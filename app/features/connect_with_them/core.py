@@ -1,4 +1,4 @@
-from app.features.connect_with_them.document_loaders import get_docs
+from app.utils.document_loaders import get_docs
 from app.features.connect_with_them.tools import AIConnectWithThemGenerator
 from app.services.schemas import ConnectWithThemArgs
 from app.services.logger import setup_logger
