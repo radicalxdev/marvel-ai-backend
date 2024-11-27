@@ -11,7 +11,7 @@ from langchain_community.document_loaders import (
     UnstructuredXMLLoader
 )
 from langchain_google_genai import ChatGoogleGenerativeAI
-from app.utils.allowed_file_extensions_flashcards_generator import FileType
+from app.utils.allowed_file_extensions import FileType
 from app.api.error_utilities import FileHandlerError, ImageHandlerError
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
