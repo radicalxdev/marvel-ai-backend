@@ -1,4 +1,4 @@
-from app.features.ai_resistant_assignment_generator.document_loaders import get_docs
+from app.utils.document_loaders import get_docs
 from app.features.ai_resistant_assignment_generator.tools import AIResistantAssignmentGenerator
 from app.services.schemas import AIResistantArgs
 from app.services.logger import setup_logger
