@@ -10,9 +10,9 @@ from app.services.schemas import WorksheetQuestionModel
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from fastapi import HTTPException
-
+import threading
 
 logger = setup_logger()
 
@@ -112,6 +112,8 @@ class WorksheetQuestionTypeGenerator(BaseGenerator):
         return chain
     
 class WorksheetGenerator(BaseGenerator):
+    vectorstore_lock = threading.Lock()
+
     def __init__(self, prompt=None, model=None, parser=None, 
                  question_type: str=None, vectorstore_class=None, embedding_model=None, 
                  lang="en",
@@ -160,19 +162,21 @@ class WorksheetGenerator(BaseGenerator):
             partial_variables={"format_instructions": self.parser.get_format_instructions(), 
                                "lang": self.lang}
         )
-        if self.runner is None:
-            logger.info(f"Creating vectorstore from {len(documents)} documents") if self.verbose else None
-            self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
-            logger.info(f"Vectorstore created") if self.verbose else None
+        with self.vectorstore_lock:
+            if self.runner is None:  
+                logger.info(f"Creating vectorstore from {len(documents)} documents") if self.verbose else None
+                self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
+                logger.info("Vectorstore created") if self.verbose else None
 
-            self.retriever = self.vectorstore.as_retriever()
-            logger.info(f"Retriever created successfully") if self.verbose else None
+                self.retriever = self.vectorstore.as_retriever()
+                logger.info("Retriever created successfully") if self.verbose else None
 
-            self.runner = RunnableParallel(
-                {"context": self.retriever, 
-                "attribute_collection": RunnablePassthrough()
-                }
-            )
+                self.runner = RunnableParallel(
+                    {
+                        "context": self.retriever, 
+                        "attribute_collection": RunnablePassthrough()
+                    }
+                )
 
         chain = self.runner | prompt | self.model | self.parser
 
@@ -207,18 +211,21 @@ def worksheet_question_type_generator(course_type, grade_level, documents, verbo
     return result
 
 def worksheet_generator(course_type, grade_level, worksheet_list, documents, lang, verbose):
-    previous_questions = []
+    print(worksheet_list)
     results = {}
-    generated_questions = []
     worksheet_generator = WorksheetGenerator(question_type="default", lang=lang, verbose=verbose)
-    for worksheet in worksheet_list['worksheet_question_list']:
-        logger.info(f"Generating questions for [{worksheet['question_type']}] type question") if verbose else None
-        chain = worksheet_generator.compile(documents, question_type=worksheet['question_type'])
-        attempts = 0
-        max_attempts = worksheet['number'] * 5  # 5 attempts per question
-        while len(generated_questions) < worksheet['number'] and attempts < max_attempts:        
-        # for _ in range(worksheet.number):
 
+    def generate_questions(worksheet):
+        previous_questions = []
+        generated_questions = []
+        question_type = worksheet['question_type']
+        number_of_questions = worksheet['number']
+        logger.info(f"Generating questions for [{question_type}] type question") if verbose else None
+        chain = worksheet_generator.compile(documents, question_type=question_type)
+        attempts = 0
+        max_attempts = number_of_questions * 5  # 5 attempts per question
+
+        while len(generated_questions) < number_of_questions and attempts < max_attempts:
             attribute_collection = f"""
             1. Course type: {course_type}
             2. Grade level: {grade_level}
@@ -228,25 +235,30 @@ def worksheet_generator(course_type, grade_level, worksheet_list, documents, lan
 
             if result is None:
                 logger.warning("No question generated. Attempting again.") if verbose else None
+                attempts += 1
                 continue
 
             if "model_config" in result:
                 del result["model_config"]
 
-            if worksheet_generator.validate_result(result):
-                previous_questions.append(result["question"])
-                generated_questions.append(result)
-                logger.info("Valid question added") if verbose else None
-            else:
-                logger.warning(f"Invalid question format. Attempt {attempts + 1}/{max_attempts}") if verbose else None
-            attempts += 1
+            previous_questions.append(result["question"])
+            generated_questions.append(result)
+            logger.info("Valid question added") if verbose else None
 
-        results[worksheet['question_type']] = generated_questions
-        generated_questions = []
-        previous_questions = []
+        return question_type, generated_questions
 
-    if verbose: logger.info(f"Deleting vectorstore")
-    worksheet_generator.vectorstore.delete_collection()
+    with ThreadPoolExecutor() as executor:
+        future_to_question_type = {executor.submit(generate_questions, worksheet): worksheet['question_type']
+                                   for worksheet in worksheet_list['worksheet_question_list']}
+
+        for future in as_completed(future_to_question_type):
+            question_type = future_to_question_type[future]
+            try:
+                _, generated_questions = future.result()
+                results[question_type] = generated_questions
+            except Exception as exc:
+                logger.error(f"An error occurred while generating questions for {question_type}: {exc}")
+
     return results
  
 class CourseTypeSchema(BaseModel):
@@ -375,65 +387,11 @@ class TermMeaningPair(BaseModel):
     meaning: str = Field(description="The meaning of the term")
 
 class RelateConceptsQuestion(BaseModel):
-    question: str = Field(description="The 'Relate concepts' question text. It must be appropriate for generating pairs and answers.")
-    pairs: List[TermMeaningPair] = Field(description="A list of term-meaning pairs in disorder")
-    answer: List[TermMeaningPair] = Field(description="A list of the correct term-meaning pairs in order")
-    explanation: str = Field(description="An explanation of the correct term-meaning pairs")
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": """ 
-                {
-                "question": "Match each term with its correct meaning.",
-                "pairs": [
-                    {
-                        "term": "Chlorophyll",
-                        "meaning": "The powerhouse of the cell, where respiration and energy production occur."
-                    },
-                    {
-                        "term": "Photosynthesis",
-                        "meaning": "A green pigment responsible for the absorption of light to provide energy for photosynthesis."
-                    },
-                    {
-                        "term": "Mitochondria",
-                        "meaning": "The process by which green plants use sunlight to synthesize foods with the help of chlorophyll."
-                    },
-                    {
-                        "term": "Nucleus",
-                        "meaning": "The gel-like substance inside the cell membrane."
-                    },
-                    {
-                        "term": "Cytoplasm",
-                        "meaning": "The control center of the cell that contains DNA."
-                    }
-                ],
-                "answer": [
-                    {
-                        "term": "Photosynthesis",
-                        "meaning": "The process by which green plants use sunlight to synthesize foods with the help of chlorophyll."
-                    },
-                    {
-                        "term": "Chlorophyll",
-                        "meaning": "A green pigment responsible for the absorption of light to provide energy for photosynthesis."
-                    },
-                    {
-                        "term": "Mitochondria",
-                        "meaning": "The powerhouse of the cell, where respiration and energy production occur."
-                    },
-                    {
-                        "term": "Nucleus",
-                        "meaning": "The control center of the cell that contains DNA."
-                    },
-                    {
-                        "term": "Cytoplasm",
-                        "meaning": "The gel-like substance inside the cell membrane."
-                    }
-                ],
-                "explanation": "Photosynthesis involves using sunlight to create food in plants, facilitated by chlorophyll. Mitochondria are involved in energy production in cells. The nucleus is the control center of the cell, and the cytoplasm is the gel-like substance within the cell membrane."
-              }
-          """
-        }
-    }
+    question: str = Field(..., description="The 'Relate concepts' question text. It must be appropriate for generating pairs and answers.")
+    pairs: List[TermMeaningPair] = Field(..., description="A list of term-meaning pairs in disorder. It must not be empty.")
+    answer: List[TermMeaningPair] = Field(..., description="A list of the correct term-meaning pairs in order. It must not be empty.")
+    explanation: str = Field(..., description="An explanation of the correct term-meaning pairs")
+    
 
 #Math. Exercise question type
 class MathExerciseQuestion(BaseModel):
