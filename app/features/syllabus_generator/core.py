@@ -1,7 +1,7 @@
 from app.services.logger import setup_logger
 from app.features.syllabus_generator.tools import SyllabusRequestArgs
 from app.features.syllabus_generator.tools import generate_syllabus
-from app.features.syllabus_generator.document_loaders import (
+from app.utils.document_loaders import (
     generate_summary_from_img, 
     summarize_transcript_youtube_url, 
     get_summary
