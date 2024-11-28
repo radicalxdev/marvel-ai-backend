@@ -14,5 +14,9 @@
     "6": {
         "path": "features.syllabus_generator.core",
         "metadata_file": "metadata.json"
+    },
+    "14": {
+        "path": "features.writing_feedback_generator.core",
+        "metadata_file": "metadata.json"
     }
 }

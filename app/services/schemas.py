@@ -89,3 +89,12 @@ class SyllabusGeneratorArgsModel(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+
+class WritingFeedbackGeneratorArgs(BaseModel):
+    grade_level: str
+    assignment_description: str
+    criteria: str
+    writing_to_review: str
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
