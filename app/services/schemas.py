@@ -89,3 +89,12 @@ class SyllabusGeneratorArgsModel(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+
+class LessonPlanGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    objectives: str
+    additional_comments: str
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
