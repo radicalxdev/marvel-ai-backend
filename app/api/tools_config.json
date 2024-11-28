@@ -1,10 +1,10 @@
 {
     "0": {
-        "path": "features.quizzify.core",
+        "path": "features.multiple_choice_quiz_generator.core",
         "metadata_file": "metadata.json"
     },
     "1": {
-        "path": "features.dynamo.core",
+        "path": "features.flashcards_generator.core",
         "metadata_file": "metadata.json"
     },
     "2": {
