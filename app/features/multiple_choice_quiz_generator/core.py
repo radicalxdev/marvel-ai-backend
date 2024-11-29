@@ -1,8 +1,7 @@
-from app.features.quizzify.document_loaders import get_docs
+from app.utils.document_loaders import get_docs
 from app.services.logger import setup_logger
-from app.features.quizzify.tools import QuizBuilder
+from app.features.multiple_choice_quiz_generator.tools import QuizBuilder
 from app.api.error_utilities import LoaderError, ToolExecutorError
-from app.services.schemas import QuizzifyArgs
 
 logger = setup_logger()
 
