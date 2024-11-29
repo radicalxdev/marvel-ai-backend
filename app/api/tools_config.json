@@ -18,5 +18,9 @@
     "6": {
         "path": "features.syllabus_generator.core",
         "metadata_file": "metadata.json"
+    },
+    "10": {
+        "path": "features.connect_with_them.core",
+        "metadata_file": "metadata.json"
     }
 }

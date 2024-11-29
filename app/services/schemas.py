@@ -1,5 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Any, Literal
+from pydantic import BaseModel, Field
+from typing import Optional, List, Any
 from enum import Enum
 from app.services.tool_registry import BaseTool
 
@@ -96,3 +98,11 @@ class AIResistantArgs(BaseModel):
     file_type: str = Field(..., description="Type of file being handled, according to the defined enumeration")
     file_url: str = Field(..., description="URL or path of the file to be processed")
     lang: str = Field(..., description="Language in which the file or content is written")
+    
+class ConnectWithThemArgs(BaseModel):
+    grade_level: str = Field(..., description="The grade level the teacher is instructing.")
+    task_description: str = Field(..., description="A brief description of the subject or topic the teacher is instructing.")
+    students_description: str = Field(..., description="A description of the students including age group, interests, location, and any relevant cultural or social factors.")
+    file_url: str = Field(..., description="URL of any relevant file associated with the teaching material.")
+    file_type: str = Field(..., description="The type of the file")
+    lang: str = Field(..., description="The language in which the subject is being taught.")
