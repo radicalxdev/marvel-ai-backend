@@ -39,7 +39,7 @@ def read_text_file(file_path):
 
     # Combine the script directory with the relative file path
     absolute_file_path = os.path.join(script_dir, file_path)
-    
+
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
@@ -48,7 +48,7 @@ def build_chain(prompt: str):
     summarize_prompt = PromptTemplate.from_template(prompt_template)
 
     summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
-        
+
     chain = summarize_prompt | summarize_model 
     return chain
 
@@ -58,17 +58,17 @@ def get_summary(file_url: str, file_type: str, verbose=True):
         file_loader = file_loader_map[FileType(file_type)]
         full_content = file_loader(file_url, verbose)
         if file_type in STRUCTURED_TABULAR_FILE_EXTENSIONS:
-            prompt = "prompt/summarize-structured-tabular-data-prompt.txt"
+            prompt = "prompts_for_summarization/summarize_structured_tabular_data_prompt.txt"
         else:
-            prompt = "prompt/summarize-text-prompt.txt"
-            
+            prompt = "prompts_for_summarization/summarize_text_prompt.txt"
+
         chain = build_chain(prompt)
         return chain.invoke(full_content)
-        
+
     except Exception as e:
         logger.error(f"Unsupported file type: {file_type}")
         raise FileHandlerError(f"Unsupported file type", file_url) from e
-    
+
 class FileHandler:
     def __init__(self, file_loader, file_extension):
         self.file_loader = file_loader
@@ -92,7 +92,7 @@ class FileHandler:
         except Exception as e:
             logger.error(f"No such file found at {temp_file_path}")
             raise FileHandlerError(f"No file found", temp_file_path) from e
-        
+
         try:
             documents = loader.load()
         except Exception as e:
@@ -103,7 +103,7 @@ class FileHandler:
         os.remove(temp_file_path)
 
         return documents
-    
+
 def load_pdf_documents(pdf_url: str, verbose=False):
     pdf_loader = FileHandler(PyPDFLoader, "pdf")
     docs = pdf_loader.load(pdf_url)
@@ -119,7 +119,7 @@ def load_pdf_documents(pdf_url: str, verbose=False):
         full_content = " ".join(full_content)
 
         return full_content
-        
+
 
 def load_csv_documents(csv_url: str, verbose=False):
     csv_loader = FileHandler(CSVLoader, "csv")
@@ -140,24 +140,24 @@ def load_txt_documents(notes_url: str, verbose=False):
     docs = notes_loader.load(notes_url)
 
     if docs: 
-        
+
         split_docs = splitter.split_documents(docs)
-        
+
         if verbose:
             logger.info(f"Found TXT file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 def load_md_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "md")
     docs = notes_loader.load(notes_url)
-    
+
     if docs:
-        
+
         split_docs = splitter.split_documents(docs)
 
         if verbose:
@@ -166,7 +166,7 @@ def load_md_documents(notes_url: str, verbose=False):
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 def load_url_documents(url: str, verbose=False):
@@ -182,7 +182,7 @@ def load_url_documents(url: str, verbose=False):
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 def load_pptx_documents(pptx_url: str, verbose=False):
@@ -196,26 +196,26 @@ def load_pptx_documents(pptx_url: str, verbose=False):
         if verbose:
             logger.info(f"Found PPTX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
-        
+
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
 
         return full_content
-        
+
 def load_docx_documents(docx_url: str, verbose=False):
     docx_handler = FileHandler(Docx2txtLoader, 'docx')
     docs = docx_handler.load(docx_url)
     if docs: 
 
         split_docs = splitter.split_documents(docs)
-        
+
         if verbose:
             logger.info(f"Found DOCX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 def load_xls_documents(xls_url: str, verbose=False):
@@ -224,14 +224,14 @@ def load_xls_documents(xls_url: str, verbose=False):
     if docs: 
 
         split_docs = splitter.split_documents(docs)
-        
+
         if verbose:
             logger.info(f"Found XLS file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
@@ -240,14 +240,14 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
     if docs: 
 
         split_docs = splitter.split_documents(docs)
-        
+
         if verbose:
             logger.info(f"Found XLSX file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 def load_xml_documents(xml_url: str, verbose=False):
@@ -256,14 +256,14 @@ def load_xml_documents(xml_url: str, verbose=False):
     if docs: 
 
         split_docs = splitter.split_documents(docs)
-        
+
         if verbose:
             logger.info(f"Found XML file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 
@@ -276,9 +276,9 @@ class FileHandlerForGoogleDrive:
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
                 unique_filename = os.path.join(temp_dir, f"{uuid.uuid4()}.{self.file_extension}")
-                
+
                 logger.info(f"Downloading file from URL: {url}")
-                
+
                 try:
                     gdown.download(url=url, output=unique_filename, fuzzy=True)
                     logger.info(f"File downloaded successfully to {unique_filename}")
@@ -305,17 +305,17 @@ class FileHandlerForGoogleDrive:
         except Exception as e:
             logger.error("An unexpected error occurred during the file handling process.")
             raise e
-    
+
 def load_gdocs_documents(drive_folder_url: str, verbose=False):
 
     gdocs_loader = FileHandlerForGoogleDrive(Docx2txtLoader)
 
     docs = gdocs_loader.load(drive_folder_url)
-    
+
     if docs: 
 
         split_docs = splitter.split_documents(docs)
-        
+
         if verbose:
             logger.info(f"Found Google Docs files")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
@@ -323,7 +323,7 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
         return full_content
-    
+
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
     gsheets_loader = FileHandlerForGoogleDrive(UnstructuredExcelLoader, 'xlsx')
     docs = gsheets_loader.load(drive_folder_url)
@@ -337,7 +337,7 @@ def load_gsheets_documents(drive_folder_url: str, verbose=False):
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
 
 def load_gslides_documents(drive_folder_url: str, verbose=False):
@@ -353,9 +353,9 @@ def load_gslides_documents(drive_folder_url: str, verbose=False):
 
         full_content = [doc.page_content for doc in split_docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
-    
+
 def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
     gpdf_loader = FileHandlerForGoogleDrive(PyPDFLoader,'pdf')
@@ -369,24 +369,24 @@ def load_gpdf_documents(drive_folder_url: str, verbose=False):
 
         full_content = [doc.page_content for doc in docs]
         full_content = " ".join(full_content)
-        
+
         return full_content
-    
+
 def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, verbose=False) -> str:
     try:
         loader = YoutubeLoader.from_youtube_url(youtube_url, add_video_info=False)
     except Exception as e:
         logger.error(f"No such video found at {youtube_url}")
         raise VideoTranscriptError(f"No video found", youtube_url) from e
-    
+
     try:
         docs = loader.load()
     except Exception as e:
         logger.error(f"Video transcript might be private or unavailable in 'en' or the URL is incorrect.")
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
-    
+
     split_docs = splitter.split_documents(docs)
-    
+
     full_transcript = [doc.page_content for doc in split_docs]
     full_transcript = " ".join(full_transcript)
 
@@ -394,14 +394,14 @@ def summarize_transcript_youtube_url(youtube_url: str, max_video_length=600, ver
         logger.info(f"Found video")
         logger.info(f"Combined documents into a single string.")
         logger.info(f"Beginning to process transcript...")
-    
-    prompt_template = read_text_file("prompt/summarize-youtube-video-prompt.txt")
+
+    prompt_template = read_text_file("prompts_for_summarization/summarize_youtube_video_prompt.txt")
     summarize_prompt = PromptTemplate.from_template(prompt_template)
 
     summarize_model = GoogleGenerativeAI(model="gemini-1.5-flash")
-    
+
     chain = summarize_prompt | summarize_model 
-    
+
     return chain.invoke(full_transcript)
 
 file_loader_map = {
@@ -440,5 +440,5 @@ def generate_summary_from_img(img_url):
     except Exception as e:
         logger.error(f"Error processing the request due to Invalid Content or Invalid Image URL")
         raise ImageHandlerError(f"Error processing the request", img_url) from e
-        
+
     return response

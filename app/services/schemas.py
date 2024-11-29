@@ -78,14 +78,14 @@ class WorksheetGeneratorArgs(BaseModel):
     
 class SyllabusGeneratorArgsModel(BaseModel):
     grade_level: str
-    course: str
-    instructor_name: str
-    instructor_title: str
-    unit_time: str
-    unit_time_value: int
-    start_date: str
-    assessment_methods: str
-    grading_scale: str
+    subject: str
+    course_description: str
+    objectives: str
+    required_materials: str
+    grading_policy: str
+    policies_expectations: str
+    course_outline: str
+    additional_notes: str
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
