@@ -1,4 +1,6 @@
 from pydantic import BaseModel, Field
+from typing import Optional, List, Any, Literal
+from pydantic import BaseModel, Field
 from typing import Optional, List, Any
 from enum import Enum
 from app.services.tool_registry import BaseTool
@@ -78,17 +80,24 @@ class WorksheetGeneratorArgs(BaseModel):
     
 class SyllabusGeneratorArgsModel(BaseModel):
     grade_level: str
-    course: str
-    instructor_name: str
-    instructor_title: str
-    unit_time: str
-    unit_time_value: int
-    start_date: str
-    assessment_methods: str
-    grading_scale: str
+    subject: str
+    course_description: str
+    objectives: str
+    required_materials: str
+    grading_policy: str
+    policies_expectations: str
+    course_outline: str
+    additional_notes: str
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+    
+class AIResistantArgs(BaseModel):
+    assignment: str = Field(..., min_length=1, max_length=255, description="The given assignment")
+    grade_level: Literal["pre-k", "kindergarten", "elementary", "middle", "high", "university", "professional"] = Field(..., description="Educational level to which the content is directed")
+    file_type: str = Field(..., description="Type of file being handled, according to the defined enumeration")
+    file_url: str = Field(..., description="URL or path of the file to be processed")
+    lang: str = Field(..., description="Language in which the file or content is written")
     
 class ConnectWithThemArgs(BaseModel):
     grade_level: str = Field(..., description="The grade level the teacher is instructing.")
