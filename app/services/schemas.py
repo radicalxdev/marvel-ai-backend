@@ -106,3 +106,13 @@ class ConnectWithThemArgs(BaseModel):
     file_url: str = Field(..., description="URL of any relevant file associated with the teaching material.")
     file_type: str = Field(..., description="The type of the file")
     lang: str = Field(..., description="The language in which the subject is being taught.")
+
+class PresentationGeneratorInput(BaseModel):
+    grade_level: str
+    n_slides: int
+    topic: str
+    objectives: str
+    additional_comments: str
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
