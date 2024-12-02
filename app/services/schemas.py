@@ -3,7 +3,6 @@ from typing import Optional, List, Any, Literal
 from enum import Enum
 from app.services.tool_registry import BaseTool
 
-
 class User(BaseModel):
     id: str
     fullName: str
