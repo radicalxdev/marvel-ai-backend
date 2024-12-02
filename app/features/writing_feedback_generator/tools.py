@@ -49,8 +49,8 @@ class WritingFeedbackGeneratorPipeline:
                 template=(
                     "Analyze the provided writing and generate feedback under 'Areas of Strength'. "
                     "Focus on what the writer has done well, including structure, clarity, and topic presentation. "
-                    "Assignment Description: {assignment_description}. Grade Level: {grade_level}. Criteria: {criteria}. "
-                    "Use the provided Writing to Review: {writing_to_review}. If it is empty, use the context {context}. "
+                    "Assignment Description: {assignment_description}. Grade Level: {grade_level}. "
+                    "Use the provided Writing to Review: {writing_to_review} and Criteria: {criteria}. If any of them is empty, use the context {context}. "
                     "Respond in this JSON format: \n{format_instructions}"
                 ),
                 input_variables=["writing_to_review", "assignment_description", "grade_level", "criteria", "context"],
@@ -60,8 +60,8 @@ class WritingFeedbackGeneratorPipeline:
                 template=(
                     "Analyze the provided writing and generate feedback under 'Areas for Growth'. "
                     "Identify areas where the writer could improve, focusing on content depth, clarity, and logical argumentation. "
-                    "Assignment Description: {assignment_description}. Grade Level: {grade_level}. Criteria: {criteria}. "
-                    "Use the provided Writing to Review: {writing_to_review}. If it is empty, use the context {context}. "
+                    "Assignment Description: {assignment_description}. Grade Level: {grade_level}. "
+                    "Use the provided Writing to Review: {writing_to_review} and Criteria: {criteria}. If any of them is empty, use the context {context}. "
                     "Respond in this JSON format: \n{format_instructions}"
                 ),
                 input_variables=["writing_to_review", "assignment_description", "grade_level", "criteria", "context"],
@@ -71,8 +71,8 @@ class WritingFeedbackGeneratorPipeline:
                 template=(
                     "Analyze the provided writing and generate general feedback on 'Writing Mechanics'. "
                     "This includes grammar, sentence structure, and overall readability. "
-                    "Assignment Description: {assignment_description}. Grade Level: {grade_level}. Criteria: {criteria}. "
-                    "Use the provided Writing to Review: {writing_to_review}. If it is empty, use the context {context}. "
+                    "Assignment Description: {assignment_description}. Grade Level: {grade_level}. "
+                    "Use the provided Writing to Review: {writing_to_review} and Criteria: {criteria}. If any of them is empty, use the context {context}. "
                     "Respond in this JSON format: \n{format_instructions}"
                 ),
                 input_variables=["writing_to_review", "assignment_description", "grade_level", "criteria", "context"],

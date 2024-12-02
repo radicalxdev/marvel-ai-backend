@@ -21,13 +21,23 @@
             "type": "text"
         },
         {
-            "label": "File URL",
-            "name": "file_url",
+            "label": "Criteria File URL",
+            "name": "criteria_file_url",
             "type": "text"
         },
         {
-            "label": "File Type",
-            "name": "file_type",
+            "label": "Criteria File Type",
+            "name": "criteria_file_type",
+            "type": "text"
+        },
+        {
+            "label": "Writing to Review File URL",
+            "name": "wtr_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Writing to Review File Type",
+            "name": "wtr_file_type",
             "type": "text"
         },
         {

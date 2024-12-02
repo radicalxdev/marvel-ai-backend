@@ -95,6 +95,8 @@ class WritingFeedbackGeneratorArgs(BaseModel):
     assignment_description: str
     criteria: str
     writing_to_review: str
-    file_url: str
-    file_type: str
+    criteria_file_url: str
+    criteria_file_type: str
+    wtr_file_url: str
+    wtr_file_type: str
     lang: Optional[str] = "en"
