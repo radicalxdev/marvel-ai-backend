@@ -6,8 +6,5 @@ resistant to AI tools, considering limitations such as understanding nuanced que
 Here is the assignment description, grade level, and language of the assignment:
 {attribute_collection}
 
-If there is no assignment description, use the context:
-{context}
-
 Your response should be in the following format:
 {format_instructions}

@@ -1,14 +1,14 @@
 {
     "inputs": [
         {
-            "label": "Assignment",
-            "name": "assignment",
-            "type": "assignment"
-        },
-        {
             "label": "Grade Level",
             "name": "grade_level",
             "type": "grade_level"
+        },
+        {
+            "label": "Assignment Description",
+            "name": "assignment_description",
+            "type": "assignment_description"
         },
         {
             "label": "File URL",
