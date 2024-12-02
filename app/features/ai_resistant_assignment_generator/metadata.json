@@ -3,27 +3,27 @@
         {
             "label": "Grade Level",
             "name": "grade_level",
-            "type": "grade_level"
+            "type": "text"
         },
         {
             "label": "Assignment Description",
             "name": "assignment_description",
-            "type": "assignment_description"
+            "type": "text"
         },
         {
             "label": "File URL",
             "name": "file_url",
-            "type": "file_url"
+            "type": "text"
         },
         {
             "label": "File Type",
             "name": "file_type",
-            "type": "file_type"
+            "type": "text"
         },
         {
             "label": "Language",
             "name": "lang",
-            "type": "lang"
+            "type": "text"
         }
     ]
 }

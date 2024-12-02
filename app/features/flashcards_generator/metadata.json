@@ -3,12 +3,12 @@
         {
             "label": "File Url",
             "name": "file_url",
-            "type": "string"
+            "type": "text"
         },
         {
             "label": "File Type",
             "name": "file_type",
-            "type": "string"
+            "type": "text"
         }
     ],
     "models": {

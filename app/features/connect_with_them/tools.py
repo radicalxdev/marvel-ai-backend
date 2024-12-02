@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict
+from typing import List, Dict, Optional
 import os
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
@@ -30,10 +30,12 @@ class AIConnectWithThemGenerator:
             "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001'),
             "parser": JsonOutputParser(pydantic_object=RecommendationsOutput),
             "prompt": read_text_file("prompt/connect-with-them-prompt.txt"),
+            "prompt_without_context": read_text_file("prompt/connect-with-them-without-context-prompt.txt"),
             "vectorstore_class": Chroma
         }
 
         self.prompt = prompt or default_config["prompt"]
+        self.prompt_without_context = default_config["prompt_without_context"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
         self.embedding_model = embedding_model or default_config["embedding_model"]
@@ -50,7 +52,7 @@ class AIConnectWithThemGenerator:
         if args.lang is None: raise ValueError("Language must be provided")
 
 
-    def compile(self, documents: List[Document]):
+    def compile_with_context(self, documents: List[Document]):
         # Return the chain
         prompt = PromptTemplate(
             template=self.prompt,
@@ -77,22 +79,39 @@ class AIConnectWithThemGenerator:
         if self.verbose: logger.info(f"Chain compilation complete")
 
         return chain
+    
+    def compile_without_context(self):
+        # Return the chain
+        prompt = PromptTemplate(
+            template=self.prompt_without_context,
+            input_variables=["attribute_collection"],
+            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+        )
 
-    def generate_suggestion(self, documents: List[Document]):
+        chain = prompt | self.model | self.parser
+
+        if self.verbose: logger.info(f"Chain compilation complete")
+
+        return chain
+
+    def generate_suggestion(self, documents: Optional[List[Document]]):
         if self.verbose: logger.info(f"Creating the AI Connect with Them suggestions")
 
-        chain = self.compile(documents)
+        if(documents):
+            chain = self.compile_with_context(documents)
+        else:
+            chain = self.compile_without_context()
 
         response = chain.invoke(f"""Grade Level: {self.args.grade_level},
           Task Description: {self.args.task_description},
           Student's Description: {self.args.students_description},
           Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}""")
 
-        if self.verbose: logger.info(f"Deleting vectorstore")
-        self.vectorstore.delete_collection()
-
-        return response
+        if(documents):
+            if self.verbose: logger.info(f"Deleting vectorstore")
+            self.vectorstore.delete_collection()
     
+        return response
 
 class Recommendation(BaseModel):
     title: str = Field(..., description="The title of the recommendation")
