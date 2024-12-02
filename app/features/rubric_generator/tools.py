@@ -29,10 +29,12 @@ class RubricGenerator:
             "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001'),
             "parser": JsonOutputParser(pydantic_object=RubricOutput),
             "prompt": read_text_file("prompt/rubric-generator-prompt.txt"),
+            "prompt_without_context": read_text_file("prompt/rubric-generator-without-context-prompt.txt"),
             "vectorstore_class": Chroma
         }
 
         self.prompt = prompt or default_config["prompt"]
+        self.prompt_without_context = default_config["prompt_without_context"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
         self.embedding_model = embedding_model or default_config["embedding_model"]
@@ -47,11 +49,11 @@ class RubricGenerator:
         if args.point_scale is None: raise ValueError("Point Scale must be provided")
         if int(args.point_scale) < 2 or int(args.point_scale) > 8:
             raise ValueError("Point Scale must be between 2 and 8. Suggested value is 4 for optimal granularity in grading.")
-        if args.standard is None: raise ValueError("Learning Standard must be provided")
+        if args.objectives is None: raise ValueError("Objectives description must be provided")
         if args.assignment_desc is None: raise ValueError("Assignment description must be provided")
         if args.lang is None: raise ValueError("Language must be provided")
 
-    def compile(self, documents: List[Document]):
+    def compile_with_context(self, documents: List[Document]):
         # Return the chain
         prompt = PromptTemplate(
             template=self.prompt,
@@ -78,19 +80,35 @@ class RubricGenerator:
         logger.info(f"Chain compilation complete")
 
         return chain
+    
+    def compile_without_context(self):
+        # Return the chain
+        prompt = PromptTemplate(
+            template=self.prompt_without_context,
+            input_variables=["attribute_collection"],
+            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+        )
+
+        chain = prompt | self.model | self.parser
+
+        logger.info(f"Chain compilation complete")
+
+        return chain
 
     def create_rubric(self, documents: List[Document]):
         logger.info(f"Creating the Rubric")
 
-        chain = self.compile(documents)
+        if documents:
+            chain = self.compile_with_context(documents)
+        else:
+            chain = self.compile_without_context()
 
          # Log the input parameters
         input_parameters = (
             f"Grade Level: {self.args.grade_level}, "
             f"Point Scale: {self.args.point_scale}, "
-            f"Standard: {self.args.standard}, "
+            f"Objectives: {self.args.objectives}, "
             f"Assignment Description: {self.args.assignment_desc}, "
-            f"Additional Customization: {self.args.additional_customization}, "
             f"Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}"
         )
         logger.info(f"Input parameters: {input_parameters}")
@@ -123,8 +141,9 @@ class RubricGenerator:
         else:
             logger.info(f"Rubric successfully generated after {attempt} attempt(s).")
 
-        if self.verbose: print(f"Deleting vectorstore")
-        self.vectorstore.delete_collection()
+        if documents:
+            if self.verbose: print(f"Deleting vectorstore")
+            self.vectorstore.delete_collection()
 
         return response 
     

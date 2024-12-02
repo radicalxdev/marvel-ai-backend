@@ -6,39 +6,51 @@ from app.features.rubric_generator.tools import RubricGenerator
 
 logger = setup_logger()
 
-def executor(standard: str,
+def executor(grade_level: str,
              point_scale: int,
-             grade_level: str,
+             objectives: str,
              assignment_desc: str,
-             additional_customization: str,
-             file_type: str,
-             file_url: str,
+             objectives_file_url: str,
+             objectives_file_type: str,
+             ad_file_url: str,
+             ad_file_type: str,
              lang: str,
              verbose=False):
     try:
-        if verbose: 
-            logger.info(f"File URL loaded: {file_url}")
+        if objectives_file_type: 
+            logger.info(f"Generating docs from {objectives_file_type}")
+        if ad_file_type: 
+            logger.info(f"Generating docs from {ad_file_type}")
 
-        logger.info(f"Generating docs from {file_type}")
+        docs = None
 
-        docs = get_docs(file_url, file_type, verbose=True)
+        def fetch_docs(file_url, file_type):
+            return get_docs(file_url, file_type, True) if file_url and file_type else None
+
+        objectives_docs = fetch_docs(objectives_file_url, objectives_file_type)
+        assignment_desc_comments_docs = fetch_docs(ad_file_url, ad_file_type)
+
+        docs = (
+            objectives_docs + assignment_desc_comments_docs
+            if objectives_docs and assignment_desc_comments_docs
+            else objectives_docs or assignment_desc_comments_docs
+        )
         
         # Create and return the Rubric
         rubric_generator_args = RubricGeneratorArgs(
-            standard=standard,
-            point_scale=point_scale,
             grade_level=grade_level,
+            point_scale=point_scale,
+            objectives=objectives,
             assignment_desc=assignment_desc,
-            additional_customization=additional_customization,
-            file_type=file_type,
-            file_url=file_url,
+            objectives_file_url=objectives_file_url,
+            objectives_file_type=objectives_file_type,
+            ad_file_url=ad_file_url,
+            ad_file_type=ad_file_type,
             lang=lang
         )
         
         output = RubricGenerator(args=rubric_generator_args, verbose=verbose).create_rubric(docs)
 
-        print(output)
-        
         logger.info(f"Rubric generated successfully")
     
     except LoaderError as e:

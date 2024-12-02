@@ -1,8 +1,8 @@
 {
     "inputs": [
         {
-            "label": "Standard",
-            "name": "standard",
+            "label": "Grade Level",
+            "name": "grade_level",
             "type": "text"
         },
         {
@@ -11,8 +11,8 @@
             "type": "number"
         },
         {
-            "label": "Grade Level",
-            "name": "grade_level",
+            "label": "Standards/Objectives",
+            "name": "objectives",
             "type": "text"
         },
         {
@@ -21,18 +21,23 @@
             "type": "text"
         },
         {
-            "label": "Additional Customization",
-            "name": "additional_customization",
+            "label": "Standards/Objectives File URL",
+            "name": "objectives_file_url",
             "type": "text"
         },
         {
-            "label": "File Type",
-            "name": "file_type",
+            "label": "Standards/Objectives File Type",
+            "name": "objectives_file_type",
             "type": "text"
         },
         {
-            "label": "File URL",
-            "name": "file_url",
+            "label": "Assignment Description File URL",
+            "name": "ad_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Assignment Description File Type",
+            "name": "ad_file_type",
             "type": "text"
         },
         {
