@@ -9,24 +9,43 @@ logger = setup_logger()
 def executor(grade_level: str,
              topic: str,
              objectives: str,
-             additional_comments: str,
-             file_url: str,
-             file_type: str,
+             additional_customization: str,
+             objectives_file_url: str,
+             objectives_file_type: str,
+             ac_file_url: str,
+             ac_file_type: str,
              lang: str, 
              verbose=False):
     
     try:
-        logger.info(f"Generating docs. from {file_type}")
+        if objectives_file_type:
+            logger.info(f"Generating docs. from {objectives_file_type}")
+        if ac_file_type:
+            logger.info(f"Generating docs. from {ac_file_type}")
 
-        docs = get_docs(file_url, file_type, True)
+        docs = None
+
+        def fetch_docs(file_url, file_type):
+            return get_docs(file_url, file_type, True) if file_url and file_type else None
+
+        objectives_docs = fetch_docs(objectives_file_url, objectives_file_type)
+        additional_customization_docs = fetch_docs(ac_file_url, ac_file_type)
+
+        docs = (
+            objectives_docs + additional_customization_docs
+            if objectives_docs and additional_customization_docs
+            else objectives_docs or additional_customization_docs
+        )
 
         lesson_plan_generator_args = LessonPlanGeneratorArgs(
             grade_level=grade_level,
             topic=topic,
             objectives=objectives,
-            additional_comments=additional_comments,
-            file_type=file_type,
-            file_url=file_url,
+            additional_customization=additional_customization,
+            objectives_file_url=objectives_file_url,
+            objectives_file_type=objectives_file_type,
+            ac_file_url=ac_file_url,
+            ac_file_type=ac_file_type,
             lang=lang
         )
 

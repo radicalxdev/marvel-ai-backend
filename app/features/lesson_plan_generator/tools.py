@@ -56,8 +56,8 @@ class LessonPlanGeneratorPipeline:
                 partial_variables={"format_instructions": self.parsers["objective"].get_format_instructions()},
             ),
             "assessment": PromptTemplate(
-                template="Suggest an assessment for {topic}. Context: {context}, Objectives: {objectives}, Comments: {additional_comments}. You must respond as a JSON in this format: \n{format_instructions}",
-                input_variables=["topic", "context", "objectives", "additional_comments"],
+                template="Suggest an assessment for {topic}. Context: {context}, Objectives: {objectives}, Customization: {additional_customization}. You must respond as a JSON in this format: \n{format_instructions}",
+                input_variables=["topic", "context", "objectives", "additional_customization"],
                 partial_variables={"format_instructions": self.parsers["assessment"].get_format_instructions()},
             ),
             "key_points": PromptTemplate(
@@ -71,8 +71,8 @@ class LessonPlanGeneratorPipeline:
                 partial_variables={"format_instructions": self.parsers["opening"].get_format_instructions()},
             ),
             "introduction_to_new_material": PromptTemplate(
-                template="Outline the introduction to new material for {topic}. Context: {context}, Objectives: {objectives}, Comments: {additional_comments}. You must respond as a JSON in this format: \n{format_instructions}",
-                input_variables=["topic", "context", "objectives", "additional_comments"],
+                template="Outline the introduction to new material for {topic}. Context: {context}, Objectives: {objectives}, Comments: {additional_customization}. You must respond as a JSON in this format: \n{format_instructions}",
+                input_variables=["topic", "context", "objectives", "additional_customization"],
                 partial_variables={"format_instructions": self.parsers["introduction_to_new_material"].get_format_instructions()},
             ),
             "guided_practice": PromptTemplate(
@@ -112,23 +112,29 @@ class LessonPlanGeneratorPipeline:
     def generate_context(self, query: str) -> str:
         return self.retriever.invoke(query)
 
-    def generate_lesson_plan(self, documents: List[Document]):
-        self.compile_vectorstore(documents)
+    def generate_lesson_plan(self, documents: Optional[List[Document]]):
+
+        if documents: 
+            self.compile_vectorstore(documents)
+
         pipeline = self.compile_pipeline()
-        context_queries = {
-            "general": "Provide general context for the topic.",
-            "specific": "Provide specific details for creating an educational lesson plan.",
-        }
-        context = {
-            query_name: self.generate_context(query)
-            for query_name, query in context_queries.items()
-        }
+
+        if documents:
+            context_queries = {
+                "general": "Provide general context for the topic.",
+                "specific": "Provide specific details for creating an educational lesson plan.",
+            }
+            context = {
+                query_name: self.generate_context(query)
+                for query_name, query in context_queries.items()
+            }
+
         inputs = {
             "topic": self.args.topic,
             "grade_level": self.args.grade_level,
-            "context": context["general"],
+            "context": context["general"] if documents else '',
             "objectives": self.args.objectives,
-            "additional_comments": self.args.additional_comments,
+            "additional_customization": self.args.additional_customization,
         }
         results = pipeline.invoke(inputs)
         lesson_plan = LessonPlan(
