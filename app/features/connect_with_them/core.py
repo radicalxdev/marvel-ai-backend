@@ -17,7 +17,10 @@ def executor(grade_level: str,
              verbose=False):
     
     try:
-        logger.info(f"Generating docs. from {td_file_type} and {sd_file_type}")
+        if(td_file_type):
+            logger.info(f"Generating docs. from {td_file_type}")
+        if(sd_file_type):
+            logger.info(f"Generating docs. from {sd_file_type}")
 
         docs = None
 
@@ -32,8 +35,6 @@ def executor(grade_level: str,
             if task_description_docs and student_description_docs
             else task_description_docs or student_description_docs
         )
-
-        logger.info(docs)
 
         connect_with_them_args = ConnectWithThemArgs(
             grade_level=grade_level,
