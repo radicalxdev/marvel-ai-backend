@@ -1,18 +1,30 @@
 {
     "0": {
-        "path": "features.quizzify.core",
+        "path": "features.multiple_choice_quiz_generator.core",
         "metadata_file": "metadata.json"
     },
     "1": {
-        "path": "features.dynamo.core",
+        "path": "features.flashcards_generator.core",
         "metadata_file": "metadata.json"
     },
     "2": {
         "path": "features.worksheet_generator.core",
         "metadata_file": "metadata.json"
     },
+    "5": {
+        "path": "features.ai_resistant_assignment_generator.core",
+        "metadata_file": "metadata.json"
+    },
     "6": {
         "path": "features.syllabus_generator.core",
+        "metadata_file": "metadata.json"
+    },
+    "9": {
+        "path": "features.presentation_generator.core",
+        "metadata_file": "metadata.json"
+    },
+    "10": {
+        "path": "features.connect_with_them.core",
         "metadata_file": "metadata.json"
     },
     "15": {

@@ -275,6 +275,7 @@ def load_xml_documents(xml_url: str, verbose=False):
 
         return split_docs
 
+
 class FileHandlerForGoogleDrive:
     def __init__(self, file_loader, file_extension='docx'):
         self.file_loader = file_loader
@@ -313,7 +314,7 @@ class FileHandlerForGoogleDrive:
         except Exception as e:
             logger.error("An unexpected error occurred during the file handling process.")
             raise e
-
+        
 def load_gdocs_documents(drive_folder_url: str, verbose=False):
 
     gdocs_loader = FileHandlerForGoogleDrive(Docx2txtLoader)
@@ -384,6 +385,7 @@ def load_docs_youtube_url(youtube_url: str, verbose=True) -> str:
         raise VideoTranscriptError(f"No video transcripts available", youtube_url) from e
     
     if verbose:
+        logger.info(f"Found video")
         logger.info(f"Combined documents into a single string.")
         logger.info(f"Beginning to process transcript...")
 
@@ -674,7 +676,7 @@ def generate_docs_from_audio_gcloud(audio_url: str, lang: str, verbose=False):
 #             logger.info("Found transcript")
 #             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 #         return split_docs
-    pass
+    return "Mocked Function"
 
 
 def split_audio_fixed_intervals(audio: AudioSegment, interval_ms: int):
