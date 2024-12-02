@@ -1,6 +1,6 @@
 import pytest
 import requests
-from features.dynamo.tools import *
+from features.flashcards_generator.tools import *
 from app.api.error_utilities import FileHandlerError
 
 def test_load_pdf_documents_valid():

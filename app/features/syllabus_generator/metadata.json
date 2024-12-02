@@ -6,43 +6,43 @@
             "type": "text"
         },
         {
-            "label": "Course",
-            "name": "course",
+            "label": "Subject",
+            "name": "subject",
             "type": "text"
         },
         {
-            "label": "Instructor Name",
-            "name": "instructor_name",
+            "label": "Course Description",
+            "name": "course_description",
             "type": "text"
         },
         {
-            "label": "Instructor Title",
-            "name": "instructor_title",
+            "label": "Standards/Objectives",
+            "name": "objectives",
             "type": "text"
         },
         {
-            "label": "Unit Time",
-            "name": "unit_time",
+            "label": "Required Materials",
+            "name": "required_materials",
             "type": "text"
         },
         {
-            "label": "Unit Time Value",
-            "name": "unit_time_value",
-            "type": "number"
-        },
-        {
-            "label": "Start Date",
-            "name": "start_date",
+            "label": "Grading Policy",
+            "name": "grading_policy",
             "type": "text"
         },
         {
-            "label": "Assessment Methods",
-            "name": "assessment_methods",
+            "label": "Class Policies and Expectations",
+            "name": "policies_expectations",
             "type": "text"
         },
         {
-            "label": "Grading Scale",
-            "name": "grading_scale",
+            "label": "Course Outline",
+            "name": "course_outline",
+            "type": "text"
+        },
+        {
+            "label": "Additional Customization or Notes",
+            "name": "additional_notes",
             "type": "text"
         },
         {

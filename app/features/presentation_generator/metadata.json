@@ -6,8 +6,23 @@
             "type": "text"
         },
         {
+            "label": "Number of Slides",
+            "name": "n_slides",
+            "type": "number"
+        },
+        {
             "label": "Topic",
             "name": "topic",
+            "type": "text"
+        },
+        {
+            "label": "Standards/Objectives",
+            "name": "objectives",
+            "type": "text"
+        },
+        {
+            "label": "Additional Comments",
+            "name": "additional_comments",
             "type": "text"
         },
         {
