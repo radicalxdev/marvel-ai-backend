@@ -1961,22 +1961,214 @@ class RubricOutput(BaseModel):
 
 ### Structured Data (XML):
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 15,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "point_scale",
+        "value": 4
+      },
+      {
+        "name": "objectives",
+        "value": ""
+      },
+      {
+        "name": "assignment_desc",
+        "value": ""
+      },
+      {
+        "name": "objectives_file_url",
+        "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
+      },
+      {
+        "name": "objectives_file_type",
+        "value": "xml"
+      },
+      {
+        "name": "ad_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "ad_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Youtube Videos:
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 15,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "point_scale",
+        "value": 4
+      },
+      {
+        "name": "objectives",
+        "value": ""
+      },
+      {
+        "name": "assignment_desc",
+        "value": ""
+      },
+      {
+        "name": "objectives_file_url",
+        "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
+      },
+      {
+        "name": "objectives_file_type",
+        "value": "youtube_url"
+      },
+      {
+        "name": "ad_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "ad_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Google Drive (GDocs):
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 15,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "point_scale",
+        "value": 4
+      },
+      {
+        "name": "objectives",
+        "value": ""
+      },
+      {
+        "name": "assignment_desc",
+        "value": ""
+      },
+      {
+        "name": "objectives_file_url",
+        "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "objectives_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "ad_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "ad_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Images:
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 15,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "point_scale",
+        "value": 4
+      },
+      {
+        "name": "objectives",
+        "value": ""
+      },
+      {
+        "name": "assignment_desc",
+        "value": ""
+      },
+      {
+        "name": "objectives_file_url",
+        "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+      },
+      {
+        "name": "objectives_file_type",
+        "value": "img"
+      },
+      {
+        "name": "ad_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "ad_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ## Lesson Plan Generator
