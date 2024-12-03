@@ -55,6 +55,17 @@
 ## PAYLOADS FOR TESTING:
 
 ## Epic 7.1 - Multiple Choice Quiz Generator:
+
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
+
 ### PDF:
 ```json 
 { 
@@ -279,6 +290,15 @@
 ```
 
 ## Epic 7.2 - Flashcards Generator:
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
 ### PDF:
 ```json
 {
@@ -405,6 +425,16 @@
 ```
 
 ## Epic 7.3 - Worksheet Generator:
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
+
 ### PDF:
 ```json
 {
@@ -591,6 +621,15 @@
 ```
 
 ## Epic 7.7 - Syllabus Generator:
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
 ### PDF:
 ```json
 {
