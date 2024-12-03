@@ -9,7 +9,6 @@
    - [**Flashcards Generator**](#flashcards-generator)
    - [**Worksheet Generator**](#worksheet-generator)
    - [**Syllabus Generator**](#syllabus-generator)
-   - [**Syllabus Generator**](#syllabus-generator)
    - [**AI-Resistant Assignments**](#ai-resistant-assignments)
    - [**Connect with Them**](#connect-with-them)
    - [**Presentation Generator**](#presentation-generator)
