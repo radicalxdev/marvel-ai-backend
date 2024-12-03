@@ -2174,37 +2174,337 @@ class RubricOutput(BaseModel):
 ## Lesson Plan Generator
 ## Input Schema:
 ```python
-
+class LessonPlanGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    objectives: str
+    additional_customization: str
+    objectives_file_url: str #Standards/Objectives File URL
+    objectives_file_type: str #Standards/Objectives File Type
+    ac_file_url: str #Additional Customization File URL
+    ac_file_type: str #Additional Customization File Type
+    lang: str = "en"
 ```
 
 ## Output Schema:
 ```python
+class Title(BaseModel):
+    title: str
 
+class Objective(BaseModel):
+    objective: str
+
+class Assessment(BaseModel):
+    assessment: str
+
+class KeyPoint(BaseModel):
+    title: str
+    description: str
+
+class Section(BaseModel):
+    title: str
+    content: List[str]
+
+class IndependentPractice(BaseModel):
+    description: str
+    tasks: List[str]
+
+class ExtensionActivity(BaseModel):
+    description: str
+    additional_instructions: Optional[str]
+
+class Homework(BaseModel):
+    description: str
+    submission_instructions: Optional[str]
+
+class Standard(BaseModel):
+    name: str
+    description: str
+
+class KeyPoints(BaseModel):
+    key_points: List[KeyPoint]
+
+class StandardsAddressed(BaseModel):
+    standards_addressed: List[Standard]
+
+class LessonPlan(BaseModel):
+    title: Title
+    objective: Objective
+    assessment: Assessment
+    key_points: KeyPoints
+    opening: Section
+    introduction_to_new_material: Section
+    guided_practice: Section
+    independent_practice: IndependentPractice
+    closing: Section
+    extension_activity: ExtensionActivity
+    homework: Homework
+    standards_addressed: StandardsAddressed
 ```
 
 ### PDF:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 7,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "topic",
+            "value": "Linear Algebra"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_customization",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "pdf"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Structured Data (XML):
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 7,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "topic",
+            "value": "Software Engineering Book"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_customization",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "xml"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Youtube Videos:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 7,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "topic",
+            "value": "Machine Learning"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_customization",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "youtube_url"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Google Drive (GDocs):
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 7,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "topic",
+            "value": "OpenAI"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_customization",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Images:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 7,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "topic",
+            "value": "AWS Architecture"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_customization",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "img"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ## Writing Feedback Generator
