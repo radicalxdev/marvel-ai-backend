@@ -428,7 +428,7 @@ class Flashcard(BaseModel):
     "inputs": [
       {
         "name": "file_url",
-        "value": "https://docs.aws.amazon.com/images/solutions/latest/workload-discovery-on-aws/images/workload-discovery-arch-diagram.png"
+        "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
       },
       {
         "name": "file_type",
@@ -690,7 +690,7 @@ class MathExerciseQuestion(BaseModel):
          },
          {
             "name": "file_url",
-            "value": "https://docs.aws.amazon.com/images/solutions/latest/workload-discovery-on-aws/images/workload-discovery-arch-diagram.png"
+            "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
          },
          {
             "name": "file_type",
