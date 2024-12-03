@@ -9,6 +9,11 @@
             "label": "File Type",
             "name": "file_type",
             "type": "text"
+        },
+        {
+            "label": "Language",
+            "name": "lang",
+            "type": "text"
         }
     ],
     "models": {
