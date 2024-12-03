@@ -2530,35 +2530,292 @@ class LessonPlan(BaseModel):
 ## Writing Feedback Generator
 ## Input Schema:
 ```python
-
+class WritingFeedbackGeneratorArgs(BaseModel):
+    grade_level: str
+    assignment_description: str
+    criteria: str
+    writing_to_review: str
+    criteria_file_url: str #Criteria File URL
+    criteria_file_type: str #Criteria File Type
+    wtr_file_url: str #Writing to Review File URL
+    wtr_file_type: str #Writing to Review File Type
+    lang: str = "en"
 ```
 
 ## Output Schema:
 ```python
+class FeedbackSection(BaseModel):
+    title: str
+    points: List[str]
 
+class WritingFeedback(BaseModel):
+    title: str
+    areas_of_strength: FeedbackSection
+    areas_for_growth: FeedbackSection
+    general_feedback: FeedbackSection
 ```
 
 ### PDF:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 14,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "assignment_description",
+            "value": "Linear Algebra"
+         },
+         {
+            "name": "criteria",
+            "value": "Understand the concepts of vector spaces, linear transformations, and matrix operations."
+         },
+         {
+            "name": "writing_to_review",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_url",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_type",
+            "value": ""
+         },
+         {
+            "name": "wtr_file_url",
+            "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
+         },
+         {
+            "name": "wtr_file_type",
+            "value": "pdf"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Structured Data (XML):
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 14,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "College"
+         },
+         {
+            "name": "assignment_description",
+            "value": "Software Engineering Book"
+         },
+         {
+            "name": "criteria",
+            "value": "Understand software development life cycles and methodologies."
+         },
+         {
+            "name": "writing_to_review",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_url",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_type",
+            "value": ""
+         },
+         {
+            "name": "wtr_file_url",
+            "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
+         },
+         {
+            "name": "wtr_file_type",
+            "value": "xml"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Youtube Videos:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 14,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "assignment_description",
+            "value": "Machine Learning"
+         },
+         {
+            "name": "criteria",
+            "value": "Understand the basics of machine learning algorithms."
+         },
+         {
+            "name": "writing_to_review",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_url",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_type",
+            "value": ""
+         },
+         {
+            "name": "wtr_file_url",
+            "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
+         },
+         {
+            "name": "wtr_file_type",
+            "value": "youtube_url"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Google Drive (GDocs):
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 14,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "assignment_description",
+            "value": "OpenAI"
+         },
+         {
+            "name": "criteria",
+            "value": "Explore the advancements in artificial intelligence by OpenAI."
+         },
+         {
+            "name": "writing_to_review",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_url",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_type",
+            "value": ""
+         },
+         {
+            "name": "wtr_file_url",
+            "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link"
+         },
+         {
+            "name": "wtr_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Images:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 14,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "assignment_description",
+            "value": "AWS Architecture"
+         },
+         {
+            "name": "criteria",
+            "value": "Understand the components and services in AWS architecture."
+         },
+         {
+            "name": "writing_to_review",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_url",
+            "value": ""
+         },
+         {
+            "name": "criteria_file_type",
+            "value": ""
+         },
+         {
+            "name": "wtr_file_url",
+            "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+         },
+         {
+            "name": "wtr_file_type",
+            "value": "img"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
