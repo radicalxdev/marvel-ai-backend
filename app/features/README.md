@@ -5,31 +5,10 @@
 1. [**AVAILABLE DOCUMENT LOADERS FOR DIFFERENT FILE TYPES**](#available-document-loaders-for-different-file-types)
 
 2. [**PAYLOADS FOR TESTING**](#payloads-for-testing)
-   - [**Epic 7.1 - Multiple Choice Quiz Generator**](#epic-71---multiple-choice-quiz-generator)
-     - [PDF](#pdf-1)
-     - [Structured Data (EXCEL)](#structured-data-excel)
-     - [Youtube Videos](#youtube-videos)
-     - [Google Drive (GDocs)](#google-drive-gdocs)
-     - [Google Drive (GPDF)](#google-drive-gpdf)
-     - [Images](#images-1)
-   - [**Epic 7.2 - Flashcards Generator**](#epic-72---flashcards-generator)
-     - [PDF](#pdf-2)
-     - [Structured Data (XML)](#structured-data-xml)
-     - [Youtube Videos](#youtube-videos-1)
-     - [Google Drive (GDocs)](#google-drive-gdocs-1)
-     - [Images](#images-2)
-   - [**Epic 7.3 - Worksheet Generator**](#epic-73---worksheet-generator)
-     - [PDF](#pdf-3)
-     - [Structured Data (XML)](#structured-data-xml-1)
-     - [Youtube Videos](#youtube-videos-2)
-     - [Google Drive (GDocs)](#google-drive-gdocs-2)
-     - [Images](#images-3)
-   - [**Epic 7.7 - Syllabus Generator**](#epic-77---syllabus-generator)
-     - [PDF](#pdf-4)
-     - [Structured Data (XML)](#structured-data-xml-2)
-     - [Youtube Videos](#youtube-videos-3)
-     - [Google Drive (GDocs)](#google-drive-gdocs-3)
-     - [Images](#images-4)
+   - [**Multiple Choice Quiz Generator**](#epic-71---multiple-choice-quiz-generator)
+   - [**Flashcards Generator**](#epic-72---flashcards-generator)
+   - [**Worksheet Generator**](#epic-73---worksheet-generator)
+   - [**Syllabus Generator**](#epic-77---syllabus-generator)
 
 
 ## AVAILABLE DOCUMENT LOADERS FOR DIFFERENT FILE TYPES:
@@ -54,7 +33,7 @@
 
 ## PAYLOADS FOR TESTING:
 
-## Epic 7.1 - Multiple Choice Quiz Generator:
+## Multiple Choice Quiz Generator:
 
 ## Input Schema:
 ```python
@@ -302,7 +281,7 @@ class QuizQuestion(BaseModel):
 }
 ```
 
-## Epic 7.2 - Flashcards Generator:
+## Flashcards Generator:
 ## Input Schema:
 ```python
 class DynamoArgs(BaseModel):
@@ -444,7 +423,7 @@ class Flashcard(BaseModel):
 }
 ```
 
-## Epic 7.3 - Worksheet Generator:
+## Worksheet Generator:
 ## Input Schema:
 ```python
 class WorksheetGeneratorArgs(BaseModel):
@@ -706,7 +685,7 @@ class MathExerciseQuestion(BaseModel):
 }
 ```
 
-## Epic 7.7 - Syllabus Generator:
+## Syllabus Generator:
 ## Input Schema:
 ```python
 class SyllabusGeneratorArgsModel(BaseModel):
@@ -1097,4 +1076,410 @@ class SyllabusSchema(BaseModel):
         ]
     }
 }
+```
+
+## AI-Resistant Assignments
+## Input Schema:
+```python
+class AIResistantArgs(BaseModel):
+    grade_level: Literal["pre-k", "kindergarten", "elementary", "middle", "high", "university", "professional"]
+    assignment_description: str
+    file_type: str
+    file_url: str
+    lang: str
+```
+
+## Output Schema:
+```python
+class AIResistanceIdea(BaseModel):
+    title: str = Field(..., description="The main title of the idea")
+    assignment_description: str = Field(..., description="Detailed description of the modified assignment")
+    explanation: str = Field(..., description="Explanation of how this modification makes the assignment AI-resistant")
+
+class AIResistantOutput(BaseModel):
+    topic: str = Field(..., description="Topic or subject related to the assignment")
+    grade_level: str = Field(..., description="Educational level to which the assignment is directed")
+    ideas: List[AIResistanceIdea] = Field(..., description="List of 3 ideas to make the assignment AI-resistant, including explanation")
+```
+
+### PDF:
+```json
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 5,
+    "inputs": [
+      {
+        "name": "assignment_description",
+        "value": ""
+      },
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "file_url",
+        "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
+      },
+      {
+        "name": "file_type",
+        "value": "pdf"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
+```
+
+### Structured Data (XML):
+```json
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 5,
+    "inputs": [
+      {
+        "name": "assignment_description",
+        "value": ""
+      },
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "file_url",
+        "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
+      },
+      {
+        "name": "file_type",
+        "value": "xml"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
+```
+
+### Youtube Videos:
+```json
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 5,
+    "inputs": [
+      {
+        "name": "assignment_description",
+        "value": ""
+      },
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "file_url",
+        "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
+      },
+      {
+        "name": "file_type",
+        "value": "youtube_url"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
+```
+
+### Google Drive (GDocs):
+```json
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 5,
+    "inputs": [
+      {
+        "name": "assignment_description",
+        "value": ""
+      },
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "file_url",
+        "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
+```
+
+### Images:
+```json
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 5,
+    "inputs": [
+      {
+        "name": "assignment_description",
+        "value": ""
+      },
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "file_url",
+        "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+      },
+      {
+        "name": "file_type",
+        "value": "img"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
+```
+
+## Connect with Them
+## Input Schema:
+```python
+class ConnectWithThemArgs(BaseModel):
+    grade_level: str
+    task_description: str
+    students_description: str
+    td_file_url: str #Task's Description File URL
+    td_file_type: str #Task's Description File Type
+    sd_file_url: str #Student's Description File URL
+    sd_file_type: str #Student's Description File Type
+    lang: str
+```
+
+## Output Schema:
+```python
+class Recommendation(BaseModel):
+    title: str = Field(..., description="The title of the recommendation")
+    project_overview: str = Field(..., description="A detailed description of the project or activity recommendation. It must be a large paragraph.")
+    rationale: str = Field(..., description="An explanation of why this recommendation is relevant to the students' interests or background.")
+    difficulty_level: str = Field(..., description="The difficulty level of the project (e.g., easy, moderate, challenging).")
+    required_tools: List[str] = Field(..., description="A list of tools, software, or resources required to complete the project.")
+    estimated_time: str = Field(..., description="The estimated time to complete the project or activity.")
+
+class RecommendationsOutput(BaseModel):
+    recommendations: List[Recommendation] = Field(..., description="A list of personalized recommendations based on the input.")
+```
+
+### PDF:
+```json
+
+```
+
+### Structured Data (XML):
+```json
+
+```
+
+### Youtube Videos:
+```json
+
+```
+
+### Google Drive (GDocs):
+```json
+
+```
+
+### Images:
+```json
+
+```
+
+## Presentation Generator
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
+
+### PDF:
+```json
+
+```
+
+### Structured Data (XML):
+```json
+
+```
+
+### Youtube Videos:
+```json
+
+```
+
+### Google Drive (GDocs):
+```json
+
+```
+
+### Images:
+```json
+
+```
+
+## Rubric Generator
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
+
+### PDF:
+```json
+
+```
+
+### Structured Data (XML):
+```json
+
+```
+
+### Youtube Videos:
+```json
+
+```
+
+### Google Drive (GDocs):
+```json
+
+```
+
+### Images:
+```json
+
+```
+
+## Lesson Plan Generator
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
+
+### PDF:
+```json
+
+```
+
+### Structured Data (XML):
+```json
+
+```
+
+### Youtube Videos:
+```json
+
+```
+
+### Google Drive (GDocs):
+```json
+
+```
+
+### Images:
+```json
+
+```
+
+## Writing Feedback Generator
+## Input Schema:
+```python
+
+```
+
+## Output Schema:
+```python
+
+```
+
+### PDF:
+```json
+
+```
+
+### Structured Data (XML):
+```json
+
+```
+
+### Youtube Videos:
+```json
+
+```
+
+### Google Drive (GDocs):
+```json
+
+```
+
+### Images:
+```json
+
 ```
