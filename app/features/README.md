@@ -266,7 +266,7 @@ class QuizQuestion(BaseModel):
          },
          {
             "name": "file_url",
-            "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+            "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
          },
          {
             "name": "file_type",
@@ -317,6 +317,10 @@ class Flashcard(BaseModel):
       {
         "name": "file_type",
         "value": "pdf"
+      },
+      {
+        "name": "lang",
+        "value": "en"
       }
     ]
   }
@@ -342,6 +346,10 @@ class Flashcard(BaseModel):
       {
         "name": "file_type",
         "value": "xml"
+      },
+      {
+        "name": "lang",
+        "value": "en"
       }
     ]
   }
@@ -367,6 +375,10 @@ class Flashcard(BaseModel):
       {
         "name": "file_type",
         "value": "youtube_url"
+      },
+      {
+        "name": "lang",
+        "value": "en"
       }
     ]
   }
@@ -392,6 +404,10 @@ class Flashcard(BaseModel):
       {
         "name": "file_type",
         "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
       }
     ]
   }
@@ -417,6 +433,10 @@ class Flashcard(BaseModel):
       {
         "name": "file_type",
         "value": "img"
+      },
+      {
+        "name": "lang",
+        "value": "en"
       }
     ]
   }
@@ -1272,7 +1292,7 @@ class AIResistantOutput(BaseModel):
       },
       {
         "name": "file_url",
-        "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+        "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
       },
       {
         "name": "file_type",
@@ -1537,7 +1557,7 @@ class RecommendationsOutput(BaseModel):
       },
       {
         "name": "td_file_url",
-        "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+        "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
       },
       {
         "name": "td_file_type",
@@ -1851,7 +1871,7 @@ class FullPresentation(BaseModel):
          },
          {
             "name": "objectives_file_url",
-            "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+            "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
          },
          {
             "name": "objectives_file_type",
@@ -2148,7 +2168,7 @@ class RubricOutput(BaseModel):
       },
       {
         "name": "objectives_file_url",
-        "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+        "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
       },
       {
         "name": "objectives_file_type",
@@ -2484,7 +2504,7 @@ class LessonPlan(BaseModel):
          },
          {
             "name": "objectives_file_url",
-            "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+            "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
          },
          {
             "name": "objectives_file_type",
