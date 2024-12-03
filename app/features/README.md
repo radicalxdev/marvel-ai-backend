@@ -5,11 +5,17 @@
 1. [**AVAILABLE DOCUMENT LOADERS FOR DIFFERENT FILE TYPES**](#available-document-loaders-for-different-file-types)
 
 2. [**PAYLOADS FOR TESTING**](#payloads-for-testing)
-   - [**Multiple Choice Quiz Generator**](#epic-71---multiple-choice-quiz-generator)
-   - [**Flashcards Generator**](#epic-72---flashcards-generator)
-   - [**Worksheet Generator**](#epic-73---worksheet-generator)
-   - [**Syllabus Generator**](#epic-77---syllabus-generator)
-
+   - [**Multiple Choice Quiz Generator**](#multiple-choice-quiz-generator)
+   - [**Flashcards Generator**](#flashcards-generator)
+   - [**Worksheet Generator**](#worksheet-generator)
+   - [**Syllabus Generator**](#syllabus-generator)
+   - [**Syllabus Generator**](#syllabus-generator)
+   - [**AI-Resistant Assignments**](#ai-resistant-assignments)
+   - [**Connect with Them**](#connect-with-them)
+   - [**Presentation Generator**](#presentation-generator)
+   - [**Rubric Generator**](#rubric-generator)
+   - [**Lesson Plan Generator**](#lesson-plan-generator)
+   - [**Writing Feedback Generator**](#writing-feedback-generator)
 
 ## AVAILABLE DOCUMENT LOADERS FOR DIFFERENT FILE TYPES:
 | File Type | Description | Function |
@@ -2805,7 +2811,7 @@ class WritingFeedback(BaseModel):
          },
          {
             "name": "wtr_file_url",
-            "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+            "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
          },
          {
             "name": "wtr_file_type",
