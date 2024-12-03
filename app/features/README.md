@@ -1948,7 +1948,7 @@ class RubricOutput(BaseModel):
       },
       {
         "name": "ad_file_type",
-        "value": "pdf"
+        "value": "gdoc"
       },
       {
         "name": "lang",
