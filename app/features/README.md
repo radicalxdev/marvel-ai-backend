@@ -67,8 +67,16 @@ class QuizzifyArgs(BaseModel):
 ```
 
 ## Output Schema:
+List of `QuizQuestion`:
 ```python
-
+class QuestionChoice(BaseModel):
+    key: str = Field(description="A unique identifier for the choice using letters A, B, C, or D.")
+    value: str = Field(description="The text content of the choice")
+class QuizQuestion(BaseModel):
+    question: str = Field(description="The question text")
+    choices: List[QuestionChoice] = Field(description="A list of choices for the question, each with a key and a value")
+    answer: str = Field(description="The key of the correct answer from the choices list")
+    explanation: str = Field(description="An explanation of why the answer is correct")
 ```
 
 ### PDF:
@@ -452,8 +460,11 @@ class WorksheetGeneratorArgs(BaseModel):
 ```
 
 ## Output Schema:
+List of `FlashCard`:
 ```python
-
+class Flashcard(BaseModel):
+    concept: str = Field(description="The concept of the flashcard")
+    definition: str = Field(description="The definition of the flashcard")
 ```
 
 ### PDF:
