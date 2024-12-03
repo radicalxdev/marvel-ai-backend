@@ -58,7 +58,7 @@
 
 ## Input Schema:
 ```python
-class QuizzifyArgs(BaseModel):
+class MCQArgs(BaseModel):
     topic: str
     n_questions: int
     file_url: str
@@ -312,9 +312,13 @@ class DynamoArgs(BaseModel):
 ```
 
 ## Output Schema:
+List of `FlashCard`:
 ```python
-
+class Flashcard(BaseModel):
+    concept: str = Field(description="The concept of the flashcard")
+    definition: str = Field(description="The definition of the flashcard")
 ```
+
 ### PDF:
 ```json
 {
@@ -443,28 +447,78 @@ class DynamoArgs(BaseModel):
 ## Epic 7.3 - Worksheet Generator:
 ## Input Schema:
 ```python
-class WorksheetQuestion(BaseModel):
-    question_type: str
-    number: int
-    
-class WorksheetQuestionModel(BaseModel):
-    worksheet_question_list: List[WorksheetQuestion]
-
 class WorksheetGeneratorArgs(BaseModel):
     grade_level: str
     topic: str
-    worksheet_list: WorksheetQuestionModel
     file_url: str
     file_type: str
     lang: str = "en"
 ```
 
 ## Output Schema:
-List of `FlashCard`:
+List of Questions:
+```json
+{
+   "fill_in_the_blank": [],
+   "open_ended": [],
+   "true_false": [],
+   "multiple_choice_question": [],
+   "relate_concepts": [],
+   "math_exercises": []
+}
+```
+
 ```python
-class Flashcard(BaseModel):
-    concept: str = Field(description="The concept of the flashcard")
-    definition: str = Field(description="The definition of the flashcard")
+#Fill-in-the-blank question type
+class QuestionBlank(BaseModel):
+    key: str = Field(description="A unique identifier for the blank, starting from 0.")
+    value: str = Field(description="The text content to fill in the blank")
+
+class FillInTheBlankQuestion(BaseModel):
+    question: str = Field(description="The question text with blanks indicated by placeholders (It must be 5 blank spaces {0}, {1}, {2}, {3}, {4})")
+    blanks: List[QuestionBlank] = Field(description="A list of blanks for the question, each with a key and a value")
+    word_bank: List[str] = Field(description="A list of the correct texts that fill in the blanks, in random order")
+    explanation: str = Field(description="An explanation of why the answers are correct")
+
+#Open-ended question type
+class OpenEndedQuestion(BaseModel):
+    question: str = Field(description="The open-ended question text")
+    answer: str = Field(description="The expected correct answer")
+    feedback: List[str] = Field(description="A list of possible answers for the provided question")
+
+#True-False question type
+class TrueFalseQuestion(BaseModel):
+    question: str = Field(description="The True-False question text")
+    answer: bool = Field(description="The correct answer, either True or False")
+    explanation: str = Field(description="An explanation of why the answer is correct")
+
+#Multiple Choice question type
+class QuestionChoice(BaseModel):
+    key: str = Field(description="A unique identifier for the choice using letters A, B, C, or D.")
+    value: str = Field(description="The text content of the choice")
+class MultipleChoiceQuestion(BaseModel):
+    question: str = Field(description="The question text")
+    choices: List[QuestionChoice] = Field(description="A list of choices for the question, each with a key and a value")
+    answer: str = Field(description="The key of the correct answer from the choices list")
+    explanation: str = Field(description="An explanation of why the answer is correct")
+
+#Relate concepts question type
+class TermMeaningPair(BaseModel):
+    term: str = Field(description="The term to be matched")
+    meaning: str = Field(description="The meaning of the term")
+
+class RelateConceptsQuestion(BaseModel):
+    question: str = Field(..., description="The 'Relate concepts' question text. It must be appropriate for generating pairs and answers.")
+    pairs: List[TermMeaningPair] = Field(..., description="A list of term-meaning pairs in disorder. It must not be empty.")
+    answer: List[TermMeaningPair] = Field(..., description="A list of the correct term-meaning pairs in order. It must not be empty.")
+    explanation: str = Field(..., description="An explanation of the correct term-meaning pairs")
+
+#Math. Exercise question type
+class MathExerciseQuestion(BaseModel):
+    question: str = Field(description="The math exercise question text")
+    solution: str = Field(description="The step-by-step solution to the math problem")
+    correct_answer: str = Field(description="The correct answer to the math problem")
+    explanation: str = Field(description="An explanation of why the solution is correct")
 ```
 
 ### PDF:
@@ -672,7 +726,53 @@ class SyllabusGeneratorArgsModel(BaseModel):
 
 ## Output Schema:
 ```python
+class CourseInformation(BaseModel):
+    course_title: str = Field(description="The course title")
+    grade_level: str = Field(description="The grade level")
+    description: str = Field(description="The course description")
 
+class CourseDescriptionObjectives(BaseModel):
+    objectives: List[str] = Field(description="The course objectives")
+    intended_learning_outcomes: List[str] = Field(description="The intended learning outcomes of the course")
+
+class CourseContentItem(BaseModel):
+    unit_time: str = Field(description="The unit of time for the course content")
+    unit_time_value: int = Field(description="The unit of time value for the course content")
+    topic: str = Field(description="The topic per unit of time for the course content")
+
+class PoliciesProcedures(BaseModel):
+    attendance_policy: str = Field(description="The attendance policy of the class")
+    late_submission_policy: str = Field(description="The late submission policy of the class")
+    academic_honesty: str = Field(description="The academic honesty policy of the class")
+
+class AssessmentMethod(BaseModel):
+    type_assessment: str = Field(description="The type of assessment")
+    weight: int = Field(description="The weight of the assessment in the final grade")
+
+class AssessmentGradingCriteria(BaseModel):
+    assessment_methods: List[AssessmentMethod] = Field(description="The assessment methods")
+    grading_scale: dict = Field(description="The grading scale")
+
+class LearningResource(BaseModel):
+    title: str = Field(description="The book title of the learning resource")
+    author: str = Field(description="The book author of the learning resource")
+    year: int = Field(description="The year of creation of the book")
+
+class CourseScheduleItem(BaseModel):
+    unit_time: str = Field(description="The unit of time for the course schedule item")
+    unit_time_value: int = Field(description="The unit of time value for the course schedule item")
+    date: str = Field(description="The date for the course schedule item")
+    topic: str = Field(description="The topic for the learning resource")
+    activity_desc: str = Field(description="The descrition of the activity for the learning resource")
+
+class SyllabusSchema(BaseModel):
+    course_information: CourseInformation = Field(description="The course information")
+    course_description_objectives: CourseDescriptionObjectives = Field(description="The objectives of the course")
+    course_content: List[CourseContentItem] = Field(description="The content of the course")
+    policies_procedures: PoliciesProcedures = Field(description="The policies procedures of the course")
+    assessment_grading_criteria: AssessmentGradingCriteria = Field(description="The asssessment grading criteria of the course")
+    learning_resources: List[LearningResource] = Field(description="The learning resources of the course")
+    course_schedule: List[CourseScheduleItem] = Field(description="The course schedule")
 ```
 ### PDF:
 ```json
