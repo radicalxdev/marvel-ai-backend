@@ -1317,79 +1317,646 @@ class RecommendationsOutput(BaseModel):
 
 ### PDF:
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 10,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "task_description",
+        "value": ""
+      },
+      {
+        "name": "students_description",
+        "value": ""
+      },
+      {
+        "name": "td_file_url",
+        "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
+      },
+      {
+        "name": "td_file_type",
+        "value": "pdf"
+      },
+      {
+        "name": "sd_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "sd_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Structured Data (XML):
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 10,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "task_description",
+        "value": ""
+      },
+      {
+        "name": "students_description",
+        "value": ""
+      },
+      {
+        "name": "td_file_url",
+        "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
+      },
+      {
+        "name": "td_file_type",
+        "value": "xml"
+      },
+      {
+        "name": "sd_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "sd_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Youtube Videos:
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 10,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "task_description",
+        "value": ""
+      },
+      {
+        "name": "students_description",
+        "value": ""
+      },
+      {
+        "name": "td_file_url",
+        "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
+      },
+      {
+        "name": "td_file_type",
+        "value": "youtube_url"
+      },
+      {
+        "name": "sd_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "sd_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Google Drive (GDocs):
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 10,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "task_description",
+        "value": ""
+      },
+      {
+        "name": "students_description",
+        "value": ""
+      },
+      {
+        "name": "td_file_url",
+        "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "td_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "sd_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "sd_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Images:
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 10,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "task_description",
+        "value": ""
+      },
+      {
+        "name": "students_description",
+        "value": ""
+      },
+      {
+        "name": "td_file_url",
+        "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+      },
+      {
+        "name": "td_file_type",
+        "value": "img"
+      },
+      {
+        "name": "sd_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "sd_file_type",
+        "value": "gdoc"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ## Presentation Generator
 ## Input Schema:
 ```python
-
+class PresentationGeneratorInput(BaseModel):
+    grade_level: str
+    n_slides: int
+    topic: str
+    objectives: str
+    additional_comments: str
+    objectives_file_url: str #Standards/Objectives File URL
+    objectives_file_type: str #Standards/Objectives File Type
+    ac_file_url: str #Additional Comments File URL
+    ac_file_type: str #Additional Comments File Type
+    lang: str = "en"
 ```
 
 ## Output Schema:
 ```python
+class Slide(BaseModel):
+    title: str = Field(..., description="The title of the Slide")
+    content: str = Field(..., description="The content of the Slide. It must be the actual context, not simple indications")
+    suggestions: str = Field(..., description="""Suggestions for visual elements (e.g., charts, images, layouts) 
+                             that enhance understanding and engagement (ONLY IF NEEDED).""")
 
+class FullPresentation(BaseModel):
+    main_title: str = Field(..., description="The main title of the Presentation")
+    list_slides: List[Slide] = Field(..., description="The full collection of slides about the Presentation")
 ```
 
 ### PDF:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 9,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "n_slides",
+            "value": 9
+         },
+         {
+            "name": "topic",
+            "value": "Linear Algebra"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_comments",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "pdf"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Structured Data (XML):
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 9,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "n_slides",
+            "value": 9
+         },
+         {
+            "name": "topic",
+            "value": "Software Engineering Book"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_comments",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "xml"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Youtube Videos:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 9,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "n_slides",
+            "value": 9
+         },
+         {
+            "name": "topic",
+            "value": "Machine Learning"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_comments",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "youtube_url"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Google Drive (GDocs):
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 9,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "n_slides",
+            "value": 9
+         },
+         {
+            "name": "topic",
+            "value": "OpenAI"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_comments",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ### Images:
 ```json
-
+{
+   "user": {
+      "id": "string",
+      "fullName": "string",
+      "email": "string"
+   },
+   "type": "tool",
+   "tool_data": {
+      "tool_id": 9,
+      "inputs": [
+         {
+            "name": "grade_level",
+            "value": "university"
+         },
+         {
+            "name": "n_slides",
+            "value": 9
+         },
+         {
+            "name": "topic",
+            "value": "AWS Architecture"
+         },
+         {
+            "name": "objectives",
+            "value": ""
+         },
+         {
+            "name": "additional_comments",
+            "value": ""
+         },
+         {
+            "name": "objectives_file_url",
+            "value": "https://miro.medium.com/v2/resize:fit:1200/1*DGp9FSicaRJOs8IWFPxKag.png"
+         },
+         {
+            "name": "objectives_file_type",
+            "value": "img"
+         },
+         {
+            "name": "ac_file_url",
+            "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+         },
+         {
+            "name": "ac_file_type",
+            "value": "gdoc"
+         },
+         {
+            "name": "lang",
+            "value": "en"
+         }
+      ]
+   }
+}
 ```
 
 ## Rubric Generator
 ## Input Schema:
 ```python
-
+class RubricGeneratorArgs(BaseModel):
+    grade_level: Literal["pre-k", "kindergarten", "elementary", "middle", "high", "university", "professional"]
+    point_scale: int
+    objectives: str
+    assignment_desc: str
+    objectives_file_url: str #Standards/Objectives File URL
+    objectives_file_type: str #Standards/Objectives File Type
+    ad_file_url: str #Assignment Description File URL
+    ad_file_type: str #Assignment Description File Type
+    lang: str
 ```
 
 ## Output Schema:
 ```python
+class CriteriaDescription(BaseModel):
+    points: str = Field(..., description="The total points gained by the student according to the point_scale an the level name")
+    description: List[str] = Field(..., description="Description for the specific point on the scale")
 
+class RubricCriteria(BaseModel):
+    criteria: str = Field(..., description="name of the criteria in the rubric")
+    criteria_description: List[CriteriaDescription] = Field(..., description="Descriptions for each point on the scale")
+
+class RubricOutput(BaseModel):
+    title: str = Field(..., description="the rubric title of the assignment based on the standard input parameter")
+    grade_level: str = Field(..., description="The grade level for which the rubric is created")
+    criterias: List[RubricCriteria] = Field(..., description="The grading criteria for the rubric")
+    feedback: str = Field(..., description="the feedback provided by the AI model on the generated rubric")
 ```
 
 ### PDF:
 ```json
-
+{
+  "user": {
+    "id": "string",
+    "fullName": "string",
+    "email": "string"
+  },
+  "type": "chat",
+  "tool_data": {
+    "tool_id": 15,
+    "inputs": [
+      {
+        "name": "grade_level",
+        "value": "university"
+      },
+      {
+        "name": "point_scale",
+        "value": 4
+      },
+      {
+        "name": "objectives",
+        "value": ""
+      },
+      {
+        "name": "assignment_desc",
+        "value": ""
+      },
+      {
+        "name": "objectives_file_url",
+        "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
+      },
+      {
+        "name": "objectives_file_type",
+        "value": "pdf"
+      },
+      {
+        "name": "ad_file_url",
+        "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
+      },
+      {
+        "name": "ad_file_type",
+        "value": "pdf"
+      },
+      {
+        "name": "lang",
+        "value": "en"
+      }
+    ]
+  }
+}
 ```
 
 ### Structured Data (XML):
