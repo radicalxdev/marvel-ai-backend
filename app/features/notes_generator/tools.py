@@ -43,7 +43,6 @@ class NotesGenerator:
         self.parser = parser or default_config["parser"]
         self.embedding_model = embedding_model or default_config["embedding_model"]
         self.example = read_text_file("prompt/example.txt")
-        print(f"Example content: {self.example}")
 
         self.vectorstore_class = vectorstore_class or default_config["vectorstore_class"]
         self.vectorstore, self.retriever, self.runner = None, None, None
@@ -65,10 +64,6 @@ class NotesGenerator:
                                "example": self.example 
                                }
         )
-        if not isinstance(self.example, str):
-            raise TypeError(f"`example` must be a string, but got {type(self.example)}")
-        else: 
-            print("example is a string")
 
         if self.runner is None:
             logger.info(f"Creating vectorstore from {len(documents)} documents") if self.verbose else None
@@ -87,7 +82,6 @@ class NotesGenerator:
         chain = self.runner | prompt | self.model | self.parser
 
         logger.info(f"Chain compilation complete")
-        print(f"Chain compilation complete")
 
         return chain
 
@@ -96,7 +90,7 @@ class NotesGenerator:
         orientation = self.args.orientation
         pdf_filename = "generated_notes.pdf"
         pagesize = landscape(LETTER) if orientation.lower() == "landscape" else portrait(LETTER)
-        logger.info(f"Inside create_pdf_from_notes, orientation =  {orientation}")
+        logger.info(f"create PDF file from the notes, orientation =  {orientation}")
         # Create document
         doc = SimpleDocTemplate(pdf_filename, pagesize=pagesize, rightMargin=0.5*inch, leftMargin=0.5*inch)
         styles = getSampleStyleSheet()
@@ -148,11 +142,6 @@ class NotesGenerator:
         # Return the absolute path to the PDF file
         full_path = os.path.abspath(pdf_filename)
         return full_path
-
-    
-    def validate_notes(self, response: Dict) -> bool:
-        ######################
-        return True
     
     def create_notes(self, documents: List[Document]):
         logger.info(f"Creating the NOTES")
@@ -166,19 +155,12 @@ class NotesGenerator:
             f"Details: {self.args.details}"
         )
         logger.info(f"Input parameters: {input_parameters}")
-        if not isinstance(input_parameters, str):
-            raise TypeError(f"`input_parameters` must be a string, but got {type(input_parameters)}")
-        else: 
-            print("input_parameters is a string")
-
         attempt = 1
         max_attempt = 6
 
         while attempt < max_attempt:
             try:
                 response = chain.invoke(input_parameters)
-                print(f"Notes generated")
-                logger.info(f"Notes generated during attempt nb: {attempt}")
             except Exception as e:
                 logger.error(f"Error during notes generation: {str(e)}")
                 attempt += 1
@@ -187,11 +169,6 @@ class NotesGenerator:
                 logger.error(f"could not generate Notes, trying again")
                 attempt += 1
                 continue
-
-            if self.validate_notes(response) == False:
-                attempt += 1
-                continue
-
             # If everything is valid, break the outer loop
             break
 

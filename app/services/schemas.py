@@ -57,7 +57,7 @@ class ChatMessage(BaseModel):
 class GivenFiles(BaseModel):
     file_type: str = Field(..., description="Type of file being handled")
     file_url: str = Field(..., description="URL or path of the file to be processed to retrieve the notes")
-    lang: Optional[str] = Field(..., description="Language in which the file or content is written")
+    lang: Optional[str] = Field(..., description="Language used in the file or content")
 
 class NotesGeneratorArgs(BaseModel):
     topic: str = Field(..., description="Topic of the notes")

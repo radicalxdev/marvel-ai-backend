@@ -25,12 +25,8 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
         request_data = data.tool_data
         
         requested_tool = load_tool_metadata(request_data.tool_id)
-        logger.info(f"GO TO FINALIZE_INPUTS, request_data.inputs: {request_data.inputs}")
         request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
-        logger.info(f"GO TO EXECUTE_TOOL, request_inputs_dict: {request_inputs_dict}")
         result = execute_tool(request_data.tool_id, request_inputs_dict)
-
-        logger.info(f"absolute_path_to_result: {os.path.abspath(result)}")
 
         # Check if the file exists
         if not os.path.exists(result):

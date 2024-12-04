@@ -15,7 +15,7 @@ def process_file(input_file: GivenFiles, verbose=True):
             logger.info(f"Processing File URL: {input_file.file_url}")
             logger.info(f"Generating docs from {input_file.file_type}")  
         docs = get_docs(input_file.file_url, input_file.file_type, verbose=True)
-        logger.info(f"docs generated........................................ {docs}")  
+        logger.info(f"docs generated")  
         return docs
     except Exception as e:
         logger.error(f"Failed to process file {input_file.file_url}: {e}")
@@ -30,7 +30,7 @@ def process_all_filesinputs(notes_generator_args: NotesGeneratorArgs) -> List:
         for future in as_completed(futures):
             docs = future.result()
             all_docs.extend(docs)  # Add each file's documents to the combined list
-            logger.info(f"$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ docs extended ###############")  
+            logger.info(f"docs extended")  
 
     return all_docs
 
