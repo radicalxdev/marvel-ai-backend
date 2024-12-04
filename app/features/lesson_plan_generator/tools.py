@@ -137,20 +137,20 @@ class LessonPlanGeneratorPipeline:
             "additional_customization": self.args.additional_customization,
         }
         results = pipeline.invoke(inputs)
-        lesson_plan = LessonPlan(
-            title=results["branches"]["title"],
-            objective=results["branches"]["objective"],
-            assessment=results["branches"]["assessment"],
-            key_points=results["branches"]["key_points"],
-            opening=results["branches"]["opening"],
-            introduction_to_new_material=results["branches"]["introduction_to_new_material"],
-            guided_practice=results["branches"]["guided_practice"],
-            independent_practice=results["branches"]["independent_practice"],
-            closing=results["branches"]["closing"],
-            extension_activity=results["branches"]["extension_activity"],
-            homework=results["branches"]["homework"],
-            standards_addressed=results["branches"]["standards_addressed"],
-        )
+        lesson_plan = {
+            "title": results["branches"]["title"]["title"],
+            "objective": results["branches"]["objective"]["objective"],
+            "assessment": results["branches"]["assessment"]["assessment"],
+            "key_points": results["branches"]["key_points"]["key_points"],
+            "opening": results["branches"]["opening"],
+            "introduction_to_new_material": results["branches"]["introduction_to_new_material"],
+            "guided_practice": results["branches"]["guided_practice"],
+            "independent_practice": results["branches"]["independent_practice"],
+            "closing": results["branches"]["closing"],
+            "extension_activity": results["branches"]["extension_activity"],
+            "homework": results["branches"]["homework"],
+            "standards_addressed": results["branches"]["standards_addressed"],
+        }
         if self.verbose:
             logger.info("Lesson Plan successfully generated.")
         return lesson_plan
