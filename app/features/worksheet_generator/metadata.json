@@ -1,14 +1,19 @@
 {
     "inputs": [
         {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
             "label": "Topic",
             "name": "topic",
             "type": "text"
         },
         {
-            "label": "Number of Questions",
-            "name": "n_questions",
-            "type": "number"
+            "label": "Worksheet List",
+            "name": "worksheet_list",
+            "type": "worksheet_list"
         },
         {
             "label": "File URL",

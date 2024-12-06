@@ -6,6 +6,7 @@ from app.api.error_utilities import VideoTranscriptError, InputValidationError, 
 from typing import Dict, Any, List
 from fastapi import HTTPException
 from pydantic import ValidationError
+from app.services.schemas import WorksheetQuestionModel
 
 logger = setup_logger(__name__)
 
@@ -18,7 +19,7 @@ tools_config = load_config()
 
 def get_executor_by_name(module_path):
     try:
-        module = __import__(module_path, fromlist=['executor'])
+        module = __import__('app.'+module_path, fromlist=['executor'])
         return getattr(module, 'executor')
     except Exception as e:
         logger.error(f"Failed to import executor from {module_path}: {str(e)}")
@@ -93,6 +94,8 @@ def validate_input_type(input_name: str, input_value: Any, expected_type: str):
         raise_type_error(input_name, input_value, "string")
     elif expected_type == 'number' and not isinstance(input_value, (int, float)):
         raise_type_error(input_name, input_value, "number")
+    elif expected_type == 'worksheet_list' and not isinstance(input_value, List):
+        raise_type_error(input_name, input_value, "worksheet_list")
     elif expected_type == 'file':
         validate_file_input(input_name, input_value)
 
@@ -117,10 +120,16 @@ def convert_files_to_tool_files(inputs: Dict[str, Any]) -> Dict[str, Any]:
         inputs['files'] = [ToolFile(**file_object) for file_object in inputs['files']]
     return inputs
 
+def convert_worksheet_list_to_pydantic(inputs: Dict[str, Any]) -> Dict[str, Any]:
+    if 'worksheet_list' in inputs:
+        inputs['worksheet_list'] = WorksheetQuestionModel(worksheet_question_list = inputs['worksheet_list'])
+    return inputs
+
 def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str, Any]:
     inputs = prepare_input_data(input_data)
     validate_inputs(inputs, validate_data)
     inputs = convert_files_to_tool_files(inputs)
+    inputs = convert_worksheet_list_to_pydantic(inputs)
     return inputs
 
 def execute_tool(tool_id, request_inputs_dict):
