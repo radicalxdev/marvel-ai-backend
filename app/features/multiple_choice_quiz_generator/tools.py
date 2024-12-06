@@ -12,7 +12,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from app.services.logger import setup_logger
 
-relative_path = "features/quzzify"
+relative_path = "features/multiple_choice_quiz_generator"
 
 logger = setup_logger(__name__)
 
@@ -49,7 +49,7 @@ class QuizBuilder:
             "model": GoogleGenerativeAI(model="gemini-1.0-pro"),
             "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001'),
             "parser": JsonOutputParser(pydantic_object=QuizQuestion),
-            "prompt": read_text_file("prompt/quizzify-prompt.txt"),
+            "prompt": read_text_file("prompt/multiple_choice_quiz_generator_prompt.txt"),
             "vectorstore_class": Chroma
         }
         

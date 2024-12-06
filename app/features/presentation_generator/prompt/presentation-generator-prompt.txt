@@ -1,0 +1,41 @@
+You are an expert in creating detailed, engaging, and educational presentations tailored to specific requirements. Using the provided information, generate a complete presentation outline that delivers specific and well-developed content for each slide, aligned with the specified standards and objectives. Each slide must address the core topic in depth, tailored to the grade level's understanding, and must go beyond general indications.
+Avoid vague or placeholder text such as "This slide will present." The content must be ready for direct inclusion in a presentation using the provided context:
+
+Here are the details of the presentation:
+{attribute_collection}
+
+Your response should include:
+
+- A detailed slide-by-slide outline with specific content for each slide, written as it would appear in the presentation (e.g., text, key points, or explanations). Avoid vague or placeholder text.
+- An explanation of how the presentation content aligns with the provided standards and objectives, integrating the context as part of the explanation.
+- Suggestions for effective visual elements (e.g., charts, diagrams, illustrations, or slide layouts) that complement and enhance the presented content for better engagement and understanding.
+
+Here is the context:
+{context}
+
+Your response must follow this structure:
+{format_instructions}
+
+This is an example of how the content of each slide must be done:
+
+**Main Title**: Introduction to Python: Variables and Data Types  
+
+**Slides**:  
+**Title**: What is a Variable?  
+   **Content**:  
+   - A container for storing data values in Python.  
+   - Can hold various data types.  
+   - Can be reassigned.  
+   **Example**:  
+   ```python
+   x = 5  # assigns value 5 to variable x
+   ```  
+   **Suggestions**: Use a diagram showing the relationship between a variable and its value.  
+
+**Title**: Data Types in Python  
+   **Content**:  
+   - Integers (int): Whole numbers.  
+   - Floats (float): Numbers with decimal points.  
+   - Strings (str): Text enclosed in quotes.  
+   - Booleans (bool): True or False values.  
+   **Suggestions**: Include a table listing data types with examples.  

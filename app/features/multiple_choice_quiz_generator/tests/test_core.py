@@ -1,5 +1,5 @@
 import pytest
-from app.features.quizzify.core import executor
+from app.features.multiple_choice_quiz_generator.core import executor
 # from app.api.error_utilities import SyllabusGeneratorError
 from app.services.schemas import QuizzifyArgs
 

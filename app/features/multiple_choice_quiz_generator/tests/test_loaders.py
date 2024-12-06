@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from app.services.tool_registry import ToolFile
-from app.features.quizzify.tools import URLLoader, BytesFilePDFLoader, Document  # Adjust the import path as necessary
+from app.features.multiple_choice_quiz_generator.tools import URLLoader, BytesFilePDFLoader, Document  # Adjust the import path as necessary
 
 @pytest.fixture
 def pdf_loader():
@@ -14,7 +14,7 @@ def url_loader(pdf_loader):
 @patch('requests.get')
 def test_load_pdf_from_url(mock_get, url_loader):
     
-    pdf_file_path = "features/quizzify/tests/test.pdf"
+    pdf_file_path = "features/multiple_choice_quiz_generator/tests/test.pdf"
     
     with open(pdf_file_path, 'rb') as file:
         mock_pdf_content = file.read()
@@ -41,7 +41,7 @@ def test_load_pdf_from_url(mock_get, url_loader):
 @patch('requests.get')
 def test_load_pdf_from_url(mock_get):
     # Simulate reading a local PDF file or use mock PDF content
-    pdf_file_path = "features/quizzify/tests/test.pdf"
+    pdf_file_path = "features/multiple_choice_quiz_generator/tests/test.pdf"
     with open(pdf_file_path, 'rb') as pdf_file:
         pdf_content = pdf_file.read()
 
