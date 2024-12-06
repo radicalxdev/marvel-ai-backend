@@ -8,10 +8,7 @@ env:
 on:
   push:
     branches:
-      - STAGING
-  pull_request:
-    branches:
-      - STAGING
+      - Develop
 
 jobs:
   dockerize-and-deploy:
