@@ -19,6 +19,10 @@
         "path": "features.syllabus_generator.core",
         "metadata_file": "metadata.json"
     },
+    "7": {
+        "path": "features.lesson_plan_generator.core",
+        "metadata_file": "metadata.json"
+    },
     "9": {
         "path": "features.presentation_generator.core",
         "metadata_file": "metadata.json"

@@ -128,3 +128,14 @@ class RubricGeneratorArgs(BaseModel):
     ad_file_url: str
     ad_file_type: str
     lang: Optional[str]
+
+class LessonPlanGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    objectives: str
+    additional_customization: str
+    objectives_file_url: str
+    objectives_file_type: str
+    ac_file_url: str
+    ac_file_type: str
+    lang: Optional[str] = "en"
