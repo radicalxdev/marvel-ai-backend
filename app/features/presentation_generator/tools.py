@@ -105,7 +105,7 @@ class PresentationGenerator:
 
         input_parameters = (
             f"Grade Level: {self.args.grade_level}, "
-            f"Number of Slides: {self.args.n_slides}, "
+            f"Number of Slides: {self.args.n_slides+1 if self.args.n_slides>9 else self.args.n_slides}, "
             f"Topic: {self.args.topic}, "
             f"Standard/Objectives: {self.args.objectives}, "
             f"Additional Comments: {self.args.additional_comments}, "
