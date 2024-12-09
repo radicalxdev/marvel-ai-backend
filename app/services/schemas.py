@@ -139,3 +139,14 @@ class LessonPlanGeneratorArgs(BaseModel):
     ac_file_url: str
     ac_file_type: str
     lang: Optional[str] = "en"
+
+class WritingFeedbackGeneratorArgs(BaseModel):
+    grade_level: str
+    assignment_description: str
+    criteria: str
+    writing_to_review: str
+    criteria_file_url: str
+    criteria_file_type: str
+    wtr_file_url: str
+    wtr_file_type: str
+    lang: Optional[str] = "en"
