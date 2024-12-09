@@ -26,9 +26,5 @@
     "10": {
         "path": "features.connect_with_them.core",
         "metadata_file": "metadata.json"
-    },
-    "15": {
-        "path": "features.rubric_generator.core",
-        "metadata_file": "metadata.json"
     }
 }
