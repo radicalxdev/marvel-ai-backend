@@ -1,29 +1,29 @@
 {
     "inputs": [
         {
-            "label": "Grade Level",
-            "name": "grade_level",
-            "type": "text"
+            "label": "Assignment",
+            "name": "assignment",
+            "type": "assignment"
         },
         {
-            "label": "Topic",
-            "name": "topic",
-            "type": "text"
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "grade_level"
         },
         {
             "label": "File URL",
             "name": "file_url",
-            "type": "text"
+            "type": "file_url"
         },
         {
             "label": "File Type",
             "name": "file_type",
-            "type": "text"
+            "type": "file_type"
         },
         {
             "label": "Language",
             "name": "lang",
-            "type": "text"
+            "type": "lang"
         }
     ]
 }
