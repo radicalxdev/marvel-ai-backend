@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 import os
 from app.services.logger import setup_logger
 from langchain_chroma import Chroma
@@ -29,10 +29,12 @@ class PresentationGenerator:
             "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001'),
             "parser": JsonOutputParser(pydantic_object=FullPresentation),
             "prompt": read_text_file("prompt/presentation-generator-prompt.txt"),
+            "prompt_without_context": read_text_file("prompt/presentation-generator-without-context-prompt.txt"),
             "vectorstore_class": Chroma
         }
 
         self.prompt = prompt or default_config["prompt"]
+        self.prompt_without_context = default_config["prompt_without_context"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
         self.embedding_model = embedding_model or default_config["embedding_model"]
@@ -51,7 +53,7 @@ class PresentationGenerator:
         if args.objectives is None: raise ValueError("Objectives must be provided")
         if args.lang is None: raise ValueError("Language must be provided")
 
-    def compile(self, documents: List[Document]):
+    def compile_with_context(self, documents: List[Document]):
         # Return the chain
         prompt = PromptTemplate(
             template=self.prompt,
@@ -78,15 +80,32 @@ class PresentationGenerator:
         logger.info(f"Chain compilation complete")
 
         return chain
+    
+    def compile_without_context(self):
+        # Return the chain
+        prompt = PromptTemplate(
+            template=self.prompt_without_context,
+            input_variables=["attribute_collection"],
+            partial_variables={"format_instructions": self.parser.get_format_instructions()}
+        )
 
-    def generate_presentation(self, documents: List[Document]):
+        chain = prompt | self.model | self.parser
+
+        logger.info(f"Chain compilation complete")
+
+        return chain
+
+    def generate_presentation(self, documents: Optional[List[Document]]):
         logger.info(f"Creating the Presentation")
 
-        chain = self.compile(documents)
+        if(documents):
+            chain = self.compile_with_context(documents)
+        else:
+            chain = self.compile_without_context()
 
         input_parameters = (
             f"Grade Level: {self.args.grade_level}, "
-            f"Number of Slides: {self.args.n_slides}, "
+            f"Number of Slides: {self.args.n_slides+1 if self.args.n_slides>9 else self.args.n_slides}, "
             f"Topic: {self.args.topic}, "
             f"Standard/Objectives: {self.args.objectives}, "
             f"Additional Comments: {self.args.additional_comments}, "
@@ -97,6 +116,10 @@ class PresentationGenerator:
         response = chain.invoke(input_parameters)
 
         logger.info(f"Generated response: {response}")
+
+        if(documents):
+            if self.verbose: print(f"Deleting vectorstore")
+            self.vectorstore.delete_collection()
 
         return response
 

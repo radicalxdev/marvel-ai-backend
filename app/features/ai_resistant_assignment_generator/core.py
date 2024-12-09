@@ -6,8 +6,8 @@ from app.api.error_utilities import LoaderError, ToolExecutorError
 
 logger = setup_logger()
 
-def executor(assignment: str,
-             grade_level: str,
+def executor(grade_level: str,
+             assignment_description: str,
              file_url: str,
              file_type: str,
              lang: str, 
@@ -16,10 +16,14 @@ def executor(assignment: str,
     try:
         logger.info(f"Generating docs. from {file_type}")
 
-        docs = get_docs(file_url, file_type, True)
-
+        if (file_url and file_type):
+            logger.info(f"Generating docs. from {file_type}")
+            docs = get_docs(file_url, file_type, True)
+        else:
+            docs = None
+            
         ai_resistant_args = AIResistantArgs(
-            assignment=assignment,
+            assignment=assignment_description,
             grade_level=grade_level,
             file_type=file_type,
             file_url=file_url,

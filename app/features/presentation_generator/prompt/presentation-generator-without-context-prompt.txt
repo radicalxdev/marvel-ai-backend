@@ -10,9 +10,6 @@ Your response should include:
 - An explanation of how the presentation content aligns with the provided standards and objectives, integrating the context as part of the explanation.
 - Suggestions for effective visual elements (e.g., charts, diagrams, illustrations, or slide layouts) that complement and enhance the presented content for better engagement and understanding.
 
-If any detail is empty, use the context:
-{context}
-
 Your response must follow this structure:
 {format_instructions}
 
