@@ -1,10 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Any, Literal
-from pydantic import BaseModel, Field
-from typing import Optional, List, Any
 from enum import Enum
 from app.services.tool_registry import BaseTool
-
 
 class User(BaseModel):
     id: str
@@ -116,6 +113,17 @@ class PresentationGeneratorInput(BaseModel):
     file_url: str
     file_type: str
     lang: Optional[str] = "en"
+
+class RubricGeneratorArgs(BaseModel):
+    grade_level: Literal["pre-k", "kindergarten", "elementary", "middle", "high", "university", "professional"]
+    point_scale: int
+    objectives: str
+    assignment_desc: str
+    objectives_file_url: str
+    objectives_file_type: str
+    ad_file_url: str
+    ad_file_type: str
+    lang: Optional[str]
 
 class LessonPlanGeneratorArgs(BaseModel):
     grade_level: str

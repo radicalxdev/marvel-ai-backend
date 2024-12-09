@@ -129,7 +129,7 @@ def execute_tool(tool_id, request_inputs_dict):
         
         if not tool_config:
             raise HTTPException(status_code=404, detail="Tool executable not found")
-        
+
         execute_function = get_executor_by_name(tool_config['path'])
         request_inputs_dict['verbose'] = True
         
