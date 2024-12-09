@@ -6,11 +6,6 @@
             "type": "text"
         },
         {
-            "label": "Number of Slides",
-            "name": "n_slides",
-            "type": "number"
-        },
-        {
             "label": "Topic",
             "name": "topic",
             "type": "text"
@@ -21,8 +16,8 @@
             "type": "text"
         },
         {
-            "label": "Additional Comments",
-            "name": "additional_comments",
+            "label": "Additional Customization",
+            "name": "additional_customization",
             "type": "text"
         },
         {
@@ -36,12 +31,12 @@
             "type": "text"
         },
         {
-            "label": "Additional Comments File URL",
+            "label": "Additional Customization File URL",
             "name": "ac_file_url",
             "type": "text"
         },
         {
-            "label": "Additional Comments File Type",
+            "label": "Additional Customization File Type",
             "name": "ac_file_type",
             "type": "text"
         },

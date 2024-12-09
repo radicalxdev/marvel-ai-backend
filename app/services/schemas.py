@@ -90,7 +90,7 @@ class SyllabusGeneratorArgsModel(BaseModel):
     lang: Optional[str] = "en"
     
 class AIResistantArgs(BaseModel):
-    assignment: str = Field(..., min_length=1, max_length=255, description="The given assignment")
+    assignment: str = Field(..., max_length=255, description="The given assignment")
     grade_level: Literal["pre-k", "kindergarten", "elementary", "middle", "high", "university", "professional"] = Field(..., description="Educational level to which the content is directed")
     file_type: str = Field(..., description="Type of file being handled, according to the defined enumeration")
     file_url: str = Field(..., description="URL or path of the file to be processed")
@@ -100,8 +100,10 @@ class ConnectWithThemArgs(BaseModel):
     grade_level: str = Field(..., description="The grade level the teacher is instructing.")
     task_description: str = Field(..., description="A brief description of the subject or topic the teacher is instructing.")
     students_description: str = Field(..., description="A description of the students including age group, interests, location, and any relevant cultural or social factors.")
-    file_url: str = Field(..., description="URL of any relevant file associated with the teaching material.")
-    file_type: str = Field(..., description="The type of the file")
+    td_file_url: str 
+    td_file_type: str 
+    sd_file_url: str
+    sd_file_type: str
     lang: str = Field(..., description="The language in which the subject is being taught.")
 
 class PresentationGeneratorInput(BaseModel):
@@ -110,8 +112,10 @@ class PresentationGeneratorInput(BaseModel):
     topic: str
     objectives: str
     additional_comments: str
-    file_url: str
-    file_type: str
+    objectives_file_url: str
+    objectives_file_type: str
+    ac_file_url: str
+    ac_file_type: str
     lang: Optional[str] = "en"
 
 class RubricGeneratorArgs(BaseModel):
@@ -124,6 +128,17 @@ class RubricGeneratorArgs(BaseModel):
     ad_file_url: str
     ad_file_type: str
     lang: Optional[str]
+
+class LessonPlanGeneratorArgs(BaseModel):
+    grade_level: str
+    topic: str
+    objectives: str
+    additional_customization: str
+    objectives_file_url: str
+    objectives_file_type: str
+    ac_file_url: str
+    ac_file_type: str
+    lang: Optional[str] = "en"
 
 class WritingFeedbackGeneratorArgs(BaseModel):
     grade_level: str

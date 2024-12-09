@@ -64,6 +64,7 @@ def get_summary(file_url: str, file_type: str, verbose=False):
         return chain.invoke(full_content)
         
     except Exception as e:
+        logger.error(e)
         logger.error(f"Unsupported file type: {file_type}")
         raise FileHandlerError(f"Unsupported file type", file_url) from e
 

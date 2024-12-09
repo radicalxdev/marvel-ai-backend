@@ -9,22 +9,41 @@ logger = setup_logger()
 def executor(grade_level: str,
              task_description: str,
              students_description: str,
-             file_url: str,
-             file_type: str,
+             td_file_url: str,
+             td_file_type: str,
+             sd_file_url: str,
+             sd_file_type: str,
              lang: str,
              verbose=False):
     
     try:
-        logger.info(f"Generating docs. from {file_type}")
+        if(td_file_type):
+            logger.info(f"Generating docs. from {td_file_type}")
+        if(sd_file_type):
+            logger.info(f"Generating docs. from {sd_file_type}")
 
-        docs = get_docs(file_url, file_type, True)
+        docs = None
+
+        def fetch_docs(file_url, file_type):
+            return get_docs(file_url, file_type, True) if file_url and file_type else None
+
+        task_description_docs = fetch_docs(td_file_url, td_file_type)
+        student_description_docs = fetch_docs(sd_file_url, sd_file_type)
+
+        docs = (
+            task_description_docs + student_description_docs
+            if task_description_docs and student_description_docs
+            else task_description_docs or student_description_docs
+        )
 
         connect_with_them_args = ConnectWithThemArgs(
             grade_level=grade_level,
             task_description=task_description,
             students_description=students_description,
-            file_url=file_url,
-            file_type=file_type,
+            td_file_url=td_file_url,
+            td_file_type=td_file_type,
+            sd_file_url=sd_file_url,
+            sd_file_type=sd_file_type,
             lang=lang
         )
 

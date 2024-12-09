@@ -3,8 +3,5 @@ You are an expert in generating personalized teaching recommendations. Generate 
 Here are the grade level, task description, student description and the requested language of the response:
 {attribute_collection}
 
-If there is no task description or student description, use the context:
-{context}
-
 Your response should be in the following format:
 {format_instructions}
