@@ -1,9 +1,39 @@
 {
     "inputs": [
         {
-            "label": "Notes Generator Args.",
-            "name": "notes_generator_args",
-            "type": "notes_generator_args"
+            "label": "Topic",
+            "name": "topic",
+            "type": "text"
+        },
+        {
+            "label": "Details",
+            "name": "details",
+            "type": "text"
+        },
+        {
+            "label": "Number of Columns",
+            "name": "nb_columns",
+            "type": "number"
+        },
+        {
+            "label": "Orientation",
+            "name": "orientation",
+            "type": "text"
+        },
+        {
+            "label": "File URLs",
+            "name": "file_urls",
+            "type": "text"
+        },
+        {
+            "label": "File Type",
+            "name": "file_types",
+            "type": "text"
+        },
+        {
+            "label": "Language",
+            "name": "langs",
+            "type": "text"
         }
     ]
 }

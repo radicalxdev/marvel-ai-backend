@@ -54,16 +54,12 @@ class ChatMessage(BaseModel):
     type: str
     text: str
 
-class GivenFiles(BaseModel):
-    file_type: str = Field(..., description="Type of file being handled")
-    file_url: str = Field(..., description="URL or path of the file to be processed to retrieve the notes")
-    lang: Optional[str] = Field(..., description="Language used in the file or content")
-
 class NotesGeneratorArgs(BaseModel):
     topic: str = Field(..., description="Topic of the notes")
-    details: str = Field(..., description="what should the notes talk about")
-    nb_columns: int = Field(..., description="number of columns for the key concept notes generated")
-    orientation: Literal["landscape", "portrait"] = Field(..., description="orientation of the notes document created")
-    givenfileslist: List[GivenFiles] = Field(..., description="upload or specify the various inputs to retrive notes from")
-
+    details: str = Field(..., description="What should the notes talk about")
+    nb_columns: int = Field(..., description="Number of columns for the key concept notes generated")
+    orientation: Literal["landscape", "portrait"] = Field(..., description="Orientation of the notes document created")
+    file_urls: str = Field(..., description="Comma-separated URLs or paths of the files to be processed")
+    file_types: str = Field(..., description="Comma-separated file types corresponding to the provided URLs (e.g., pdf,gdoc,img,youtube_url)")
+    langs: str = Field(..., description="Comma-separated languages for each file (e.g., en,fr,es)")
 

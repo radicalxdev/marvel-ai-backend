@@ -5,41 +5,28 @@ from app.features.notes_generator.core import executor
 from app.services.schemas import NotesGeneratorArgs
 
 def test_executor_notes_valid():
-    notes_generator_args = NotesGeneratorArgs(
-             topic = "Machine Learning",
-             nb_columns =  4,
-             details = "information about Machine Learning",
-             orientation = "portrait",
-             givenfileslist = [
-                {
-                "file_url":"https://www.interactions.com/wp-content/uploads/2017/06/machine_learning_wp-5.pdf",
-                "file_type":"pdf",
-                "lang":"en"
-                }
-             ]
-    )
-    notes = executor(notes_generator_args)
-
-    assert isinstance(notes, str), "full_path must be a string"
-    assert os.path.exists(notes), f"full_path does not exist: {notes}"
-    assert os.path.getsize(notes) > 0, "PDF file is empty"
+    notes = executor(
+                topic="Machine Learning",
+                nb_columns=4,
+                details="information about Machine Learning",
+                orientation="portrait",
+                file_urls="https://www.interactions.com/wp-content/uploads/2017/06/machine_learning_wp-5.pdf,https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd",
+                file_types="pdf,pdf",
+                langs="en,en"
+                )
+    assert isinstance(notes, dict)
 
 
 def test_executor_notes_invalid():
-    notes_generator_args = NotesGeneratorArgs(
-             topic = "Machine Learning",
-             nb_columns =  4,
-             details = "information about Machine Learning",
-             orientation = "portrait",
-             givenfileslist = [
-                {
-                "file_url":"https://www.interaction.com/wp-content/uploads/2017/06/machine.pdf",
-                "file_type":"pdf",
-                "lang":"en"
-                }
-             ]
-    )
     with pytest.raises(ValueError) as exc_info:
-        notes = executor(notes_generator_args)
+        nnotes = executor(
+                topic="Machine Learning",
+                nb_columns=4,
+                details="information about Machine Learning",
+                orientation="portrait",
+                file_urls="https://www.interactions.com/wp-content/uploads/2017/06/machine.pdf",
+                file_types="pdf,pdf",
+                langs="en,en"
+                )
 
     assert isinstance(exc_info.value, ValueError)

@@ -8,8 +8,7 @@ from app.utils.auth import key_check
 from app.services.logger import setup_logger
 from app.api.error_utilities import InputValidationError, ErrorResponse
 from app.api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
-from fastapi.responses import FileResponse
-from starlette.background import BackgroundTask
+
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -25,20 +24,12 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
         request_data = data.tool_data
         
         requested_tool = load_tool_metadata(request_data.tool_id)
-        request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
-        result = execute_tool(request_data.tool_id, request_inputs_dict)
-
-        # Check if the file exists
-        if not os.path.exists(result):
-            raise HTTPException(status_code=404, detail="PDF file not found")
         
-        return FileResponse(
-            path=result, 
-            media_type='application/pdf', 
-            filename="Notes.pdf",
-            background=BackgroundTask(lambda: os.remove(result))
-        )
-    
+        request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
+
+        result = execute_tool(request_data.tool_id, request_inputs_dict)
+        
+        return ToolResponse(data=result)
     
     except InputValidationError as e:
         logger.error(f"InputValidationError: {e}")

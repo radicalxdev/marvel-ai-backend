@@ -8,11 +8,7 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from reportlab.lib.pagesizes import LETTER, landscape, portrait
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-import roman  # For Roman numeral conversion
+
 
 from app.services.logger import setup_logger
 
@@ -85,64 +81,7 @@ class NotesGenerator:
 
         return chain
 
-    def create_pdf_from_notes(self, notes_data):
-        # Set up PDF document orientation and filename
-        orientation = self.args.orientation
-        pdf_filename = "generated_notes.pdf"
-        pagesize = landscape(LETTER) if orientation.lower() == "landscape" else portrait(LETTER)
-        logger.info(f"create PDF file from the notes, orientation =  {orientation}")
-        # Create document
-        doc = SimpleDocTemplate(pdf_filename, pagesize=pagesize, rightMargin=0.5*inch, leftMargin=0.5*inch)
-        styles = getSampleStyleSheet()
 
-        # Custom styles
-        title_style = ParagraphStyle(
-            "TitleStyle", parent=styles["Title"], fontSize=16, alignment=1, spaceAfter=12
-        )
-        concept_style = ParagraphStyle(
-            "ConceptStyle", parent=styles["Normal"], leftIndent=24, spaceAfter=6
-        )
-
-        # Build PDF content
-        content = []
-
-        # Title
-        content.append(Paragraph(notes_data["title"], title_style))
-        content.append(Spacer(1, 0.2 * inch))
-
-        # Summary
-        content.append(Paragraph(notes_data["summary"], styles["BodyText"]))
-        content.append(Spacer(1, 0.2 * inch))
-
-        # Numbered Major Key Concepts
-        for idx, major_concept in enumerate(notes_data["majorkeyconceptslist"], start=1):
-            # Display major concept title with numbering
-            major_concept_title = f"{idx}. {major_concept['majorconcept']}"
-            content.append(Paragraph(major_concept_title, styles["Heading2"]))
-
-            # Numbered sub-key concepts in Roman numerals
-            for sub_idx, key_concept in enumerate(major_concept["keyconceptdetails"], start=1):
-                sub_concept_title = f"{roman.toRoman(sub_idx)}. {key_concept['concept']}"
-                content.append(Paragraph(sub_concept_title, concept_style))
-
-                # Add each description as a paragraph below the concept title
-                for description in key_concept["conceptdescription"]:
-                    content.append(Paragraph(description, styles["BodyText"]))
-                    content.append(Spacer(1, 0.1 * inch))
-
-            # Add a spacer between major concepts
-            content.append(Spacer(1, 0.3 * inch))
-
-        # Generate PDF
-        try:
-            doc.build(content)
-        except Exception as e:
-            print(f"Error generating PDF: {str(e)}")
-
-        # Return the absolute path to the PDF file
-        full_path = os.path.abspath(pdf_filename)
-        return full_path
-    
     def create_notes(self, documents: List[Document]):
         logger.info(f"Creating the NOTES")
 
@@ -180,20 +119,18 @@ class NotesGenerator:
         if self.verbose: print(f"Deleting vectorstore")
         self.vectorstore.delete_collection()
 
-        return self.create_pdf_from_notes(response)       
+        return response     
+   
         
-
-
 class KeyConcepts(BaseModel):
     concept: str = Field(..., description="The concept name")
-    conceptdescription: List[str] = Field(..., description="Description for the concept")
+    concept_description: List[str] = Field(..., description="Description for the concept")
 
 class MajorKeyConcepts(BaseModel):
-    majorconcept: str = Field(..., description="name of the major concept")
-    keyconceptdetails: List[KeyConcepts] = Field(..., description="Details for the major concept")
-    
+    major_concept: str = Field(..., description="Name of the major concept")
+    key_concept_details: List[KeyConcepts] = Field(..., description="Details for the major concept")
+
 class NotesOutput(BaseModel):
-    title: str = Field(..., description="title or main topic for the notes created")
+    title: str = Field(..., description="Title or main topic for the notes created")
     summary: str = Field(..., description="A summary containing the main idea and subject discussed")
-    majorkeyconceptslist: List[MajorKeyConcepts] = Field(..., description="The major key concepts, or the big large title discussed")
-    
+    major_key_concepts_list: List[MajorKeyConcepts] = Field(..., description="The major key concepts, or the big large title discussed")
