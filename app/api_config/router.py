@@ -3,14 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from typing import Union
-from app.services.schemas import ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
+from app.api_config.assistants_utilities import execute_assistant, finalize_inputs_assistants, load_assistant_metadata
+from app.services.schemas import GenericAssistantRequest, ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
 from app.utils.auth import key_check
 from app.services.logger import setup_logger
 from app.api_config.error_utilities import InputValidationError, ErrorResponse
 from app.api_config.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
-
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -62,6 +62,24 @@ async def chat( request: ChatRequest, _ = Depends(key_check) ):
         role="ai",
         type="text",
         payload={"text": response}
+    )
+    
+    return ChatResponse(data=[formatted_response])
+
+@router.post("/assistants", response_model=ChatResponse)
+async def assistants( request: GenericAssistantRequest, _ = Depends(key_check) ):
+    
+    assistant_group = request.assistant_inputs.assistant_group
+    assistant_name = request.assistant_inputs.assistant_name
+
+    requested_assistant = load_assistant_metadata(assistant_group, assistant_name)
+    request_inputs_dict = finalize_inputs_assistants(request.assistant_inputs.inputs, requested_assistant['inputs'])
+    result = execute_assistant(assistant_group, assistant_name, request_inputs_dict)
+
+    formatted_response = Message(
+        role="ai",
+        type="text",
+        payload={"text": result}
     )
     
     return ChatResponse(data=[formatted_response])

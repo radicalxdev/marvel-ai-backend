@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Any, Literal
 from enum import Enum
+from app.services.assistant_registry import AssistantInputs
 from app.services.tool_registry import BaseTool
 
 class User(BaseModel):
@@ -20,7 +21,7 @@ class MessageType(str, Enum):
     file = "file"
 
 class MessagePayload(BaseModel):
-    text: str
+    text: str | dict
 
 class Message(BaseModel):
     role: Role
@@ -38,6 +39,9 @@ class GenericRequest(BaseModel):
     
 class ChatRequest(GenericRequest):
     messages: List[Message]
+
+class GenericAssistantRequest(BaseModel):
+    assistant_inputs: AssistantInputs
     
 class ToolRequest(GenericRequest):
     tool_data: BaseTool
