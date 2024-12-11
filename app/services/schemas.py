@@ -160,3 +160,4 @@ class NotesGeneratorArgs(BaseModel):
     file_types: str = Field(..., description="Comma-separated file types corresponding to the provided URLs (e.g., pdf,gdoc,img,youtube_url)")
     langs: str = Field(..., description="Comma-separated languages for each file (e.g., en,fr,es)")
 
+

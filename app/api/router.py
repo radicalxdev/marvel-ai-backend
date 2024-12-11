@@ -8,6 +8,9 @@ from app.utils.auth import key_check
 from app.services.logger import setup_logger
 from app.api.error_utilities import InputValidationError, ErrorResponse
 from app.api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
+
 
 
 logger = setup_logger(__name__)
