@@ -1,6 +1,7 @@
 from app.assistants.classroom_support.co_teacher.tools import compile_co_teacher
 from app.services.logger import setup_logger
 from app.services.schemas import ChatMessage, Message
+
 logger = setup_logger()
 
 def executor(

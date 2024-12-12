@@ -8,6 +8,9 @@ from app.services.schemas import ChatMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
 chat_google_genai = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
 
 def read_text_file(file_path):
@@ -65,6 +68,9 @@ def process_content(
             ("human", state["user_query"]+chat_history)
         ],
     }
+
+    if state["action"] not in action_map:
+        raise ValueError(f"Action '{state['action']}' is not a valid action in the action_map")
 
     messages = action_map[state["action"]]()
     response = chat_google_genai.invoke(messages)
