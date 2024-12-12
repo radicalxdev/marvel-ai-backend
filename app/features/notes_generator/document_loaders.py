@@ -791,4 +791,5 @@ file_loader_map = {
     FileType.IMG: generate_docs_from_img,
     FileType.MP3: generate_docs_from_audio,
     FileType.GMP3: generate_docs_from_audio_gcloud
+    
 }
