@@ -27,6 +27,7 @@ from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.prompts import PromptTemplate
 import numpy as np
+from pandas.io.common import is_url
 
 
 load_dotenv(find_dotenv())
@@ -290,7 +291,7 @@ def load_xls_documents(xls_url: str, verbose=False):
     cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
     prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xls_data,stats = stats)
     model_response= model(prompt)
-    docs = Document(page_content=model_response, metadata={"source": xls_url})
+    docs = [Document(page_content=model_response, metadata={"source": xls_url})]
 
     if docs: 
 
@@ -308,7 +309,7 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
     cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
     prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xlsx_data,stats = stats)
     model_response= model(prompt)
-    docs = Document(page_content=model_response, metadata={"source": xlsx_url})
+    docs = [Document(page_content=model_response, metadata={"source": xlsx_url})]
 
     if docs: 
 
@@ -320,13 +321,18 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
 
         return split_docs
 
-def load_xml_documents(xml_url: str, verbose=False):
-    xml_data = pd.read_xml(xml_url)
+def load_xml_documents(xml_url: str, verbose=False):    
+    if is_url(xml_url):
+        xml_data = pd.read_xml(xml_url)
+    else:
+        with open(xml_url, 'r') as file:
+            xml_data = pd.read_xml(io.StringIO(file.read()))  # Wrap literal XML in StringIO
+
     stats = preprocess_data(xml_data)
     cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
     prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xml_data,stats = stats)
     model_response= model(prompt)
-    docs = Document(page_content=model_response, metadata={"source": xml_url})
+    docs = [Document(page_content=model_response, metadata={"source": xml_url})]
 
     if docs: 
 
