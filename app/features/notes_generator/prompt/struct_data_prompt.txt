@@ -1,0 +1,39 @@
+"I am providing you with structured data with the following context:
+Data: {data}
+Statistics of the data: {stats}
+
+Understand the Data:
+
+Identify the key variables and their meanings based on the context provided above.
+Recognize the data types (e.g., numeric, categorical, temporal) and their potential relationships.
+Perform Initial Data Assessment:
+
+Summarize basic statistics (e.g., counts, averages, maximums, minimums) for numeric fields like Sales and Profit, using the provided means and correlations for context.
+List the unique categories or proportions for categorical fields like Region and Category.
+Highlight any missing or anomalous data, referencing the identified outliers and missing data above.
+Extract Key Trends and Patterns:
+
+For numeric fields: Identify trends, distributions, and any notable peaks or declines, using the provided means and correlations for context.
+For temporal data: Detect patterns over time (e.g., seasonality, growth trends).
+For categorical data: Identify dominant categories and their relative contributions, using the proportions provided.
+Discover Relationships:
+
+Analyze correlations between numeric fields, considering the strong positive correlation between Sales and Profit.
+Find patterns or associations between categorical and numeric data (e.g., average sales by region), using the correlation matrix and category distributions as context.
+Highlight any relationships that stand out (e.g., regions with higher or lower sales).
+Identify Anomalies and Outliers:
+
+Detect data points that deviate significantly from the norm (e.g., extreme outliers in Profit), using the provided outlier information.
+Explain how these anomalies could impact overall patterns or conclusions.
+Generate Actionable Insights:
+
+Summarize findings that would be most relevant to stakeholders, considering the means and correlations.
+Provide recommendations or questions for further investigation based on the data and outliers.
+Structure the Summary:
+
+Begin with an overview of the dataset and its context (as provided).
+Include a concise breakdown of key trends, patterns, and relationships, using the provided context of means, correlations, and distributions.
+Highlight anomalies and their implications, referencing the identified outliers.
+Conclude with actionable insights or recommendations.
+
+You must respond as a JSON object.
