@@ -3,7 +3,7 @@ from typing import TypedDict, Any
 from langgraph.graph import StateGraph
 from langgraph.graph import END
 from app.services.schemas import ChatMessage
-
+import os
 from dotenv import load_dotenv, find_dotenv
 
 from app.utils.actions_for_assistants.actions_for_assistants import (
@@ -14,6 +14,16 @@ from app.utils.actions_for_assistants.actions_for_assistants import (
 load_dotenv(find_dotenv())
 
 chat_google_genai = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+
+def read_text_file(file_path):
+    # Get the directory containing the script file
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # Combine the script directory with the relative file path
+    absolute_file_path = os.path.join(script_dir, file_path)
+    
+    with open(absolute_file_path, 'r') as file:
+        return file.read()
 
 class GraphState(TypedDict):
     user_query: str

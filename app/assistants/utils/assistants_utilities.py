@@ -37,7 +37,7 @@ def load_assistant_metadata(assistant_group, assistant_name):
     logger.debug(f"Base directory: {base_dir}")
     
     # Construct the directory path
-    module_dir_path = os.path.join(base_dir, '..', *assistant_config['path'].split('.')[:-1])  # Go one level up and then to the path
+    module_dir_path = os.path.join(base_dir, '../..', *assistant_config['path'].split('.')[:-1])  # Go one level up and then to the path
     module_dir_path = os.path.abspath(module_dir_path)  # Get absolute path
     logger.debug(f"Module directory path: {module_dir_path}")
     
@@ -104,7 +104,7 @@ def execute_assistant(assistant_group, assistant_name, request_inputs_dict):
 
         if not assistant_config:
             raise HTTPException(status_code=404, detail="Assistant executable not found")
-
+        
         execute_function = get_executor_by_name(assistant_config['path'])
         
         return execute_function(**request_inputs_dict)

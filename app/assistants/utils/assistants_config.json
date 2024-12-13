@@ -1,7 +1,7 @@
 {
     "classroom_support": {
         "co_teacher": {
-            "path": "classroom_support.co_teacher.core",
+            "path": "assistants.classroom_support.co_teacher.core",
             "metadata_file": "metadata.json"
         }
     }

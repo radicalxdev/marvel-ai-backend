@@ -1,7 +1,9 @@
-from app.assistants.classroom_support.co_teacher.tools import compile_co_teacher
+from app.assistants.classroom_support.co_teacher.tools import (
+    compile_co_teacher, 
+    read_text_file
+)
 from app.services.logger import setup_logger
 from app.services.schemas import ChatMessage, Message
-from app.utils.actions_for_assistants.actions_for_assistants import read_text_file
 
 logger = setup_logger()
 

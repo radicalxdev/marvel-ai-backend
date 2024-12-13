@@ -149,7 +149,7 @@ class LessonPlanGeneratorPipeline:
             "closing": results["branches"]["closing"],
             "extension_activity": results["branches"]["extension_activity"],
             "homework": results["branches"]["homework"],
-            "standards_addressed": results["branches"]["standards_addressed"],
+            "standards_addressed": results["branches"]["standards_addressed"]["standards_addressed"],
         }
         if self.verbose:
             logger.info("Lesson Plan successfully generated.")
