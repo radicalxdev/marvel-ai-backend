@@ -10,10 +10,10 @@ from langchain_community.document_loaders import UnstructuredExcelLoader
 from langchain_community.document_loaders import UnstructuredXMLLoader
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.utils.allowed_file_extensions import FileType
-from app.api_config.error_utilities import FileHandlerError, ImageHandlerError
+from app.api.error_utilities import FileHandlerError, ImageHandlerError
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
-from app.api_config.error_utilities import VideoTranscriptError
+from app.api.error_utilities import VideoTranscriptError
 from langchain_core.messages import HumanMessage
 from app.services.logger import setup_logger
 from langchain_text_splitters import RecursiveCharacterTextSplitter

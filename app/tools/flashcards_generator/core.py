@@ -5,7 +5,7 @@ from app.tools.flashcards_generator.tools import (
     generate_flashcards, 
     generate_concepts_from_img
 )
-from app.api_config.error_utilities import ToolExecutorError, VideoTranscriptError
+from app.api.error_utilities import ToolExecutorError, VideoTranscriptError
 
 logger = setup_logger(__name__)
 

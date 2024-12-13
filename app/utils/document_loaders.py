@@ -2,8 +2,8 @@ from langchain_community.document_loaders import YoutubeLoader, PyPDFLoader, Tex
 from langchain_community.document_loaders.csv_loader import CSVLoader
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.utils.allowed_file_extensions import FileType
-from app.api_config.error_utilities import FileHandlerError, ImageHandlerError
-from app.api_config.error_utilities import VideoTranscriptError
+from app.api.error_utilities import FileHandlerError, ImageHandlerError
+from app.api.error_utilities import VideoTranscriptError
 from langchain_core.messages import HumanMessage
 from app.services.logger import setup_logger
 from langchain_text_splitters import RecursiveCharacterTextSplitter

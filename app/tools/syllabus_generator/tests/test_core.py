@@ -1,5 +1,5 @@
 import pytest
-from app.api_config.error_utilities import SyllabusGeneratorError
+from app.api.error_utilities import SyllabusGeneratorError
 from app.tools.syllabus_generator.core import executor
 
 from dotenv import load_dotenv, find_dotenv

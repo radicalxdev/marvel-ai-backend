@@ -12,14 +12,14 @@ from langchain_community.document_loaders import (
 )
 from langchain_google_genai import ChatGoogleGenerativeAI
 from app.utils.allowed_file_extensions import FileType
-from app.api_config.error_utilities import FileHandlerError, ImageHandlerError
+from app.api.error_utilities import FileHandlerError, ImageHandlerError
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.chains.summarize import load_summarize_chain
 from pydantic import BaseModel, Field
-from app.api_config.error_utilities import VideoTranscriptError
+from app.api.error_utilities import VideoTranscriptError
 from langchain_core.messages import HumanMessage
 from fastapi import HTTPException
 from app.services.logger import setup_logger

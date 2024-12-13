@@ -3,12 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from typing import Union
-from app.api_config.assistants_utilities import execute_assistant, finalize_inputs_assistants, load_assistant_metadata
+from app.assistants.utils.assistants_utilities import execute_assistant, finalize_inputs_assistants, load_assistant_metadata
 from app.services.schemas import GenericAssistantRequest, ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
 from app.utils.auth import key_check
 from app.services.logger import setup_logger
-from app.api_config.error_utilities import InputValidationError, ErrorResponse
-from app.api_config.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from app.api.error_utilities import InputValidationError, ErrorResponse
+from app.tools.utils.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 
@@ -48,25 +48,7 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
             content=jsonable_encoder(ErrorResponse(status=e.status_code, message=e.detail))
         )
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat( request: ChatRequest, _ = Depends(key_check) ):
-    from app.assistants.Kaichat.core import executor as kaichat_executor
-    
-    user_name = request.user.fullName
-    chat_messages = request.messages
-    user_query = chat_messages[-1].payload.text
-    
-    response = kaichat_executor(user_name=user_name, user_query=user_query, messages=chat_messages)
-    
-    formatted_response = Message(
-        role="ai",
-        type="text",
-        payload={"text": response}
-    )
-    
-    return ChatResponse(data=[formatted_response])
-
-@router.post("/assistants", response_model=ChatResponse)
+@router.post("/assistant-chat", response_model=ChatResponse)
 async def assistants( request: GenericAssistantRequest, _ = Depends(key_check) ):
     
     assistant_group = request.assistant_inputs.assistant_group

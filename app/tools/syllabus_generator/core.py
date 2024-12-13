@@ -6,7 +6,7 @@ from app.utils.document_loaders_summarization import (
     summarize_transcript_youtube_url, 
     get_summary
 )
-from app.api_config.error_utilities import SyllabusGeneratorError
+from app.api.error_utilities import SyllabusGeneratorError
 from app.services.schemas import SyllabusGeneratorArgsModel
 
 logger = setup_logger()

@@ -2,7 +2,7 @@ from app.utils.document_loaders import get_docs
 from app.tools.connect_with_them.tools import AIConnectWithThemGenerator
 from app.services.schemas import ConnectWithThemArgs
 from app.services.logger import setup_logger
-from app.api_config.error_utilities import LoaderError, ToolExecutorError
+from app.api.error_utilities import LoaderError, ToolExecutorError
 
 logger = setup_logger()
 

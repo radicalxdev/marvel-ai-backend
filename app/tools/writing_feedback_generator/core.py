@@ -2,7 +2,7 @@ from app.tools.writing_feedback_generator.tools import WritingFeedbackGeneratorP
 from app.services.schemas import WritingFeedbackGeneratorArgs
 from app.utils.document_loaders import get_docs
 from app.services.logger import setup_logger
-from app.api_config.error_utilities import LoaderError, ToolExecutorError
+from app.api.error_utilities import LoaderError, ToolExecutorError
 
 logger = setup_logger()
 

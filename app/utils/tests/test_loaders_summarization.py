@@ -1,6 +1,6 @@
 import pytest
 import requests
-from app.api_config.error_utilities import FileHandlerError
+from app.api.error_utilities import FileHandlerError
 from app.utils.document_loaders_summarization import *
 
 def test_load_pdf_documents_valid():
