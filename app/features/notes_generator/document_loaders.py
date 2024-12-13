@@ -286,7 +286,7 @@ def load_docx_documents(docx_url: str, verbose=False):
         return split_docs
 
 def load_xls_documents(xls_url: str, verbose=False):
-    xls_data = pd.read_excel(xls_url)
+    xls_data = pd.read_excel(xls_url,engine="xlrd")
     stats = preprocess_data(xls_data)
     cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
     prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xls_data,stats = stats)
@@ -298,13 +298,13 @@ def load_xls_documents(xls_url: str, verbose=False):
         split_docs = splitter.split_documents(docs)
 
         if verbose:
-            logger.info(f"Found XLSX file")
+            logger.info(f"Found XLS file")
             logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
         return split_docs
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
-    xlsx_data = pd.read_excel(xlsx_url)
+    xlsx_data = pd.read_excel(xlsx_url,engine="openpyxl")
     stats = preprocess_data(xlsx_data)
     cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
     prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xlsx_data,stats = stats)
@@ -322,27 +322,37 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
         return split_docs
 
 def load_xml_documents(xml_url: str, verbose=False):    
-    if is_url(xml_url):
-        xml_data = pd.read_xml(xml_url)
-    else:
-        with open(xml_url, 'r') as file:
-            xml_data = pd.read_xml(io.StringIO(file.read()))  # Wrap literal XML in StringIO
+    try:
+        if is_url(xml_url):
+            xml_data = pd.read_xml(xml_url, xpath="/*")
+        else:
+            with open(xml_url, 'r') as file:
+                content = file.read().strip()
+                if not content:
+                    raise ValueError("Empty XML file.")
+                xml_data = pd.read_xml(io.StringIO(content), xpath="/*")
+        
+        if xml_data is None or xml_data.empty:
+            raise ValueError("No nodes matched the XPath expression.")
 
-    stats = preprocess_data(xml_data)
-    cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
-    prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xml_data,stats = stats)
-    model_response= model(prompt)
-    docs = [Document(page_content=model_response, metadata={"source": xml_url})]
+        stats = preprocess_data(xml_data)
+        cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
+        prompt = PromptTemplate(template=cotPrompt, input_variables=["stats", "data"]).format(data=xml_data, stats=stats)
+        model_response = model(prompt)
+        docs = [Document(page_content=model_response, metadata={"source": xml_url})]
 
-    if docs: 
+        if docs:
+            split_docs = splitter.split_documents(docs)
 
-        split_docs = splitter.split_documents(docs)
+            if verbose:
+                logger.info(f"Found XML file")
+                logger.info(f"Splitting documents into {len(split_docs)} chunks")
 
-        if verbose:
-            logger.info(f"Found XML file")
-            logger.info(f"Splitting documents into {len(split_docs)} chunks")
+            return split_docs
 
-        return split_docs
+    except ValueError as e:
+        logger.error(f"Failed to load the document: {e}")
+        return None
 
 
 class FileHandlerForGoogleDrive:
@@ -485,7 +495,6 @@ def generate_docs_from_img(img_url, verbose: bool=False):
         raise ImageHandlerError(f"Error processing the request", img_url) from e
 
     return split_docs
-
 #########################################################################################################
 #########################################################################################################
 
@@ -797,5 +806,4 @@ file_loader_map = {
     FileType.IMG: generate_docs_from_img,
     FileType.MP3: generate_docs_from_audio,
     FileType.GMP3: generate_docs_from_audio_gcloud
-    
 }
