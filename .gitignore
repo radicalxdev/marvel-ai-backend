@@ -163,5 +163,9 @@ cython_debug/
 **/key.txt
 **/local-auth.json
 .DS_Store
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 keyfile.json
 service.yaml

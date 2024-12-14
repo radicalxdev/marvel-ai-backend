@@ -12,11 +12,15 @@ RUN pip install --no-cache-dir -r /code/requirements.txt
 
 COPY ./app /code/app
 
-# Local development key set
-# ENV TYPES: dev, production
-# When set to dev, API Key on endpoint requests are just 'dev'
-# When set to production, API Key on endpoint requests are the actual API Key
+# Argument for the credentials JSON
+ARG CREDENTIALS_JSON
 
+# Ensure the directory exists and create the keyfile.json
+RUN mkdir -p /code/app/utils && \
+    echo "$CREDENTIALS_JSON" > /code/app/utils/keyfile.json
+
+# Set environment variable for Python path
 ENV PYTHONPATH=/code/app
 
-CMD ["fastapi", "dev", "app/main.py", "--host=0.0.0.0", "--port=8000"]
+# Set CMD for running the application
+CMD ["python", "app/main.py", "--host=0.0.0.0", "--port=8000"]

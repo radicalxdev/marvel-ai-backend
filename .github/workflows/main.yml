@@ -33,7 +33,13 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
+<<<<<<< Updated upstream
           docker build -t ${{ env.DOCKER_IMAGE_URL }}:latest -f Dockerfile .
+=======
+          docker build -t ${{ env.DOCKER_IMAGE_URL }}:latest \
+            --build-arg CREDENTIALS_JSON='${{ secrets.PRODUCTION_CREDENTIALS_JSON }}' \
+            -f Dockerfile .
+>>>>>>> Stashed changes
           docker push ${{ env.DOCKER_IMAGE_URL }}:latest
 
       - name: Deploy to Cloud Run
