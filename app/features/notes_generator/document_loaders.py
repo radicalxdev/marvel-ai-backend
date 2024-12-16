@@ -22,6 +22,13 @@ import shutil
 import io
 import os
 import base64
+import pandas as pd
+from langchain_google_genai import GoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_core.prompts import PromptTemplate
+import numpy as np
+from pandas.io.common import is_url
+
 
 load_dotenv(find_dotenv())
 
@@ -170,16 +177,58 @@ def load_pdf_documents(pdf_url: str, verbose=False):
         return split_docs
 
 
+def preprocess_data(data: pd.DataFrame):
+    # 1. Basic Summary Statistics
+    means = data.select_dtypes(include='number').mean()
+    medians = data.select_dtypes(include='number').median()
+    std_devs = data.select_dtypes(include='number').std()
+    
+    # 2. Correlation Matrix (only for numeric columns)
+    correlation_matrix = data.select_dtypes(include='number').corr()
+    
+    # 3. Unique Categories (for categorical columns)
+    unique_categories = {}
+    for col in data.select_dtypes(include=['object', 'category']).columns:
+        unique_categories[col] = data[col].value_counts(normalize=True) * 100
+    
+    # 4. Missing Data
+    missing_data = data.isnull().mean() * 100  # percentage of missing values for each column
+    
+    # 5. Outliers (Extreme outliers using 95th percentile rule)
+    outliers = {}
+    for col in data.select_dtypes(include=[np.number]).columns:
+        lower_quantile = data[col].quantile(0.05)
+        upper_quantile = data[col].quantile(0.95)
+        outliers[col] = {
+            'lower': lower_quantile,
+            'upper': upper_quantile,
+            'outliers': data[(data[col] < lower_quantile) | (data[col] > upper_quantile)][col].count()
+        }
+    
+    # Prepare output summary
+    summary = {
+        'Means': means.to_dict(),
+        'Medians':medians.to_dict(),
+        'Standard deviations':std_devs.to_dict(),
+        'Correlation Matrix': correlation_matrix.to_dict(),
+        'Unique Categories': unique_categories,
+        'Missing Data': missing_data.to_dict(),
+        'Outliers': outliers
+    }
+    
+    return summary
+
+model = GoogleGenerativeAI(model="gemini-1.5-flash")
+
 def load_csv_documents(csv_url: str, verbose=False):
-    csv_loader = FileHandler(CSVLoader, "csv")
-    docs = csv_loader.load(csv_url)
-
-    if docs:
-        if verbose:
-            logger.info(f"Found CSV file")
-            logger.info(f"Splitting documents into {len(docs)} chunks")
-
-        return docs
+    csv_data = pd.read_csv(csv_url)
+    stats = preprocess_data(csv_data)
+    cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
+    prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = csv_data,stats = stats)
+    model_response= model(prompt)
+    docs = Document(page_content=model_response, metadata={"source": csv_url})
+    split_docs = splitter.split_documents([docs])
+    return split_docs
 
 def load_txt_documents(notes_url: str, verbose=False):
     notes_loader = FileHandler(TextLoader, "txt")
@@ -237,8 +286,13 @@ def load_docx_documents(docx_url: str, verbose=False):
         return split_docs
 
 def load_xls_documents(xls_url: str, verbose=False):
-    xls_handler = FileHandler(UnstructuredExcelLoader, 'xls')
-    docs = xls_handler.load(xls_url)
+    xls_data = pd.read_excel(xls_url,engine="xlrd")
+    stats = preprocess_data(xls_data)
+    cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
+    prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xls_data,stats = stats)
+    model_response= model(prompt)
+    docs = [Document(page_content=model_response, metadata={"source": xls_url})]
+
     if docs: 
 
         split_docs = splitter.split_documents(docs)
@@ -250,8 +304,13 @@ def load_xls_documents(xls_url: str, verbose=False):
         return split_docs
 
 def load_xlsx_documents(xlsx_url: str, verbose=False):
-    xlsx_handler = FileHandler(UnstructuredExcelLoader, 'xlsx')
-    docs = xlsx_handler.load(xlsx_url)
+    xlsx_data = pd.read_excel(xlsx_url,engine="openpyxl")
+    stats = preprocess_data(xlsx_data)
+    cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
+    prompt = PromptTemplate(template=cotPrompt,input_variables=["stats","data"],).format(data = xlsx_data,stats = stats)
+    model_response= model(prompt)
+    docs = [Document(page_content=model_response, metadata={"source": xlsx_url})]
+
     if docs: 
 
         split_docs = splitter.split_documents(docs)
@@ -262,18 +321,38 @@ def load_xlsx_documents(xlsx_url: str, verbose=False):
 
         return split_docs
 
-def load_xml_documents(xml_url: str, verbose=False):
-    xml_handler = FileHandler(UnstructuredXMLLoader, 'xml')
-    docs = xml_handler.load(xml_url)
-    if docs: 
+def load_xml_documents(xml_url: str, verbose=False):    
+    try:
+        if is_url(xml_url):
+            xml_data = pd.read_xml(xml_url, xpath="/*")
+        else:
+            with open(xml_url, 'r') as file:
+                content = file.read().strip()
+                if not content:
+                    raise ValueError("Empty XML file.")
+                xml_data = pd.read_xml(io.StringIO(content), xpath="/*")
+        
+        if xml_data is None or xml_data.empty:
+            raise ValueError("No nodes matched the XPath expression.")
 
-        split_docs = splitter.split_documents(docs)
+        stats = preprocess_data(xml_data)
+        cotPrompt = read_text_file("prompt/struct_data_prompt.txt")
+        prompt = PromptTemplate(template=cotPrompt, input_variables=["stats", "data"]).format(data=xml_data, stats=stats)
+        model_response = model(prompt)
+        docs = [Document(page_content=model_response, metadata={"source": xml_url})]
 
-        if verbose:
-            logger.info(f"Found XML file")
-            logger.info(f"Splitting documents into {len(split_docs)} chunks")
+        if docs:
+            split_docs = splitter.split_documents(docs)
 
-        return split_docs
+            if verbose:
+                logger.info(f"Found XML file")
+                logger.info(f"Splitting documents into {len(split_docs)} chunks")
+
+            return split_docs
+
+    except ValueError as e:
+        logger.error(f"Failed to load the document: {e}")
+        return None
 
 
 class FileHandlerForGoogleDrive:
@@ -324,17 +403,23 @@ def load_gdocs_documents(drive_folder_url: str, verbose=False):
         return split_docs
 
 def load_gsheets_documents(drive_folder_url: str, verbose=False):
-    gsheets_loader = FileHandlerForGoogleDrive(UnstructuredExcelLoader, 'xlsx')
-    docs = gsheets_loader.load(drive_folder_url)
-    if docs: 
+    try:
+        # Split the URL to extract the ID
+        base_url = "https://docs.google.com/spreadsheets/d/"
+        if base_url not in drive_folder_url:
+            raise ValueError("Invalid Google Sheets URL")
+        
+        # Get the part after 'd/' and before '/edit'
+        spreadsheet_id = drive_folder_url.split(base_url)[1].split("/")[0]
+        
+        # Format the new export URL
+        export_url = f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}/export?format=csv"
+    except Exception as e:
+        return f"Error formatting URL: {str(e)}"
 
-        split_docs = splitter.split_documents(docs)
+    split_docs = load_csv_documents(export_url)
+    return split_docs
 
-        if verbose:
-            logger.info(f"Found Google Sheets files")
-            logger.info(f"Splitting documents into {len(split_docs)} chunks")
-
-        return split_docs
 
 def load_gslides_documents(drive_folder_url: str, verbose=False):
     gslides_loader = FileHandlerForGoogleDrive(UnstructuredPowerPointLoader, 'pptx')
@@ -410,7 +495,6 @@ def generate_docs_from_img(img_url, verbose: bool=False):
         raise ImageHandlerError(f"Error processing the request", img_url) from e
 
     return split_docs
-
 #########################################################################################################
 #########################################################################################################
 
