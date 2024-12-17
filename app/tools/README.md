@@ -73,7 +73,7 @@ class QuizQuestion(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 0,
+      "tool_id": "multiple-choice-quiz-generator",
       "inputs": [
          {
             "name": "topic",
@@ -111,7 +111,7 @@ class QuizQuestion(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 0,
+      "tool_id": "multiple-choice-quiz-generator",
       "inputs": [
          {
             "name": "topic",
@@ -148,7 +148,7 @@ class QuizQuestion(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 0,
+      "tool_id": "multiple-choice-quiz-generator",
       "inputs": [
          {
             "name": "topic",
@@ -185,7 +185,7 @@ class QuizQuestion(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 0,
+      "tool_id": "multiple-choice-quiz-generator",
       "inputs": [
          {
             "name": "topic",
@@ -222,7 +222,7 @@ class QuizQuestion(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 0,
+      "tool_id": "multiple-choice-quiz-generator",
       "inputs": [
          {
             "name": "topic",
@@ -259,7 +259,7 @@ class QuizQuestion(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 0,
+      "tool_id": "multiple-choice-quiz-generator",
       "inputs": [
          {
             "name": "topic",
@@ -313,7 +313,7 @@ class Flashcard(BaseModel):
   },
   "type": "tool",
   "tool_data": {
-    "tool_id": 1,
+    "tool_id": "flashcard-generator",
     "inputs": [
       {
         "name": "file_url",
@@ -342,7 +342,7 @@ class Flashcard(BaseModel):
   },
   "type": "tool",
   "tool_data": {
-    "tool_id": 1,
+    "tool_id": "flashcard-generator",
     "inputs": [
       {
         "name": "file_url",
@@ -371,7 +371,7 @@ class Flashcard(BaseModel):
   },
   "type": "tool",
   "tool_data": {
-    "tool_id": 1,
+    "tool_id": "flashcard-generator",
     "inputs": [
       {
         "name": "file_url",
@@ -400,7 +400,7 @@ class Flashcard(BaseModel):
   },
   "type": "tool",
   "tool_data": {
-    "tool_id": 1,
+    "tool_id": "flashcard-generator",
     "inputs": [
       {
         "name": "file_url",
@@ -429,7 +429,7 @@ class Flashcard(BaseModel):
   },
   "type": "tool",
   "tool_data": {
-    "tool_id": 1,
+    "tool_id": "flashcard-generator",
     "inputs": [
       {
         "name": "file_url",
@@ -535,7 +535,7 @@ class MathExerciseQuestion(BaseModel):
    },
    "type": "chat",
    "tool_data": {
-      "tool_id": 2,
+      "tool_id": "worksheet-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -572,7 +572,7 @@ class MathExerciseQuestion(BaseModel):
    },
    "type": "chat",
    "tool_data": {
-      "tool_id": 2,
+      "tool_id": "worksheet-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -609,7 +609,7 @@ class MathExerciseQuestion(BaseModel):
    },
    "type": "chat",
    "tool_data": {
-      "tool_id": 2,
+      "tool_id": "worksheet-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -646,7 +646,7 @@ class MathExerciseQuestion(BaseModel):
    },
    "type": "chat",
    "tool_data": {
-      "tool_id": 2,
+      "tool_id": "worksheet-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -683,7 +683,7 @@ class MathExerciseQuestion(BaseModel):
    },
    "type": "chat",
    "tool_data": {
-      "tool_id": 2,
+      "tool_id": "worksheet-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -788,7 +788,7 @@ class SyllabusSchema(BaseModel):
     },
     "type": "chat",
     "tool_data": {
-        "tool_id": 6,
+        "tool_id": "syllabus-generator",
         "inputs": [
             {
                 "name": "grade_level",
@@ -853,7 +853,7 @@ class SyllabusSchema(BaseModel):
     },
     "type": "chat",
     "tool_data": {
-        "tool_id": 6,
+        "tool_id": "syllabus-generator",
         "inputs": [
             {
                 "name": "grade_level",
@@ -918,7 +918,7 @@ class SyllabusSchema(BaseModel):
     },
     "type": "chat",
     "tool_data": {
-        "tool_id": 6,
+        "tool_id": "syllabus-generator",
         "inputs": [
             {
                 "name": "grade_level",
@@ -983,7 +983,7 @@ class SyllabusSchema(BaseModel):
     },
     "type": "chat",
     "tool_data": {
-        "tool_id": 6,
+        "tool_id": "syllabus-generator",
         "inputs": [
             {
                 "name": "grade_level",
@@ -1048,7 +1048,7 @@ class SyllabusSchema(BaseModel):
     },
     "type": "chat",
     "tool_data": {
-        "tool_id": 6,
+        "tool_id": "syllabus-generator",
         "inputs": [
             {
                 "name": "grade_level",
@@ -1137,7 +1137,7 @@ class AIResistantOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 5,
+    "tool_id": "ai-resistant-assignments-generator",
     "inputs": [
       {
         "name": "assignment_description",
@@ -1174,7 +1174,7 @@ class AIResistantOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 5,
+    "tool_id": "ai-resistant-assignments-generator",
     "inputs": [
       {
         "name": "assignment_description",
@@ -1211,7 +1211,7 @@ class AIResistantOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 5,
+    "tool_id": "ai-resistant-assignments-generator",
     "inputs": [
       {
         "name": "assignment_description",
@@ -1248,7 +1248,7 @@ class AIResistantOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 5,
+    "tool_id": "ai-resistant-assignments-generator",
     "inputs": [
       {
         "name": "assignment_description",
@@ -1285,7 +1285,7 @@ class AIResistantOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 5,
+    "tool_id": "ai-resistant-assignments-generator",
     "inputs": [
       {
         "name": "assignment_description",
@@ -1350,7 +1350,7 @@ class RecommendationsOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 10,
+    "tool_id": "connect-with-them",
     "inputs": [
       {
         "name": "grade_level",
@@ -1399,7 +1399,7 @@ class RecommendationsOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 10,
+    "tool_id": "connect-with-them",
     "inputs": [
       {
         "name": "grade_level",
@@ -1448,7 +1448,7 @@ class RecommendationsOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 10,
+    "tool_id": "connect-with-them",
     "inputs": [
       {
         "name": "grade_level",
@@ -1497,7 +1497,7 @@ class RecommendationsOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 10,
+    "tool_id": "connect-with-them",
     "inputs": [
       {
         "name": "grade_level",
@@ -1546,7 +1546,7 @@ class RecommendationsOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 10,
+    "tool_id": "connect-with-them",
     "inputs": [
       {
         "name": "grade_level",
@@ -1624,7 +1624,7 @@ class FullPresentation(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 9,
+      "tool_id": "presentation-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -1681,7 +1681,7 @@ class FullPresentation(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 9,
+      "tool_id": "presentation-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -1738,7 +1738,7 @@ class FullPresentation(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 9,
+      "tool_id": "presentation-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -1795,7 +1795,7 @@ class FullPresentation(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 9,
+      "tool_id": "presentation-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -1852,7 +1852,7 @@ class FullPresentation(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 9,
+      "tool_id": "presentation-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -1941,7 +1941,7 @@ class RubricOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 15,
+    "tool_id": "rubric-generator",
     "inputs": [
       {
         "name": "grade_level",
@@ -1994,7 +1994,7 @@ class RubricOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 15,
+    "tool_id": "rubric-generator",
     "inputs": [
       {
         "name": "grade_level",
@@ -2047,7 +2047,7 @@ class RubricOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 15,
+    "tool_id": "rubric-generator",
     "inputs": [
       {
         "name": "grade_level",
@@ -2100,7 +2100,7 @@ class RubricOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 15,
+    "tool_id": "rubric-generator",
     "inputs": [
       {
         "name": "grade_level",
@@ -2153,7 +2153,7 @@ class RubricOutput(BaseModel):
   },
   "type": "chat",
   "tool_data": {
-    "tool_id": 15,
+    "tool_id": "rubric-generator",
     "inputs": [
       {
         "name": "grade_level",
@@ -2277,7 +2277,7 @@ class LessonPlan(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 7,
+      "tool_id": "lesson-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2330,7 +2330,7 @@ class LessonPlan(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 7,
+      "tool_id": "lesson-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2383,7 +2383,7 @@ class LessonPlan(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 7,
+      "tool_id": "lesson-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2436,7 +2436,7 @@ class LessonPlan(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 7,
+      "tool_id": "lesson-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2489,7 +2489,7 @@ class LessonPlan(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 7,
+      "tool_id": "lesson-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2570,7 +2570,7 @@ class WritingFeedback(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 14,
+      "tool_id": "writing-feedback-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2623,7 +2623,7 @@ class WritingFeedback(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 14,
+      "tool_id": "writing-feedback-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2676,7 +2676,7 @@ class WritingFeedback(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 14,
+      "tool_id": "writing-feedback-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2729,7 +2729,7 @@ class WritingFeedback(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 14,
+      "tool_id": "writing-feedback-generator",
       "inputs": [
          {
             "name": "grade_level",
@@ -2782,7 +2782,7 @@ class WritingFeedback(BaseModel):
    },
    "type": "tool",
    "tool_data": {
-      "tool_id": 14,
+      "tool_id": "writing-feedback-generator",
       "inputs": [
          {
             "name": "grade_level",

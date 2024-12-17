@@ -1,41 +1,41 @@
 {
-    "0": {
+    "multiple-choice-quiz-generator": {
         "path": "tools.multiple_choice_quiz_generator.core",
         "metadata_file": "metadata.json"
     },
-    "1": {
+    "flashcard-generator": {
         "path": "tools.flashcards_generator.core",
         "metadata_file": "metadata.json"
     },
-    "2": {
+    "worksheet-generator": {
         "path": "tools.worksheet_generator.core",
         "metadata_file": "metadata.json"
     },
-    "5": {
+    "ai-resistant-assignments-generator": {
         "path": "tools.ai_resistant_assignment_generator.core",
         "metadata_file": "metadata.json"
     },
-    "6": {
+    "syllabus-generator": {
         "path": "tools.syllabus_generator.core",
         "metadata_file": "metadata.json"
     },
-    "7": {
+    "lesson-generator": {
         "path": "tools.lesson_plan_generator.core",
         "metadata_file": "metadata.json"
     },
-    "9": {
+    "presentation-generator": {
         "path": "tools.presentation_generator.core",
         "metadata_file": "metadata.json"
     },
-    "10": {
+    "connect-with-them": {
         "path": "tools.connect_with_them.core",
         "metadata_file": "metadata.json"
     },
-    "15": {
+    "rubric-generator": {
         "path": "tools.rubric_generator.core",
         "metadata_file": "metadata.json"
     },
-    "14": {
+    "writing-feedback-generator": {
         "path": "tools.writing_feedback_generator.core",
         "metadata_file": "metadata.json"
     }
