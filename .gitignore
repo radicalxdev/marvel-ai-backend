@@ -166,6 +166,4 @@ cython_debug/
 
 service.yaml
 devcontainer.env
-devcontainer.env
 keyfile.json
-service.yaml
