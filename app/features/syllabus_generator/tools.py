@@ -1,145 +1,177 @@
-from langchain_core.pydantic_v1 import BaseModel, Field
-from typing import List
+from pydantic import BaseModel, Field
+from typing import List, Dict
 from app.services.logger import setup_logger
-
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
-from app.features.syllabus_generator.document_loaders import read_text_file
+from langchain_core.runnables import RunnableParallel
 from app.services.schemas import SyllabusGeneratorArgsModel
-
 from fastapi import HTTPException
-
 
 logger = setup_logger(__name__)
 
 class SyllabusRequestArgs:
-    def __init__(self, 
-                 syllabus_generator_args: SyllabusGeneratorArgsModel,
-                 summary: str):
-        
+    def __init__(self, syllabus_generator_args: SyllabusGeneratorArgsModel, summary: str):
         self._grade_level = syllabus_generator_args.grade_level
-        self._course = syllabus_generator_args.course
-        self._instructor_name = syllabus_generator_args.instructor_name
-        self._instructor_title = syllabus_generator_args.instructor_title
-        self._unit_time = syllabus_generator_args.unit_time
-        self._unit_time_value = syllabus_generator_args.unit_time_value
-        self._start_date = syllabus_generator_args.start_date
-        self._assessment_methods = syllabus_generator_args.assessment_methods
-        self._grading_scale = syllabus_generator_args.grading_scale
+        self._subject = syllabus_generator_args.subject
+        self._course_description = syllabus_generator_args.course_description
+        self._objectives = syllabus_generator_args.objectives
+        self._required_materials = syllabus_generator_args.required_materials
+        self._grading_policy = syllabus_generator_args.grading_policy
+        self._policies_expectations = syllabus_generator_args.policies_expectations
+        self._course_outline = syllabus_generator_args.course_outline
+        self._additional_notes = syllabus_generator_args.additional_notes
         self._lang = syllabus_generator_args.lang
         self._summary = summary
 
-    @property
-    def grade_level(self) -> str:
-        return self._grade_level
-
-    @property
-    def course(self) -> str:
-        return self._course
-
-    @property
-    def instructor_name(self) -> str:
-        return self._instructor_name
-
-    @property
-    def instructor_title(self) -> str:
-        return self._instructor_title
-
-    @property
-    def unit_time(self) -> str:
-        return self._unit_time
-    
-    @property
-    def unit_time_value(self) -> int:
-        return self._unit_time_value
-
-    @property
-    def start_date(self) -> str:
-        return self._start_date
-
-    @property
-    def assessment_methods(self) -> str:
-        return self._assessment_methods
-
-    @property
-    def grading_scale(self) -> str:
-        return self._grading_scale
-    
-    @property
-    def lang(self) -> str:
-        return self._lang
-    
-    @property
-    def summary(self) -> str:
-        return self._summary
-    
     def to_dict(self) -> dict:
         return {
-            "grade_level": self.grade_level,
-            "course": self.course,
-            "instructor_name": self.instructor_name,
-            "instructor_title": self.instructor_title,
-            "unit_time": self.unit_time,
-            "unit_time_value": self.unit_time_value,
-            "start_date": self.start_date,
-            "assessment_methods": self.assessment_methods,
-            "grading_scale": self.grading_scale,
-            "lang": self.lang,
-            "summary": self.summary
+            "grade_level": self._grade_level,
+            "subject": self._subject,
+            "course_description": self._course_description,
+            "objectives": self._objectives,
+            "required_materials": self._required_materials,
+            "grading_policy": self._grading_policy,
+            "policies_expectations": self._policies_expectations,
+            "course_outline": self._course_outline,
+            "additional_notes": self._additional_notes,
+            "lang": self._lang,
+            "summary": self._summary,
         }
-    
 
 class SyllabusGeneratorPipeline:
-    def __init__(self, prompt=None, parser=None, model=None, verbose=False):
-        default_config = {
-            "prompt": read_text_file("prompt/syllabus_generator-prompt.txt"),
-            "parser": JsonOutputParser(pydantic_object=SyllabusSchema),
-            "model": GoogleGenerativeAI(model="gemini-1.5-pro")
-        }
-        self.prompt = prompt or default_config["prompt"]
-        self.model = model or default_config["model"]
-        self.parser = parser or default_config["parser"]
+    def __init__(self, verbose=False):
         self.verbose = verbose
+        self.model = GoogleGenerativeAI(model="gemini-1.5-pro")
+        self.parsers = {
+            "course_information": JsonOutputParser(pydantic_object=CourseInformation),
+            "course_description_objectives": JsonOutputParser(pydantic_object=CourseDescriptionObjectives),
+            "course_content": JsonOutputParser(pydantic_object=CourseContentItem),
+            "policies_procedures": JsonOutputParser(pydantic_object=PoliciesProcedures),
+            "assessment_grading_criteria": JsonOutputParser(pydantic_object=AssessmentGradingCriteria),
+            "learning_resources": JsonOutputParser(pydantic_object=LearningResource),
+            "course_schedule": JsonOutputParser(pydantic_object=CourseScheduleItem),
+        }
 
     def compile(self):
         try:
-            prompt = PromptTemplate(
-                template=self.prompt,
-                input_variables=[
-                    "grade_level", 
-                    "course",
-                    "instructor_name",
-                    "instructor_title",
-                    "unit_time",
-                    "unit_time_value",
-                    "start_date",
-                    "assessment_methods",
-                    "grading_scale",
-                    "summary"
-                    ],
-                partial_variables={"format_instructions": self.parser.get_format_instructions()}
-            )
+            prompts = {
+                "course_information": PromptTemplate(
+                    template=(
+                        "Generate a detailed and structured course information in {lang} based on:\n\n"
+                        "Grade Level: {grade_level}\n"
+                        "Subject: {subject}\n"
+                        "Course Description: {course_description}\n"
+                        "Summary: {summary}\n\n"
+                        "Ensure the response is professional and comprehensive.\n{format_instructions}"
+                    ),
+                    input_variables=["grade_level", "subject", "course_description", "lang", "summary"],
+                    partial_variables={"format_instructions": self.parsers["course_information"].get_format_instructions()},
+                ),
+                "course_description_objectives": PromptTemplate(
+                    template=(
+                        "Develop detailed course objectives and intended learning outcomes in {lang}:\n\n"
+                        "Objectives: {objectives}\n"
+                        "Summary: {summary}\n\n"
+                        "Provide measurable goals and realistic expectations for students.\n{format_instructions}"
+                    ),
+                    input_variables=["objectives", "lang", "summary"],
+                    partial_variables={"format_instructions": self.parsers["course_description_objectives"].get_format_instructions()},
+                ),
+                "course_content": PromptTemplate(
+                    template=(
+                        "Create a detailed course content structure in {lang}:\n\n"
+                        "Course Outline: {course_outline}\n"
+                        "Summary: {summary}\n\n"
+                        "Include topics, time frames, and key learning points.\n{format_instructions}"
+                    ),
+                    input_variables=["course_outline", "lang", "summary"],
+                    partial_variables={"format_instructions": self.parsers["course_content"].get_format_instructions()},
+                ),
+                "policies_procedures": PromptTemplate(
+                    template=(
+                        "Draft clear and professional course policies and procedures in {lang}:\n\n"
+                        "Grading Policy: {grading_policy}\n"
+                        "Class Policies and Expectations: {policies_expectations}\n"
+                        "Summary: {summary}\n\n"
+                        "Ensure all rules and expectations are outlined clearly.\n{format_instructions}"
+                    ),
+                    input_variables=["grading_policy", "policies_expectations", "lang", "summary"],
+                    partial_variables={"format_instructions": self.parsers["policies_procedures"].get_format_instructions()},
+                ),
+                "assessment_grading_criteria": PromptTemplate(
+                    template=(
+                        "Define assessment methods and grading criteria in {lang}:\n\n"
+                        "Grading Policy: {grading_policy}\n"
+                        "Summary: {summary}\n\n"
+                        "Ensure that assessment methods and the grading scale are precise and easy to understand.\n{format_instructions}"
+                    ),
+                    input_variables=["grading_policy", "lang", "summary"],
+                    partial_variables={"format_instructions": self.parsers["assessment_grading_criteria"].get_format_instructions()},
+                ),
+                "learning_resources": PromptTemplate(
+                    template=(
+                        "Generate a comprehensive list of recommended learning resources in {lang}:\n\n"
+                        "Required Materials: {required_materials}\n"
+                        "Summary: {summary}\n\n"
+                        "Include titles, authors, and publication years of the materials.\n{format_instructions}"
+                    ),
+                    input_variables=["required_materials", "lang", "summary"],
+                    partial_variables={"format_instructions": self.parsers["learning_resources"].get_format_instructions()},
+                ),
+                "course_schedule": PromptTemplate(
+                    template=(
+                        "Construct a detailed course schedule in {lang}:\n\n"
+                        "Course Outline: {course_outline}\n"
+                        "Summary: {summary}\n\n"
+                        "Ensure the schedule includes dates, activities, and key topics.\n{format_instructions}"
+                    ),
+                    input_variables=["course_outline", "lang", "summary"],
+                    partial_variables={"format_instructions": self.parsers["course_schedule"].get_format_instructions()},
+                ),
+            }
 
-            chain = prompt | self.model | self.parser
+            chains = {
+                key: prompt | self.model | self.parsers[key]
+                for key, prompt in prompts.items()
+            }
 
-            if self.verbose: logger.info(f"Chain compilation complete")
+            parallel_pipeline = RunnableParallel(branches=chains)
+
+            if self.verbose:
+                logger.info("Successfully compiled the parallel pipeline.")
 
         except Exception as e:
-            logger.error(f"Failed to compile LLM chain : {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to compile LLM chain")
-        
-        return chain
+            logger.error(f"Failed to compile LLM pipeline: {e}")
+            raise HTTPException(status_code=500, detail="Failed to compile LLM pipeline.")
 
+        return parallel_pipeline
+
+def generate_syllabus(request_args: SyllabusRequestArgs, verbose=True):
+    try:
+        pipeline = SyllabusGeneratorPipeline(verbose=verbose)
+        chain = pipeline.compile()
+        outputs = chain.invoke(request_args.to_dict())
+        model = SyllabusSchema(
+            course_information=outputs["branches"]["course_information"],
+            course_description_objectives=outputs["branches"]["course_description_objectives"],
+            course_content=outputs["branches"]["course_content"],
+            policies_procedures=outputs["branches"]["policies_procedures"],
+            assessment_grading_criteria=outputs["branches"]["assessment_grading_criteria"],
+            learning_resources=outputs["branches"]["learning_resources"],
+            course_schedule=outputs["branches"]["course_schedule"],
+        )
+        return dict(model)
+
+    except Exception as e:
+        logger.error(f"Failed to generate syllabus: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate syllabus from LLM.")
+
+    
 class CourseInformation(BaseModel):
     course_title: str = Field(description="The course title")
     grade_level: str = Field(description="The grade level")
     description: str = Field(description="The course description")
-
-class InstructorInformation(BaseModel):
-    name: str = Field(description="The instructor name")
-    title: str = Field(description="The instructor title")
-    description_title: str = Field(description="The description of the instructor title")
 
 class CourseDescriptionObjectives(BaseModel):
     objectives: List[str] = Field(description="The course objectives")
@@ -177,170 +209,9 @@ class CourseScheduleItem(BaseModel):
 
 class SyllabusSchema(BaseModel):
     course_information: CourseInformation = Field(description="The course information")
-    instructor_information: InstructorInformation = Field(description="The instructor information")
     course_description_objectives: CourseDescriptionObjectives = Field(description="The objectives of the course")
     course_content: List[CourseContentItem] = Field(description="The content of the course")
     policies_procedures: PoliciesProcedures = Field(description="The policies procedures of the course")
     assessment_grading_criteria: AssessmentGradingCriteria = Field(description="The asssessment grading criteria of the course")
     learning_resources: List[LearningResource] = Field(description="The learning resources of the course")
     course_schedule: List[CourseScheduleItem] = Field(description="The course schedule")
-
-    model_config = {
-        "json_schema_extra": {
-            "examples": """
-            {
-                "course_information": {
-                    "course_title": "Linear Algebra",
-                    "grade_level": "Undergraduate",
-                    "description": "This course covers the fundamental concepts of linear algebra including vector spaces, linear transformations, matrices, and eigenvalues."
-                },
-                "instructor_information": {
-                    "name": "Wilfredo Sosa",
-                    "title": "Professor of Mathematics",
-                    "description_title": "Experienced educator with a focus on advanced mathematical theories and applications."
-                },
-                "course_description_objectives": {
-                    "objectives": [
-                    "Understand the basic principles of vector spaces and linear transformations.",
-                    "Apply matrix operations and solve linear systems.",
-                    "Analyze eigenvalues and eigenvectors and their applications."
-                    ],
-                    "intended_learning_outcomes": [
-                    "Students will be able to explain the concept of a vector space and a linear transformation.",
-                    "Students will be able to perform matrix operations and solve linear systems.",
-                    "Students will be able to determine eigenvalues and eigenvectors and understand their significance."
-                    ]
-                },
-                "course_content": [
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 1,
-                    "topic": "Introduction to Linear Algebra"
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 2,
-                    "topic": "Vector Spaces"
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 3,
-                    "topic": "Linear Transformations"
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 4,
-                    "topic": "Matrix Operations"
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 5,
-                    "topic": "Solving Linear Systems"
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 6,
-                    "topic": "Eigenvalues and Eigenvectors"
-                    }
-                ],
-                "policies_procedures": {
-                    "attendance_policy": "Attendance is mandatory and will be recorded for every class.",
-                    "late_submission_policy": "Late submissions will be penalized at 10% per day unless prior arrangements are made.",
-                    "academic_honesty": "All students are expected to adhere to the university's academic honesty policy. Cheating and plagiarism are strictly prohibited."
-                },
-                "assessment_grading_criteria": {
-                    "assessment_methods": [
-                    {
-                        "type": "Assignment",
-                        "weight": 20
-                    },
-                    {
-                        "type": "Midterm Exam",
-                        "weight": 30
-                    },
-                    {
-                        "type": "Final Exam",
-                        "weight": 50
-                    }
-                    ],
-                    "grading_scale": {
-                    "A": "90-100%",
-                    "B": "80-89%",
-                    "C": "70-79%",
-                    "D": "60-69%",
-                    "F": "below 60%"
-                    }
-                },
-                "learning_resources": [
-                    {
-                    "title": "Linear Algebra and Its Applications",
-                    "author": "David C. Lay",
-                    "year": 2015
-                    },
-                    {
-                    "title": "Introduction to Linear Algebra",
-                    "author": "Gilbert Strang",
-                    "year": 2016
-                    }
-                ],
-                "course_schedule": [
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 1,
-                    "date": "2024-09-01",
-                    "topic": "Introduction to Linear Algebra",
-                    "activity_desc": "Overview of course structure and key concepts."
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 2,
-                    "date": "2024-09-08",
-                    "topic": "Vector Spaces",
-                    "activity_desc": "Understanding the properties and examples of vector spaces."
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 3,
-                    "date": "2024-09-15",
-                    "topic": "Linear Transformations",
-                    "activity_desc": "Exploring linear mappings between vector spaces."
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 4,
-                    "date": "2024-09-22",
-                    "topic": "Matrix Operations",
-                    "activity_desc": "Performing addition, multiplication, and inversion of matrices."
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 5,
-                    "date": "2024-09-29",
-                    "topic": "Solving Linear Systems",
-                    "activity_desc": "Methods for solving systems of linear equations."
-                    },
-                    {
-                    "unit_time": "week",
-                    "unit_time_value": 6,
-                    "date": "2024-10-06",
-                    "topic": "Eigenvalues and Eigenvectors",
-                    "activity_desc": "Introduction to eigenvalues and eigenvectors and their applications."
-                    }
-                ]
-            }
-        """
-        }
-    }
-
-
-def generate_syllabus(request_args, verbose=True):
-    try:
-        pipeline = SyllabusGeneratorPipeline(verbose=verbose)
-        chain = pipeline.compile()
-        output = chain.invoke(request_args.to_dict())
-
-    except Exception as e:
-        logger.error(f"Failed to generate syllabus: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to generate syllabus from LLM")
-
-    return output
