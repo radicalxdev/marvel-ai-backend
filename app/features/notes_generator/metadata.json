@@ -1,0 +1,12 @@
+{
+    "name": "notes_generator",
+    "description": "Generate concise and structured notes from various inputs.",
+    "input_parameters": {
+        "input_type": {"type": "string", "required": true, "choices": ["text", "file", "url"]},
+        "input_content": {"type": "string", "required": false},
+        "file_path": {"type": "string", "required": false},
+        "focus_topic": {"type": "string", "required": false},
+        "output_structure": {"type": "string", "required": true, "choices": ["bullet", "paragraph", "table"]},
+        "export_format": {"type": "string", "required": true, "choices": ["txt", "docx", "pdf"]}
+    }
+}

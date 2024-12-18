@@ -36,3 +36,12 @@ pydub
 ffmpeg-python
 speechrecognition
 google-cloud-speech
+
+
+pytesseract
+pdfminer.six
+python-docx
+requests
+beautifulsoup4
+youtube-transcript-api
+fpdf
