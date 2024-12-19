@@ -12,13 +12,6 @@ RUN pip install --no-cache-dir -r /code/requirements.txt
 
 COPY ./app /code/app
 
-# Argument for the credentials JSON
-ARG CREDENTIALS_JSON
-
-# Ensure the directory exists and create the keyfile.json
-RUN mkdir -p /code/app/utils && \
-    echo "$CREDENTIALS_JSON" > /code/app/utils/keyfile.json
-
 # Set environment variable for Python path
 ENV PYTHONPATH=/code/app
 
