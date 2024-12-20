@@ -11,6 +11,12 @@
             "type": "text"
         },
         {
+            "label": "AI Resistance Level",
+            "name": "ai_resistance_level",
+            "type": "integer",
+            "description": "Specify the AI resistance level (1-5, where 1 is least resistant and 5 is most resistant)"
+        },        
+        {
             "label": "File URL",
             "name": "file_url",
             "type": "text"
