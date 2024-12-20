@@ -4,6 +4,9 @@ from unittest.mock import patch
 import re
 import logging
 
+"""if there is an error of file not found while trying to test directly with
+    pytest test_core.py, please use this path👇🏻
+    'PYTHONPATH=./ pytest app/features/notes_generator/tests/test_core.py' """
 def test_executor_text_input_valid():
     """Test executor with valid text input."""
     result = executor(
@@ -16,11 +19,11 @@ def test_executor_text_input_valid():
     assert result["status"] == "success"
     assert "file_path" in result
 
-
 @patch('app.features.notes_generator.tools.extract_text_from_file')
 def test_executor_file_input_valid(mock_extract):
     """Test executor with valid file input."""
-    mock_extract.return_value = "Plants convert sunlight into energy."
+    # Ensure the mock returns a simple, valid text string
+    mock_extract.return_value = "Plants convert sunlight into energy"
     result = executor(
         input_type='file',
         file_path="dummy.pdf",
@@ -36,20 +39,19 @@ def test_executor_missing_input():
     result = executor(input_type='text', input_content=None)
     assert result["status"] == "error"
 
-
 def test_executor_invalid_file_type():
     """Test executor with unsupported file type."""
-    with pytest.raises(ValueError):
-        result = executor(
+    result = executor(
         input_type='file',
         file_path="unsupported.xyz",
         focus_topic="Photosynthesis steps",
         output_structure='paragraph',
         export_format='docx'
     )
-        
-    assert result["status"] == "success"
-    assert "file_path" in result
+    assert result["status"] == "error"
+    assert "Unsupported file type for file" in result["message"]
+
+
 
 @patch('app.features.notes_generator.tools.extract_text_from_url')
 def test_executor_url_input_valid(mock_extract):

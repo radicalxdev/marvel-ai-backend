@@ -1,4 +1,5 @@
 import os
+import re
 from typing import Optional
 import pytesseract
 from pdfminer.high_level import extract_text as extract_pdf
