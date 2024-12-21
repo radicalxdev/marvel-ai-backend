@@ -9,10 +9,6 @@ from tools import (
     export_notes
 )
 
-import logging
-import os
-from typing import Literal, Optional, Dict
-
 def executor(input_type: Literal['text', 'file', 'url'],
              input_content: Optional[str] = None,
              file_path: Optional[str] = None,
@@ -43,15 +39,15 @@ def executor(input_type: Literal['text', 'file', 'url'],
         if input_type == 'text' and input_content:
             content = input_content
         elif input_type == 'file' and file_path:
-            # Add a check to validate file type before proceeding
+            # This is a check to validate file type before proceeding
             if not file_path.endswith(('.txt', '.docx', '.pdf', '.csv')):
                 raise ValueError(f"Unsupported file type for file: {file_path}")
             content = extract_text_from_file(file_path)
-            # Clean the extracted text
+            # The below is to clean the extracted text
             content = re.sub(r'[^\x00-\x7F]+', '', content)  # Remove non-ASCII characters
             content = content.replace('\x00', '')  # Remove null bytes
             content = ''.join([char if char.isprintable() else '' for char in content])  # Remove non-printable characters
-
+            
         elif input_type == 'url' and input_content:
             content = extract_text_from_url(input_content)
         else:

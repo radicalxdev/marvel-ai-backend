@@ -1,28 +1,15 @@
 import os
-import re
 from typing import Optional
-import pytesseract
 from pdfminer.high_level import extract_text as extract_pdf
 import docx
 import csv
-import requests
-from bs4 import BeautifulSoup
 from youtube_transcript_api import YouTubeTranscriptApi
 from docx import Document
 from fpdf import FPDF
 
-from io import StringIO
-
-from pdfminer.converter import TextConverter
-from pdfminer.layout import LAParams
-from pdfminer.pdfdocument import PDFDocument
-from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
-from pdfminer.pdfpage import PDFPage
-from pdfminer.pdfparser import PDFParser
-
 def extract_text_from_file(file_path: str) -> str:
     """extract text based on file type."""
-    if file_path.endswith('.pdf'): #Note this part 
+    if file_path.endswith('.pdf'): 
         return extract_pdf(file_path)
     elif file_path.endswith('.docx'):
         doc = docx.Document(file_path)
@@ -37,8 +24,6 @@ def extract_text_from_file(file_path: str) -> str:
     else:
         raise ValueError("Unsupprted file type.")
 
-
-
 def extract_text_from_url(video_url: str) -> str:
     """Extract text from a website URL"""
     video_id = video_url.split("v=")[-1]
@@ -47,24 +32,23 @@ def extract_text_from_url(video_url: str) -> str:
 
 def generate_notes(content: str, focus_topic: Optional[str], structure: str) -> str:
     """Generate notes using a summarization tool or AI-driven prompt."""
-    # Too be replace with AI tool integration (OpenAI API, Hugging Face)
+    # To be replace with AI tool integration (OpenAI API, Hugging Face)
     notes = f"Focus: {focus_topic}\n\nContent:\n{content}"
     return notes  # Placeholder logic
 
-
-
 def export_notes(notes: str, format_type: str) -> str:
     """Export notes to the specified file format."""
-    # Get the absolute path to the `outputs` directory
-    base_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory where the script is located
-    output_dir = os.path.join(base_dir, "outputs")
+
+    # Define the absolute path to the "outputs" directory inside your folder structure
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'marvel-ai-backend', 'app', 'features', 'notes_generator', 'outputs')
     
     # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
     # Construct the file path
     file_path = os.path.join(output_dir, f"notes_output.{format_type}")
-    file_path = f"outputs/notes_output.{format_type}"
+    
+    # Write the notes to the file in the specified format
     if format_type == 'txt':
         with open(file_path, 'w') as f:
             f.write(notes)
