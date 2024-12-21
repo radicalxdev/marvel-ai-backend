@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 import os
 from unittest.mock import patch
-from app.features.notes_generator.document_loaders import load_csv_documents, load_xls_documents, load_xlsx_documents, load_xml_documents, FileHandlerError
+from app.tools.notes_generator.document_loaders import load_csv_documents, load_xls_documents, load_xlsx_documents, load_xml_documents, FileHandlerError
 import io
 
 

@@ -1,8 +1,7 @@
 import os
 import pytest
-from app.features.notes_generator.core import executor
-# from app.api.error_utilities import SyllabusGeneratorError
-from app.services.schemas import NotesGeneratorArgs
+from app.tools.notes_generator.core import executor
+
 
 def test_executor_notes_valid():
     notes = executor(
