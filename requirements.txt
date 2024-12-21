@@ -1,38 +1,46 @@
-pytest
-pytest-mock
-pytesseract
-pytube
-PyPDF2
-python-dotenv
-python-pptx
+fastapi
+fastapi[standard]
+uvicorn[standard]
+langchain
+langchain-core
+langchain-google-genai
+langchain-chroma
+langchain-community
+google-cloud-secret-manager
+google-cloud-logging
+google-auth
+google-cloud-storage
+firebase-admin
+chroma
 pypdf
 fpdf
+youtube-transcript-api
+pytube
+
+unstructured
+python-pptx
 docx2txt
+networkx
+pandas
+xlrd
+openpyxl
+
+gdown
+
+pytest
+PyPDF2
+python-dotenv
+psutil
+
+pydub
+ffmpeg-python
+speechrecognition
+google-cloud-speech
+
+
+pytesseract
 pdfminer.six
 python-docx
 requests
-youtube-transcript-api
 
 
-# fastapi
-# langchain
-# langchain-core
-# langchain-google-genai
-# langchain-chroma
-# langchain-community
-# google-cloud-secret-manager
-# google-cloud-logging
-# google-auth
-# google-cloud-storage
-# firebase-admin
-# chroma
-# unstructured
-# networkx
-# pandas
-# xlrd
-# openpyxl
-# psutil
-# pydub
-# ffmpeg-python
-# speechrecognition
-# google-cloud-speech
