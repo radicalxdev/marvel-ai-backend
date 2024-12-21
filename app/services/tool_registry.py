@@ -13,7 +13,7 @@ class ToolInput(BaseModel):
     
 # Base model for all tools
 class BaseTool(BaseModel):
-    tool_id: int  # Unique identifier for each tool,
+    tool_id: str  # Unique identifier for each tool,
     inputs: List[ToolInput]
 
 class ToolFile(BaseModel):
