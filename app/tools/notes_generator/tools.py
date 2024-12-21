@@ -8,8 +8,6 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-
-
 from app.services.logger import setup_logger
 
 logger = setup_logger(__name__)

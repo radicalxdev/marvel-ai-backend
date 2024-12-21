@@ -1,8 +1,8 @@
 from app.services.logger import setup_logger
 from app.api.error_utilities import LoaderError, ToolExecutorError
 from app.services.schemas import NotesGeneratorArgs
-from app.features.notes_generator.document_loaders import get_docs
-from app.features.notes_generator.tools import NotesGenerator
+from app.tools.notes_generator.document_loaders import get_docs
+from app.tools.notes_generator.tools import NotesGenerator
 from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
