@@ -80,6 +80,23 @@ class NotesGenerator:
         return chain
 
 
+    def validate_major_concepts(self, response):
+        major_concepts_list = response.get("major_key_concepts_list")
+
+        if major_concepts_list is None:
+            logger.error("Response does not contain 'major_key_concepts_list' key.")
+            return False
+        
+        major_concepts_count = len(major_concepts_list)
+        expected_columns = self.args.nb_columns
+        
+        if major_concepts_count != expected_columns:
+            logger.error(f"Number of major concepts ({major_concepts_count}) does not match the expected number of columns ({expected_columns}).")
+            return False
+        
+        return True
+    
+
     def create_notes(self, documents: List[Document]):
         logger.info(f"Creating the NOTES")
 
@@ -98,6 +115,7 @@ class NotesGenerator:
         while attempt < max_attempt:
             try:
                 response = chain.invoke(input_parameters)
+                logger.info(f"Notes generated during attempt nb: {attempt}")
             except Exception as e:
                 logger.error(f"Error during notes generation: {str(e)}")
                 attempt += 1
@@ -106,6 +124,10 @@ class NotesGenerator:
                 logger.error(f"could not generate Notes, trying again")
                 attempt += 1
                 continue
+            if self.validate_major_concepts(response) == False:
+                attempt += 1
+                continue
+
             # If everything is valid, break the outer loop
             break
 

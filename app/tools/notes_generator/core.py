@@ -1,7 +1,7 @@
 from app.services.logger import setup_logger
 from app.api.error_utilities import LoaderError, ToolExecutorError
 from app.services.schemas import NotesGeneratorArgs
-from app.tools.notes_generator.document_loaders import get_docs
+from app.utils.document_loaders import get_docs
 from app.tools.notes_generator.tools import NotesGenerator
 from typing import List
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -74,7 +74,7 @@ def executor(topic: str,
          
         output = NotesGenerator(args=notes_generator_args, verbose=verbose).create_notes(docs)
         
-        logger.info(f"Notes generated successfully in a PDF file")
+        logger.info(f"Notes generated successfully")
     
     except LoaderError as e:
         error_message = str(e)
