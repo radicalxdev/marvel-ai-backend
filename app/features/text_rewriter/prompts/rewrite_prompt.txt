@@ -1,0 +1,3 @@
+Rewrite the following text based on these instructions: {instructions}
+
+{text}

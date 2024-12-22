@@ -1,0 +1,18 @@
+{
+    "label": "Text Rewriter",
+    "description": "Rewrites text based on user instructions",
+    "inputs": [
+      {
+        "name": "text",
+        "type": "string",
+        "label": "Input Text",
+        "description": "The text to be rewritten"
+      },
+      {
+        "name": "instructions",
+        "type": "string",
+        "label": "Rewriting Instructions",
+        "description": "How the text should be rewritten (e.g., simplify, summarize)"
+      }
+    ]
+  }
