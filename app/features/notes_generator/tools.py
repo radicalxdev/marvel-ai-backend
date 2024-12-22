@@ -1,24 +1,24 @@
 import os
-from typing import Optional
-from pdfminer.high_level import extract_text as extract_pdf
-import docx
 import csv
+from typing import Optional
+import docx
+from pdfminer.high_level import extract_text as extract_pdf
 from youtube_transcript_api import YouTubeTranscriptApi
 from docx import Document
 from fpdf import FPDF
 
 def extract_text_from_file(file_path: str) -> str:
     """extract text based on file type."""
-    if file_path.endswith('.pdf'): 
+    if file_path.endswith('.pdf'):
         return extract_pdf(file_path)
-    elif file_path.endswith('.docx'):
+    if file_path.endswith('.docx'):
         doc = docx.Document(file_path)
         return '\n'.join([p.text for p in doc.paragrphas])
-    elif file_path.endswith('.csv'):
+    if file_path.endswith('.csv'):
         with open(file_path, 'r') as f:
             reader = csv.reader(f)
             return '\n'.join([' '.join(row) for row in reader])
-    elif file_path.endswith('txt'):
+    if file_path.endswith('txt'):
         with open(file_path, 'r') as f:
             return f.read()
     else:
@@ -40,14 +40,13 @@ def export_notes(notes: str, format_type: str) -> str:
     """Export notes to the specified file format."""
 
     # Define the absolute path to the "outputs" directory inside your folder structure
-    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'marvel-ai-backend', 'app', 'features', 'notes_generator', 'outputs')
-    
+    #Please note that the outputs is generated inside the features/notes_generator directory
+    output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outputs')
     # Ensure the output directory exists
     os.makedirs(output_dir, exist_ok=True)
 
     # Construct the file path
     file_path = os.path.join(output_dir, f"notes_output.{format_type}")
-    
     # Write the notes to the file in the specified format
     if format_type == 'txt':
         with open(file_path, 'w') as f:
@@ -64,4 +63,3 @@ def export_notes(notes: str, format_type: str) -> str:
             pdf.cell(200, 10, txt=line, ln=True)
         pdf.output(file_path)
     return file_path
-
