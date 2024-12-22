@@ -162,6 +162,6 @@ class NotesGeneratorArgs(BaseModel):
     orientation: Literal["landscape", "portrait"] = Field(..., description="Orientation of the notes document created")
     file_urls: str = Field(..., description="Comma-separated URLs or paths of the files to be processed")
     file_types: str = Field(..., description="Comma-separated file types corresponding to the provided URLs (e.g., pdf,gdoc,img,youtube_url)")
-    langs: str = Field(..., description="Comma-separated languages for each file (e.g., en,fr,es)")
+    lang: str = Field(..., description="The language of the generated notes response (e.g., en,fr,es)")
 
 

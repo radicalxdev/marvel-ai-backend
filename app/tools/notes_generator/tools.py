@@ -106,7 +106,8 @@ class NotesGenerator:
         input_parameters = (
             f"Nb of columns: {self.args.nb_columns}, "
             f"Topic: {self.args.topic}, "
-            f"Details: {self.args.details}"
+            f"Details: {self.args.details}, "
+            f"Language: {self.args.lang}"
         )
         logger.info(f"Input parameters: {input_parameters}")
         attempt = 1

@@ -24,14 +24,14 @@ def process_file(file_url: str, file_type: str, lang: str, verbose=True):
         logger.error(f"Failed to process file {file_url}: {e}")
         return []
 
-def process_all_filesinputs(file_urls_list: List[str], file_types_list: List[str], langs_list: List[str]) -> List:
+def process_all_filesinputs(file_urls_list: List[str], file_types_list: List[str], lang: str) -> List:
     """Process all files in the input list concurrently and return a combined list of documents."""
     all_docs = []
     with ThreadPoolExecutor() as thread_pool:
         # Create tasks for each file input
         futures = [
             thread_pool.submit(process_file, file_url, file_type, lang)
-            for file_url, file_type, lang in zip(file_urls_list, file_types_list, langs_list)
+            for file_url, file_type in zip(file_urls_list, file_types_list)
         ]
         for future in as_completed(futures):
             docs = future.result()
@@ -46,7 +46,7 @@ def executor(topic: str,
             orientation: str,
             file_urls: str,
             file_types: str,
-            langs: str,
+            lang: str,
             verbose: bool = False):
     
     try:
@@ -57,20 +57,19 @@ def executor(topic: str,
             orientation=orientation,
             file_urls=file_urls,
             file_types=file_types,
-            langs=langs,
+            lang=lang,
         )
         if verbose: 
             logger.info(f"Args = notes_generator_args: {notes_generator_args}")
 
         file_urls_list = file_urls.split(",")
         file_types_list = file_types.split(",")
-        langs_list = langs.split(",")
     
-        if len(file_urls_list) != len(file_types_list) or len(file_urls_list) != len(langs_list):
-            raise ValueError("The number of file URLs, file types, and languages must match.")
+        if len(file_urls_list) != len(file_types_list):
+            raise ValueError("The number of file URLs and file types must match.")
 
 
-        docs = process_all_filesinputs(file_urls_list, file_types_list, langs_list) 
+        docs = process_all_filesinputs(file_urls_list, file_types_list, lang) 
          
         output = NotesGenerator(args=notes_generator_args, verbose=verbose).create_notes(docs)
         
