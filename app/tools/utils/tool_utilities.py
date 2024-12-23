@@ -7,6 +7,7 @@ from typing import Dict, Any, List
 from fastapi import HTTPException
 from pydantic import ValidationError
 
+
 logger = setup_logger(__name__)
 
 def load_config():
@@ -96,6 +97,7 @@ def validate_input_type(input_name: str, input_value: Any, expected_type: str):
     elif expected_type == 'file':
         validate_file_input(input_name, input_value)
 
+
 def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, str]]) -> bool:
     validate_inputs = {input_item['name']: input_item['type'] for input_item in validate_data}
     
@@ -109,13 +111,14 @@ def validate_inputs(request_data: Dict[str, Any], validate_data: List[Dict[str, 
 
         expected_type = validate_inputs[input_name]
         validate_input_type(input_name, input_value, expected_type)
-
+        
     return True
 
 def convert_files_to_tool_files(inputs: Dict[str, Any]) -> Dict[str, Any]:
     if 'files' in inputs:
         inputs['files'] = [ToolFile(**file_object) for file_object in inputs['files']]
     return inputs
+
 
 def finalize_inputs(input_data, validate_data: List[Dict[str, str]]) -> Dict[str, Any]:
     inputs = prepare_input_data(input_data)

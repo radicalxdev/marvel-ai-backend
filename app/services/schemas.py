@@ -154,3 +154,14 @@ class WritingFeedbackGeneratorArgs(BaseModel):
     wtr_file_url: str
     wtr_file_type: str
     lang: Optional[str] = "en"
+
+class NotesGeneratorArgs(BaseModel):
+    topic: str = Field(..., description="Topic of the notes")
+    details: str = Field(..., description="What should the notes talk about")
+    nb_columns: int = Field(..., description="Number of columns for the key concept notes generated")
+    orientation: Literal["landscape", "portrait"] = Field(..., description="Orientation of the notes document created")
+    file_urls: str = Field(..., description="Comma-separated URLs or paths of the files to be processed")
+    file_types: str = Field(..., description="Comma-separated file types corresponding to the provided URLs (e.g., pdf,gdoc,img,youtube_url)")
+    lang: str = Field(..., description="The language of the generated notes response (e.g., en,fr,es)")
+
+
