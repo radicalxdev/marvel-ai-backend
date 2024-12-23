@@ -22,3 +22,18 @@ env/
 *.pyc
 *.pyo
 *.pyd
+
+# Ignore virtual environment
+Ai/
+env/
+
+# VS Code configuration
+.vscode/
+
+# Output files
+output.txt
+
+Ai/
+output.txt
+.vscode/
+.env

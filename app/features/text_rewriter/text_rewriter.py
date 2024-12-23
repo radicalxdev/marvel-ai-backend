@@ -1,12 +1,37 @@
+import sys
 import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="/Users/timothydrew92/Desktop/Reality Ai Lab/marvel_ai_backend/app/features/text_rewriter/text_rewriter.env")
+
+# Dynamically add the project root to PYTHONPATH
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
+
+# Load environment variables
+load_dotenv()
+
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+if not GOOGLE_API_KEY:
+    raise Exception("Google API Key is not set. Please check your .env file.")
+
+# Extract Google Cloud API variables
+google_api_key = os.getenv("GOOGLE_API_KEY")
+project_id = os.getenv("PROJECT_ID")
+
+# Validate environment variables
+if not google_api_key or not project_id:
+    raise ValueError("Missing required environment variables. Ensure GOOGLE_API_KEY and PROJECT_ID are set in text_rewriter.env.")
+
 from typing import Union
 from docx import Document
 import csv
 import json
 from fastapi import FastAPI
+from app.features.text_rewriter.router import router as text_rewriter_router  # Import the router
+
 
 # Create FastAPI instance
 app = FastAPI()
+app.include_router(text_rewriter_router, prefix="/text-rewriter")
 
 # Example endpoint for testing
 @app.get("/")
@@ -88,15 +113,7 @@ def text_rewriter(input_data: Union[str, dict], instructions: str, output_format
     except Exception as e:
         return f"Error: {str(e)}"
 
-# Testing Section
+# Start the FastAPI app
 if __name__ == "__main__":
-    # Simulate inputs for testing
-    test_input = "Romeo and Juliet is a tragic play by William Shakespeare..."
-    test_instructions = "Simplify for a middle school audience."
-    test_output_format = 'txt'
-    test_output_path = './output.txt'
-    
-    # Run the rewriter
-    result = text_rewriter(test_input, test_instructions, test_output_format, test_output_path)
-    print(result)
-
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

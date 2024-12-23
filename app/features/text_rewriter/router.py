@@ -1,16 +1,24 @@
 from fastapi import APIRouter, HTTPException
-from .core import executor
-from .tools import TextRewriterInput, TextRewriterOutput
+from pydantic import BaseModel
 
+# Define router
 router = APIRouter()
 
-@router.post("/rewrite", response_model=TextRewriterOutput)
-def rewrite_text(input: TextRewriterInput):
-    """
-    API endpoint to rewrite text based on user instructions.
-    """
+# Input schema
+class RewriteRequest(BaseModel):
+    text: str
+    instructions: str
+
+# Output schema
+class RewriteResponse(BaseModel):
+    rewritten_text: str
+
+# Endpoint to handle text rewriting
+@router.post("/rewrite", response_model=RewriteResponse)
+def rewrite_text(request: RewriteRequest):
     try:
-        result = executor(input.text, input.instructions)
-        return TextRewriterOutput(**result)
+        # Simulate text rewriting logic (replace with actual AI functionality)
+        rewritten_text = f"Processed: {request.text} | Instructions: {request.instructions}"
+        return RewriteResponse(rewritten_text=rewritten_text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,13 +1,13 @@
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from langchain.llms import OpenAI
+from langchain_community.llms import GooglePalm 
 
 def executor(text: str, instructions: str) -> dict:
     """
     Main function to process inputs and generate rewritten text.
     """
     # Initialize LangChain components
-    llm = OpenAI(model="text-davinci-003")
+    llm = GooglePalm(api_key=os.getenv("GOOGLE_API_KEY"))
     prompt = PromptTemplate(
         input_variables=["text", "instructions"],
         template="Rewrite the following text based on these instructions: {instructions}\n\n{text}"
