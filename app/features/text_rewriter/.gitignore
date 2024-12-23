@@ -1,0 +1,24 @@
+# Environment files
+.env
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Python-related files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+env/
+
+# Logs
+*.log
+*.sqlite3
+
+# Compiled files
+*.pyc
+*.pyo
+*.pyd
