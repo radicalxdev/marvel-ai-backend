@@ -1,0 +1,94 @@
+
+YOU MUST RESPECT THE VARIABLE NAMES
+### Input Guidelines:
+
+1. **Grade Level** (`grade_level`):  
+   - Specifies the educational level (e.g., `university`, `high`, `middle`).  
+
+2. **Assignment Description** (`assignment_description`):  
+   - A brief description of the assignment or context for the writing to be reviewed (e.g., "Linear Algebra").  
+
+3. **Criteria** (`criteria`):  
+   - Specifies the evaluation criteria for the feedback. Can be provided as text in `criteria` or as a file using `criteria_file_url` and `criteria_file_type`. Use one input type at a time.  
+
+4. **Writing to Review** (`writing_to_review`):  
+   - The text of the writing to be reviewed. Can be provided as a string in `writing_to_review` or as a file using `wtr_file_url` and `wtr_file_type`. Use one input type at a time.  
+
+5. **File URLs and Types**:  
+   - **Criteria File**: Use `criteria_file_url` and `criteria_file_type` to provide the evaluation criteria as a file (e.g., `pdf`, `docx`).  
+   - **Writing to Review File**: Use `wtr_file_url` and `wtr_file_type` to provide the writing to be reviewed as a file (e.g., `pdf`, `gdoc`).  
+
+6. **Language** (`lang`):  
+   - Defines the language for the feedback (default is `en`).  
+
+---
+
+### Examples:
+
+#### Example 1: Writing to Review as a File, Criteria as Text  
+tool_data:  
+tool_id: writing-feedback-generator  
+grade_level: university  
+assignment_description: Linear Algebra  
+criteria: Understand the concepts of vector spaces, linear transformations, and matrix operations.  
+writing_to_review:  
+criteria_file_url:  
+criteria_file_type:  
+wtr_file_url: https://example.com/writing-to-review.pdf  
+wtr_file_type: pdf  
+lang: en  
+
+- **Here**, the writing to be reviewed is provided as a file, while the criteria are provided as text.
+
+---
+
+#### Example 2: Both Writing and Criteria as Files  
+tool_data:  
+tool_id: writing-feedback-generator  
+grade_level: university  
+assignment_description: Linear Algebra  
+criteria:  
+writing_to_review:  
+criteria_file_url: https://example.com/criteria.pdf  
+criteria_file_type: pdf  
+wtr_file_url: https://example.com/writing-to-review.docx  
+wtr_file_type: docx  
+lang: en  
+
+- **Here**, both the writing to review and the criteria are provided as files, so their respective text fields are left blank.
+
+---
+
+#### Example 3: Writing as Text, No Criteria  
+tool_data:  
+tool_id: writing-feedback-generator  
+grade_level: university  
+assignment_description: Linear Algebra  
+criteria:  
+writing_to_review: Linear regression is a statistical method to model the relationship between dependent and independent variables.  
+criteria_file_url:  
+criteria_file_type:  
+wtr_file_url:  
+wtr_file_type:  
+lang: en  
+
+- **Here**, the writing to review is provided as text, and no criteria are included (both text and file fields for criteria are blank).
+
+---
+
+### Key Rules:
+
+1. **Criteria**:  
+   - Use **either** `criteria` (text) or `criteria_file_url` and `criteria_file_type` (file), but not both.  
+
+2. **Writing to Review**:  
+   - Use **either** `writing_to_review` (text) or `wtr_file_url` and `wtr_file_type` (file), but not both.  
+
+3. **Mix-and-Match**:  
+   - You can mix text and file inputs for criteria and writing to review.  
+
+4. **File Types**:  
+   - Ensure correct file types (e.g., `pdf`, `docx`, `gdoc`) are specified when using file inputs.  
+
+5. **Language**:  
+   - Default language is `en`. Specify if a different language is required.  

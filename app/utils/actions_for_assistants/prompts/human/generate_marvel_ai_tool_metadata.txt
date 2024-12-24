@@ -1,0 +1,34 @@
+Here is the tool id: {tool_id}
+Here is the user's query: {user_query}
+Here is the request sample: {request_sample}
+You must respond in this format: {format_instructions}
+
+YOU MUST RESPECT THE VARIABLE NAMES. DON'T CHANGE THEM.
+For example, if the variable name is `n_questions`, don't change it.
+
+ENSURE THAT ALL THE VARIABLES ARE IN THE REQUEST, DON'T SKIP ANY.
+FOR EXAMPLE, don't skip the `file_type` or other variables DEPENDING OF THE MARVEL TOOL AND THE REQUEST SAMPLE.
+
+THE `lang` VARIABLE IS NEEDED IN ALL THE REQUESTS.
+
+The existent file types are: pdf,csv,txt,md,url,pptx,docx,xls,xlsx,xml,gdoc,gsheet,gslide,gpdf,youtube_url,img
+
+Consider that some acronyms are:
+td_file_url #Task Description File URL
+td_file_type #Task Description File Type
+sd_file_url #Student Description File URL
+sd_file_type #Student Description File Type
+
+If it's the presentation-generator
+ac_file_url #Additional Comments File URL
+ac_file_type #Additional Comments File Type
+
+But if it's the lesson-plan-generator
+ac_file_url #Additional Customization File URL
+ac_file_type #Additional Customization File Type
+
+ad_file_url #Assignment Description File URL
+ad_file_type #Assignment Description File Type
+
+wtr_file_url #Writing to Review File URL
+wtr_file_type #Writing to Review File Type

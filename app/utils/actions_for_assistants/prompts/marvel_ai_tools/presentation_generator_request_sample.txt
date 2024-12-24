@@ -1,0 +1,74 @@
+YOU MUST RESPECT THE VARIABLE NAMES
+
+### Input Guidelines:
+- **Objectives**: Provide either as a text string in `objectives` or as a file using `objectives_file_url` and `objectives_file_type`. Only one type of input should be used at a time.
+- **Additional Comments**: Optional. Can be provided as a text string in `additional_comments` or as a file using `ac_file_url` and `ac_file_type`. If no comments are required, leave both blank.
+- **Combination of Text and Files**: Text and file inputs can be mixed; for example, objectives could be text while additional comments are provided as a file.
+
+---
+
+### Examples
+
+#### Example 1: Both Objectives and Additional Comments as Files  
+tool_data:  
+tool_id: presentation-generator  
+grade_level: university  
+n_slides: 9  
+topic: Linear Algebra  
+objectives:  
+additional_comments:  
+objectives_file_url: https://example.com/objectives.pdf  
+objectives_file_type: pdf  
+ac_file_url: https://example.com/additional-comments.docx  
+ac_file_type: docx  
+lang: en  
+
+- **Here**, both the objectives and additional comments are provided as files, so the corresponding text fields are left empty.
+
+---
+
+#### Example 2: Objectives as Text, No Additional Comments  
+tool_data:  
+tool_id: presentation-generator  
+grade_level: university  
+n_slides: 9  
+topic: Linear Algebra  
+objectives: Introduce matrix operations and their applications in solving systems of equations.  
+additional_comments:  
+objectives_file_url:  
+objectives_file_type:  
+ac_file_url:  
+ac_file_type:  
+lang: en  
+
+- **Here**, the objectives are provided as text, and no additional comments are included (both text and file fields are empty).
+
+---
+
+#### Example 3: Objectives as a File, Additional Comments as Text  
+tool_data:  
+tool_id: presentation-generator  
+grade_level: university  
+n_slides: 9  
+topic: Linear Algebra  
+objectives:  
+additional_comments: Ensure the presentation includes real-world applications of linear algebra.  
+objectives_file_url: https://example.com/objectives.pdf  
+objectives_file_type: pdf  
+ac_file_url:  
+ac_file_type:  
+lang: en  
+
+- **Here**, objectives are provided as a file, while additional comments are written as text.
+
+---
+
+### Key Rules:
+1. **Objectives**:  
+   - Use **either** `objectives` (text) **or** `objectives_file_url` and `objectives_file_type` (file), but not both.  
+2. **Additional Comments**:  
+   - This field is optional. You can provide additional comments in text, file, or leave both fields empty.  
+3. **Mix-and-Match**:  
+   - You can mix text and file inputs for objectives and additional comments, depending on your requirements.  
+4. **File Types**:  
+   - Ensure to specify the correct file type (e.g., "pdf", "docx", "gdoc") when using file inputs.  

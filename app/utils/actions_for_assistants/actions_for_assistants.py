@@ -7,8 +7,18 @@ from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
 from langchain_core.runnables.base import RunnableLambda
+from app.services.logger import setup_logger
+from app.tools.utils.tool_utilities import (
+    load_tool_metadata, 
+    execute_tool, 
+    finalize_inputs
+)
+
+from app.services.tool_registry import BaseTool
 
 load_dotenv(find_dotenv())
+
+logger = setup_logger()
 
 chat_google_genai = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
 
@@ -26,6 +36,16 @@ def read_text_file(file_path):
 def adapt_questions_for_json(output, parser):
     return {
         "questions": output,
+        "format_instructions": parser.get_format_instructions()
+    }
+
+marvel_ai_tools_prefix = "prompts/marvel_ai_tools/"
+
+def adapt_marvel_tool_id(output, user_query, parser):
+    return {
+        "tool_id": output.strip(),
+        "user_query": user_query,
+        "request_sample": marvel_ai_tools_prefix+marvel_ai_tools_prompts[output.strip()],
         "format_instructions": parser.get_format_instructions()
     }
 
@@ -161,6 +181,71 @@ def generate_questions_to_json_tool(user_query: str):
 
     return result
 
+def call_marvel_ai_tool(user_query: str):
+    """Used for calling any of the following Marvel AI tools:
+    1. Multiple Choice Quiz Generator
+    2. Flashcards Generator
+    3. Worksheet Generator
+    4. Syllabus Generator
+    5. AI-Resistant Assignments
+    6. Connect with Them
+    7. Presentation Generator
+    8. Rubric Generator
+    9. Lesson Plan Generator
+    10. Writing Feedback Generator
+    """
+    prompt_identifier = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                read_text_file("prompts/system/generate_marvel_ai_tool_identifier.txt")
+            ),
+            (
+                "human",
+                read_text_file("prompts/human/generate_marvel_ai_tool_identifier.txt")
+            )
+        ]
+    )
+
+    chain_identifier = prompt_identifier | chat_google_genai
+    
+    prompt_generate_metadata = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                read_text_file("prompts/system/generate_marvel_ai_tool_metadata.txt")
+            ),
+            (
+                "human",
+                read_text_file("prompts/human/generate_marvel_ai_tool_metadata.txt")
+            )
+        ]
+    )
+
+    chain_generate_metadata = prompt_generate_metadata | chat_google_genai
+
+    parser = JsonOutputParser(pydantic_object=ToolRequest)
+
+    combined_chain = (
+        chain_identifier
+        | RunnableLambda(lambda x: adapt_marvel_tool_id(x.content, user_query, parser))
+        | chain_generate_metadata
+        | parser
+    )
+
+    result = combined_chain.invoke(user_query)
+
+    logger.info(f"Metadata generated: {result}")
+
+    result_with_schema = ToolRequest.model_validate(result)
+
+    request_data = result_with_schema.tool_data    
+    requested_tool = load_tool_metadata(request_data.tool_id)
+    request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool["inputs"])
+    final_result = execute_tool(request_data.tool_id, request_inputs_dict)
+
+    return final_result
+
 def default_prompt_tool(user_query: str):
     """Used for answering any kind of prompt that is not about Translation, Summarization,
     Rewriting, Question Generation, or Custom Prompts"""
@@ -201,6 +286,9 @@ class QuestionList(BaseModel):
     multiple_choice_questions: List[MultipleChoiceQuestion]
     open_ended_questions: List[OpenEndedQuestion]
 
+class ToolRequest(BaseModel):
+    tool_data: BaseTool
+
 actions = [
     translation_tool,
     summarization_tool,
@@ -217,4 +305,17 @@ function_map = {
     "generate_questions_to_json_tool": generate_questions_to_json_tool,
     "custom_prompt_tool": custom_prompt_tool,
     "default_prompt_tool": default_prompt_tool
+}
+
+marvel_ai_tools_prompts = {
+    "ai-resistant-assignments-generator": "ai_resistant_assignments_generator_request_sample.txt",
+    "connect-with-them": "connect_with_them_request_sample.txt",
+    "flashcard-generator": "flashcards_generator_request_sample.txt",
+    "lesson-generator": "lesson_plan_generator_request_sample.txt",
+    "multiple-choice-quiz-generator": "multiple_choice_quiz_generator_request_sample.txt",
+    "presentation-generator": "presentation_generator_request_sample.txt",
+    "rubric-generator": "rubric_generator_request_sample.txt",
+    "syllabus-generator": "syllabus_generator_request_sample.txt",
+    "worksheet-generator": "worksheet_generator_request_sample.txt",
+    "writing-feedback-generator": "writing_feedback_generator_request_sample.txt",
 }
