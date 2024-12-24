@@ -33,6 +33,7 @@ env/
 # Output files
 output.txt
 
+# Ignore additional Ai/ and output.txt files
 Ai/
 output.txt
 .vscode/
