@@ -1,0 +1,1 @@
+Here is the user's query: {user_query}

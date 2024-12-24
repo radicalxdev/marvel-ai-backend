@@ -5,12 +5,12 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv, find_dotenv
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import ChatPromptTemplate
-from langgraph.graph import END
 from pydantic import BaseModel, Field
+from langchain_core.runnables.base import RunnableLambda
 
 load_dotenv(find_dotenv())
 
-chat_google_genai = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+chat_google_genai = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
 
 def read_text_file(file_path):
     # Get the directory containing the script file
@@ -21,117 +21,167 @@ def read_text_file(file_path):
     
     with open(absolute_file_path, 'r') as file:
         return file.read()
+    
 
-def process_content(
-    state
-):
-    """
-    This function, `process_content`, is designed to dynamically generate a response based on the user's action and context. 
-    It takes in a `state` dictionary that contains information such as the user's query, the intended action (e.g., translate, 
-    summarize, rewrite, generate questions, or a custom task), and chat history for added context.
-
-    The function performs the following steps:
-    1. Constructs the chat history string to provide context for processing.
-    2. Maps specific actions to corresponding prompt templates and logic using `action_map`.
-    3. Invokes a generative AI model (`chat_google_genai`) with the appropriate system and user messages based on the action selected.
-    4. Returns the processed result as a response.
-
-    Each action retrieves a predefined template from corresponding prompt files and appends the user query and chat history for 
-    contextualized processing. If an invalid action is passed, the function raises an error.
-    """
-
-    chat_history = " For context, you can use the chat history provided: " + " ".join(
-        f"[{message.role} - {message.type}]: {message.text}" for message in state["chat_history"]
-    )
-
-    action_map = {
-        "translate": lambda: [
-            ("system", state["assistant_system_message"]+read_text_file('prompts/translate.txt')), 
-            ("human", state["user_query"]+chat_history)
-        ],
-        "summarize": lambda: [
-            ("system", state["assistant_system_message"]+read_text_file('prompts/summarize.txt')),  
-            ("human", state["user_query"]+chat_history)
-        ],
-        "rewrite": lambda: [
-            ("system", state["assistant_system_message"]+read_text_file('prompts/rewrite.txt')),  
-            ("human", state["user_query"]+chat_history)
-        ],
-        "question_generation": lambda: [
-            ("system", state["assistant_system_message"]+read_text_file('prompts/question_generation.txt')),  
-            ("human", state["user_query"]+chat_history)
-        ],
-        "custom": lambda: [
-            ("system", state["assistant_system_message"]+read_text_file('prompts/custom_prompt.txt')),  
-            ("human", state["user_query"]+chat_history)
-        ],
-        "default": lambda: [
-            ("system", state["assistant_system_message"]),  
-            ("human", state["user_query"]+chat_history)
-        ],
-    }
-
-    if state["action"] not in action_map:
-        raise ValueError(f"Action '{state['action']}' is not a valid action in the action_map")
-
-    messages = action_map[state["action"]]()
-    response = chat_google_genai.invoke(messages)
+def adapt_questions_for_json(output, parser):
     return {
-        "result": response.content
+        "questions": output,
+        "format_instructions": parser.get_format_instructions()
     }
 
-def generate_questions_to_json(state):
-    """
-    The function `generate_questions_to_json` is designed to transform a list of questions into a structured JSON format. 
-    It utilizes a predefined parsing schema and a generative AI chain to process the input and produce the desired output.
-
-    Key steps in the function:
-    1. Parser Setup: Initializes a `JsonOutputParser` using the `QuestionList` schema to define the expected JSON structure.
-    2. Prompt Definition: Loads system and user prompt templates from external files (`prompts/system_prompt_question_generation_json.txt` 
-    and `prompts/user_prompt_question_generation_json.txt`) to provide instructions and context for generating the JSON.
-    3. AI Chain Setup: Combines the prompt and generative AI model (`chat_google_genai`) into a processing chain.
-    4. Invocation: Calls the chain with the questions (from `state["result"]`) and format instructions provided by the parser, ensuring the 
-    output adheres to the predefined JSON schema.
-    5. Result Parsing: Parses the AI-generated content using the parser to ensure it matches the structured format.
-
-    The function returns a dictionary containing the `result`, which is the parsed JSON object representing the list of questions in 
-    a structured format.
-    """
-    parser = JsonOutputParser(pydantic_object=QuestionList)
+def translation_tool(user_query: str, source_lang: str, target_lang: str):
+    """ Used for translating content from a source language to a target language. """
     prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            read_text_file('prompts/system_prompt_question_generation_json.txt')
-        ),
-        ("human", read_text_file('prompts/user_prompt_question_generation_json.txt'))
-    ]
+        [
+            (
+                "system",
+                read_text_file("prompts/system/translation_tool.txt")
+            ),
+            (
+                "human",
+                read_text_file("prompts/human/translation_tool.txt")
+            )
+        ]
     )
 
     chain = prompt | chat_google_genai
+    result = chain.invoke({
+        "user_query": user_query,
+        "source_lang": source_lang,
+        "target_lang": target_lang
+    })
+    return result.content
 
-    result = chain.invoke(
-        {
-            "questions": state["result"],
-            "format_instructions": parser.get_format_instructions()
-        }
+def summarization_tool(user_query: str, summarization_type: str):
+    """ Used for summarize content"""
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                read_text_file("prompts/system/summarization_tool.txt")
+            ),
+            (
+                "human",
+                read_text_file("prompts/human/summarization_tool.txt")
+            )
+        ]
     )
-    
-    return {
-        "result": parser.parse(result.content)
-    }
-    
 
-def go_to_process_questions_json(state):
-    """
-    Determines the next processing step based on the action in the `state`. 
-    Returns `'generate_questions_to_json'` if the action is `'question_generation'`, otherwise returns `END`.
-    """
+    chain = prompt | chat_google_genai
+    result = chain.invoke({
+        "user_query": user_query,
+        "summarization_type": summarization_type
+    })
+    return result.content
 
-    if state['action'] == 'question_generation':
-        return 'generate_questions_to_json'
-    else:
-        return END
+def rewrite_tool(user_query: str, focus: str, tone: str):
+    """ Used for rewriting content"""
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                read_text_file("prompts/system/rewrite_tool.txt")
+            ),
+            (
+                "human",
+                read_text_file("prompts/human/rewrite_tool.txt")
+            )
+        ]
+    )
+
+    chain = prompt | chat_google_genai
+    result = chain.invoke({
+        "user_query": user_query,
+        "focus": focus,
+        "tone": tone
+    })
+    return result.content
+
+def custom_prompt_tool(user_query: str, action: str):
+    """ Used for managing custom prompts"""
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                read_text_file("prompts/system/custom_prompt_tool.txt")
+            ),
+            (
+                "human",
+                read_text_file("prompts/human/custom_prompt_tool.txt")
+            )
+        ]
+    )
+
+    chain = prompt | chat_google_genai
+    result = chain.invoke({
+        "user_query": user_query,
+        "action": action
+    })
+    return result.content
+
+
+def generate_questions_to_json_tool(user_query: str):
+    """ Used for generating questions. The results are returned in a JSON format. You must respect the user's language """
+    prompt_generate_questions = ChatPromptTemplate.from_messages(
+      [
+          (
+            "system",
+            read_text_file("prompts/system/question_generation.txt")
+          ),
+          ("human",
+            read_text_file("prompts/human/question_generation.txt")
+          )
+      ]
+    )
+
+    chain_generate_questions = prompt_generate_questions | chat_google_genai
+
+    parser = JsonOutputParser(pydantic_object=QuestionList)
+    prompt_questions_to_json = ChatPromptTemplate.from_messages(
+    [
+        (
+            "system",
+            read_text_file("prompts/system/generate_questions_to_json_tool.txt")
+        ),
+        ("human",
+            read_text_file("prompts/human/generate_questions_to_json_tool.txt")
+        )
+    ]
+    )
+
+    chain_questions_to_json = prompt_questions_to_json | chat_google_genai
+    combined_chain = (
+        chain_generate_questions
+        | RunnableLambda(lambda x: adapt_questions_for_json(x.content, parser))
+        | chain_questions_to_json
+        | parser
+    )
+
+    result = combined_chain.invoke(user_query)
+
+    return result
+
+def default_prompt_tool(user_query: str):
+    """Used for answering any kind of prompt that is not about Translation, Summarization,
+    Rewriting, Question Generation, or Custom Prompts"""
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                read_text_file("prompts/system/default_prompt_tool.txt")
+            ),
+            (
+                "human",
+                read_text_file("prompts/human/default_prompt_tool.txt")
+            )
+        ]
+    )
+
+    chain = prompt | chat_google_genai
+    result = chain.invoke({
+        "user_query": user_query
+    })
+    return result.content
 
 class QuestionChoice(BaseModel):
     key: str = Field(description="A unique identifier for the choice using letters A, B, C, or D.")
@@ -150,3 +200,21 @@ class OpenEndedQuestion(BaseModel):
 class QuestionList(BaseModel):
     multiple_choice_questions: List[MultipleChoiceQuestion]
     open_ended_questions: List[OpenEndedQuestion]
+
+actions = [
+    translation_tool,
+    summarization_tool,
+    rewrite_tool,
+    generate_questions_to_json_tool,
+    custom_prompt_tool,
+    default_prompt_tool
+]
+
+function_map = {
+    "translation_tool": translation_tool,
+    "summarization_tool": summarization_tool,
+    "rewrite_tool": rewrite_tool,
+    "generate_questions_to_json_tool": generate_questions_to_json_tool,
+    "custom_prompt_tool": custom_prompt_tool,
+    "default_prompt_tool": default_prompt_tool
+}
