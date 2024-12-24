@@ -1,5 +1,6 @@
 # Environment files
 .env
+text_rewriter.env
 
 # System files
 .DS_Store
@@ -26,6 +27,7 @@ env/
 # Ignore virtual environment
 Ai/
 env/
+Lab/
 
 # VS Code configuration
 .vscode/
