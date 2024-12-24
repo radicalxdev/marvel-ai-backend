@@ -9,7 +9,7 @@ def executor(
         user_age: int,
         user_preference: str,
         messages: list[Message]=None, 
-        k=10
+        k=3
     ):
     
     logger.info(f"Generating response from CoTeacher")
