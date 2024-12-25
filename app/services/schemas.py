@@ -118,8 +118,8 @@ class PresentationGeneratorInput(BaseModel):
     additional_comments: str
     objectives_file_url: str
     objectives_file_type: str
-    ac_file_url: str
-    ac_file_type: str
+    additional_comments_file_url: str
+    additional_comments_file_type: str
     lang: Optional[str] = "en"
 
 class RubricGeneratorArgs(BaseModel):

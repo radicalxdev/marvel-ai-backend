@@ -1596,8 +1596,8 @@ class PresentationGeneratorInput(BaseModel):
     additional_comments: str
     objectives_file_url: str #Standards/Objectives File URL
     objectives_file_type: str #Standards/Objectives File Type
-    ac_file_url: str #Additional Comments File URL
-    ac_file_type: str #Additional Comments File Type
+    additional_comments_file_url: str 
+    additional_comments_file_type: str 
     lang: str = "en"
 ```
 
@@ -1655,11 +1655,11 @@ class FullPresentation(BaseModel):
             "value": "pdf"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_comments_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_comments_file_type",
             "value": "gdoc"
          },
          {
@@ -1712,11 +1712,11 @@ class FullPresentation(BaseModel):
             "value": "xml"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_comments_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_comments_file_type",
             "value": "gdoc"
          },
          {
@@ -1769,11 +1769,11 @@ class FullPresentation(BaseModel):
             "value": "youtube_url"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_comments_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_comments_file_type",
             "value": "gdoc"
          },
          {
@@ -1826,11 +1826,11 @@ class FullPresentation(BaseModel):
             "value": "gdoc"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_comments_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_comments_file_type",
             "value": "gdoc"
          },
          {
@@ -1883,11 +1883,11 @@ class FullPresentation(BaseModel):
             "value": "img"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_comments_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_comments_file_type",
             "value": "gdoc"
          },
          {

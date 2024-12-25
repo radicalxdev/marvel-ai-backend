@@ -2,7 +2,7 @@ YOU MUST RESPECT THE VARIABLE NAMES
 
 ### Input Guidelines:
 - **Objectives**: Provide either as a text string in `objectives` or as a file using `objectives_file_url` and `objectives_file_type`. Only one type of input should be used at a time.
-- **Additional Comments**: Optional. Can be provided as a text string in `additional_comments` or as a file using `ac_file_url` and `ac_file_type`. If no comments are required, leave both blank.
+- **Additional Comments**: Optional. Can be provided as a text string in `additional_comments` or as a file using `additional_comments_file_url` and `additional_comments_file_type`. If no comments are required, leave both blank.
 - **Combination of Text and Files**: Text and file inputs can be mixed; for example, objectives could be text while additional comments are provided as a file.
 
 ---
@@ -19,8 +19,8 @@ objectives:
 additional_comments:  
 objectives_file_url: https://example.com/objectives.pdf  
 objectives_file_type: pdf  
-ac_file_url: https://example.com/additional-comments.docx  
-ac_file_type: docx  
+additional_comments_file_url: https://example.com/additional-comments.docx  
+additional_comments_file_type: docx  
 lang: en  
 
 - **Here**, both the objectives and additional comments are provided as files, so the corresponding text fields are left empty.
@@ -37,8 +37,8 @@ objectives: Introduce matrix operations and their applications in solving system
 additional_comments:  
 objectives_file_url:  
 objectives_file_type:  
-ac_file_url:  
-ac_file_type:  
+additional_comments_file_url:  
+additional_comments_file_type:  
 lang: en  
 
 - **Here**, the objectives are provided as text, and no additional comments are included (both text and file fields are empty).
@@ -55,8 +55,8 @@ objectives:
 additional_comments: Ensure the presentation includes real-world applications of linear algebra.  
 objectives_file_url: https://example.com/objectives.pdf  
 objectives_file_type: pdf  
-ac_file_url:  
-ac_file_type:  
+additional_comments_file_url:  
+additional_comments_file_type:  
 lang: en  
 
 - **Here**, objectives are provided as a file, while additional comments are written as text.
