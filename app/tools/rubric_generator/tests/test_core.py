@@ -7,8 +7,8 @@ base_attributes = {
     "point_scale": 4,
     "objectives": "",
     "assignment_desc": "",
-    "ad_file_url": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true",
-    "ad_file_type": "gdoc",
+    "assignment_description_file_url": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true",
+    "assignment_description_file_type": "gdoc",
     "lang": "en"
 }
 
