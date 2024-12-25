@@ -32,12 +32,12 @@
         },
         {
             "label": "Additional Customization File URL",
-            "name": "ac_file_url",
+            "name": "additional_customization_file_url",
             "type": "text"
         },
         {
             "label": "Additional Customization File Type",
-            "name": "ac_file_type",
+            "name": "additional_customization_file_type",
             "type": "text"
         },
         {

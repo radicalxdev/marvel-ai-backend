@@ -2206,8 +2206,8 @@ class LessonPlanGeneratorArgs(BaseModel):
     additional_customization: str
     objectives_file_url: str #Standards/Objectives File URL
     objectives_file_type: str #Standards/Objectives File Type
-    ac_file_url: str #Additional Customization File URL
-    ac_file_type: str #Additional Customization File Type
+    additional_customization_file_url: str 
+    additional_customization_file_type: str 
     lang: str = "en"
 ```
 
@@ -2304,11 +2304,11 @@ class LessonPlan(BaseModel):
             "value": "pdf"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_customization_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_customization_file_type",
             "value": "gdoc"
          },
          {
@@ -2357,11 +2357,11 @@ class LessonPlan(BaseModel):
             "value": "xml"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_customization_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_customization_file_type",
             "value": "gdoc"
          },
          {
@@ -2410,11 +2410,11 @@ class LessonPlan(BaseModel):
             "value": "youtube_url"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_customization_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_customization_file_type",
             "value": "gdoc"
          },
          {
@@ -2463,11 +2463,11 @@ class LessonPlan(BaseModel):
             "value": "gdoc"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_customization_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_customization_file_type",
             "value": "gdoc"
          },
          {
@@ -2516,11 +2516,11 @@ class LessonPlan(BaseModel):
             "value": "img"
          },
          {
-            "name": "ac_file_url",
+            "name": "additional_customization_file_url",
             "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
          },
          {
-            "name": "ac_file_type",
+            "name": "additional_customization_file_type",
             "value": "gdoc"
          },
          {

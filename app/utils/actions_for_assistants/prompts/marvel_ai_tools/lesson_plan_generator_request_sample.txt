@@ -12,11 +12,11 @@ YOU MUST RESPECT THE VARIABLE NAMES
    - Can be provided as text or as a file using `objectives_file_url` and `objectives_file_type`. Use one input type at a time.  
 
 4. **Additional Customization** (`additional_customization`):  
-   - Optional. Can be provided as text or as a file using `ac_file_url` and `ac_file_type`. Use one input type at a time or leave both blank if no customization is needed.  
+   - Optional. Can be provided as text or as a file using `additional_customization_file_url` and `additional_customization_file_type`. Use one input type at a time or leave both blank if no customization is needed.  
 
 5. **File URLs and Types**:  
    - `objectives_file_url` and `objectives_file_type` provide objectives as a file, where the type specifies the file format (e.g., `pdf`, `docx`).  
-   - `ac_file_url` and `ac_file_type` provide additional customization as a file, where the type specifies the file format (e.g., `gdoc`, `docx`).  
+   - `additional_customization_file_url` and `additional_customization_file_type` provide additional customization as a file, where the type specifies the file format (e.g., `gdoc`, `docx`).  
 
 6. **Language** (`lang`):  
    - Defines the language of the lesson (default is `en`).  
@@ -34,8 +34,8 @@ objectives:
 additional_customization:  
 objectives_file_url: https://example.com/objectives.pdf  
 objectives_file_type: pdf  
-ac_file_url: https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true
-ac_file_type: gdoc  
+additional_customization_file_url: https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true
+additional_customization_file_type: gdoc  
 lang: en  
 
 - **Here**, both objectives and additional customization are provided as files, so their respective text fields are left blank.
@@ -51,8 +51,8 @@ objectives: Students should understand the basics of matrix operations and their
 additional_customization:  
 objectives_file_url:  
 objectives_file_type:  
-ac_file_url:  
-ac_file_type:  
+additional_customization_file_url:  
+additional_customization_file_type:  
 lang: en  
 
 - **Here**, objectives are provided as text, and no additional customization is included (both text and file fields for customization are left blank).
@@ -68,8 +68,8 @@ objectives:
 additional_customization: Include examples of applications in computer graphics and machine learning.  
 objectives_file_url: https://example.com/objectives.pdf  
 objectives_file_type: pdf  
-ac_file_url:  
-ac_file_type:  
+additional_customization_file_url:  
+additional_customization_file_type:  
 lang: en  
 
 - **Here**, objectives are provided as a file, while additional customization is provided as text.
@@ -82,7 +82,7 @@ lang: en
    - Use **either** `objectives` (text) or `objectives_file_url` and `objectives_file_type` (file), but not both.  
 
 2. **Additional Customization**:  
-   - Optional. Use **either** `additional_customization` (text) or `ac_file_url` and `ac_file_type` (file), but not both. Leave both fields empty if no customization is required.  
+   - Optional. Use **either** `additional_customization` (text) or `additional_customization_file_url` and `additional_customization_file_type` (file), but not both. Leave both fields empty if no customization is required.  
 
 3. **Mix-and-Match**:  
    - You can mix text and file inputs for objectives and additional customization, depending on availability.  
