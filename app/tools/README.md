@@ -1319,10 +1319,10 @@ class ConnectWithThemArgs(BaseModel):
     grade_level: str
     task_description: str
     students_description: str
-    td_file_url: str #Task's Description File URL
-    td_file_type: str #Task's Description File Type
-    sd_file_url: str #Student's Description File URL
-    sd_file_type: str #Student's Description File Type
+    task_description_file_url: str 
+    task_description_file_type: str 
+    student_description_file_url: str 
+    student_description_file_type: str 
     lang: str
 ```
 
@@ -1365,19 +1365,19 @@ class RecommendationsOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "td_file_url",
+        "name": "task_description_file_url",
         "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
       },
       {
-        "name": "td_file_type",
+        "name": "task_description_file_type",
         "value": "pdf"
       },
       {
-        "name": "sd_file_url",
+        "name": "student_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "sd_file_type",
+        "name": "student_description_file_type",
         "value": "gdoc"
       },
       {
@@ -1414,19 +1414,19 @@ class RecommendationsOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "td_file_url",
+        "name": "task_description_file_url",
         "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
       },
       {
-        "name": "td_file_type",
+        "name": "task_description_file_type",
         "value": "xml"
       },
       {
-        "name": "sd_file_url",
+        "name": "student_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "sd_file_type",
+        "name": "student_description_file_type",
         "value": "gdoc"
       },
       {
@@ -1463,19 +1463,19 @@ class RecommendationsOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "td_file_url",
+        "name": "task_description_file_url",
         "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
       },
       {
-        "name": "td_file_type",
+        "name": "task_description_file_type",
         "value": "youtube_url"
       },
       {
-        "name": "sd_file_url",
+        "name": "student_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "sd_file_type",
+        "name": "student_description_file_type",
         "value": "gdoc"
       },
       {
@@ -1512,19 +1512,19 @@ class RecommendationsOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "td_file_url",
+        "name": "task_description_file_url",
         "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "td_file_type",
+        "name": "task_description_file_type",
         "value": "gdoc"
       },
       {
-        "name": "sd_file_url",
+        "name": "student_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "sd_file_type",
+        "name": "student_description_file_type",
         "value": "gdoc"
       },
       {
@@ -1561,19 +1561,19 @@ class RecommendationsOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "td_file_url",
+        "name": "task_description_file_url",
         "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
       },
       {
-        "name": "td_file_type",
+        "name": "task_description_file_type",
         "value": "img"
       },
       {
-        "name": "sd_file_url",
+        "name": "student_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "sd_file_type",
+        "name": "student_description_file_type",
         "value": "gdoc"
       },
       {

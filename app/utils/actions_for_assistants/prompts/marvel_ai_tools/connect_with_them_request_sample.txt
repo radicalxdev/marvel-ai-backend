@@ -1,9 +1,9 @@
 YOU MUST RESPECT THE VARIABLE NAMES
 
-The input can handle either **text descriptions** for `task_description` and `students_description` or **file-based descriptions** using `td_file_url`/`td_file_type` for the task and `sd_file_url`/`sd_file_type` for the students. For each field:
+The input can handle either **text descriptions** for `task_description` and `students_description` or **file-based descriptions** using `task_description_file_url`/`task_description_file_type` for the task and `student_description_file_url`/`student_description_file_type` for the students. For each field:
 
-- **Text Descriptions**: Use the `task_description` and `students_description` fields to provide descriptions directly as strings, leaving the file-related fields (`td_file_url`, `td_file_type`, `sd_file_url`, `sd_file_type`) empty.
-- **File Descriptions**: Use `td_file_url` and `td_file_type` for the task description file and `sd_file_url` and `sd_file_type` for the students' description file, leaving the text fields empty.
+- **Text Descriptions**: Use the `task_description` and `students_description` fields to provide descriptions directly as strings, leaving the file-related fields (`task_description_file_url`, `task_description_file_type`, `student_description_file_url`, `student_description_file_type`) empty.
+- **File Descriptions**: Use `task_description_file_url` and `task_description_file_type` for the task description file and `student_description_file_url` and `student_description_file_type` for the students' description file, leaving the text fields empty.
 
 ---
 
@@ -13,10 +13,10 @@ tool_id: connect-with-them
 grade_level: university
 task_description:  
 students_description:  
-td_file_url: https://example.com/task-description.pdf  
-td_file_type: pdf  
-sd_file_url: https://example.com/students-description.docx  
-sd_file_type: docx  
+task_description_file_url: https://example.com/task-description.pdf  
+task_description_file_type: pdf  
+student_description_file_url: https://example.com/students-description.docx  
+student_description_file_type: docx  
 lang: en  
 
 - **Here**, task and students' descriptions are provided as files, so text fields are left blank.
@@ -29,10 +29,10 @@ tool_id: connect-with-them
 grade_level: university
 task_description: Prepare a detailed report on linear regression applications.  
 students_description: A group of university students specializing in statistics and data analysis.  
-td_file_url:  
-td_file_type:  
-sd_file_url:  
-sd_file_type:  
+task_description_file_url:  
+task_description_file_type:  
+student_description_file_url:  
+student_description_file_type:  
 lang: en  
 
 - **Here**, the descriptions are provided as text strings, leaving file-related fields blank.
@@ -45,10 +45,10 @@ tool_id: connect-with-them
 grade_level: university
 task_description: Design a group project focused on predictive modeling.  
 students_description:  
-td_file_url:  
-td_file_type:  
-sd_file_url: https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true  
-sd_file_type: gdoc  
+task_description_file_url:  
+task_description_file_type:  
+student_description_file_url: https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true  
+student_description_file_type: gdoc  
 lang: en  
 
 - **Here**, the task description is provided as text, while the students' description is a file.
