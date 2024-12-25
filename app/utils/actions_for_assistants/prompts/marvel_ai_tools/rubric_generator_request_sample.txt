@@ -13,7 +13,7 @@ YOU MUST RESPECT THE VARIABLE NAMES
    - If using a file, ensure `objectives_file_type` matches the file format (e.g., `pdf`, `docx`).  
 
 4. **Assignment Description**:  
-   - Can be provided as a text string in `assignment_desc` or as a file using `assignment_description_file_url` and `assignment_description_file_type`. Use one input type at a time.  
+   - Can be provided as a text string in `assignment_description` or as a file using `assignment_description_file_url` and `assignment_description_file_type`. Use one input type at a time.  
    - If using a file, ensure `assignment_description_file_type` matches the file format (e.g., `gdoc`, `pdf`).  
 
 5. **Language**:  
@@ -29,7 +29,7 @@ tool_id: rubric-generator
 grade_level: university  
 point_scale: 4  
 objectives:  
-assignment_desc:  
+assignment_description:  
 objectives_file_url: https://example.com/objectives.pdf  
 objectives_file_type: pdf  
 assignment_description_file_url: https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true  
@@ -46,7 +46,7 @@ tool_id: rubric-generator
 grade_level: university  
 point_scale: 4  
 objectives: Students should be able to analyze data using linear regression techniques.  
-assignment_desc: Write a detailed report on applying linear regression to predict outcomes in real-world scenarios.  
+assignment_description: Write a detailed report on applying linear regression to predict outcomes in real-world scenarios.  
 objectives_file_url:  
 objectives_file_type:  
 assignment_description_file_url:  
@@ -63,7 +63,7 @@ tool_id: rubric-generator
 grade_level: university  
 point_scale: 4  
 objectives:  
-assignment_desc: Create a presentation that demonstrates the steps for solving a linear regression problem.  
+assignment_description: Create a presentation that demonstrates the steps for solving a linear regression problem.  
 objectives_file_url: https://example.com/objectives.pdf  
 objectives_file_type: pdf  
 assignment_description_file_url:  
@@ -76,8 +76,8 @@ lang: en
 
 ### Key Rules:  
 
-1. Use **only one input type** (text or file) for `objectives` and `assignment_desc`:  
-   - Text: Fill the `objectives` or `assignment_desc` field.  
+1. Use **only one input type** (text or file) for `objectives` and `assignment_description`:  
+   - Text: Fill the `objectives` or `assignment_description` field.  
    - File: Fill the `objectives_file_url`/`objectives_file_type` or `assignment_description_file_url`/`assignment_description_file_type` fields.  
 
 2. Always specify the correct file type (e.g., `pdf`, `gdoc`, `docx`) when using file inputs.  

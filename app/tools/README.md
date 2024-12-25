@@ -1906,7 +1906,7 @@ class RubricGeneratorArgs(BaseModel):
     grade_level: Literal["pre-k", "kindergarten", "elementary", "middle", "high", "university", "professional"]
     point_scale: int
     objectives: str
-    assignment_desc: str
+    assignment_description: str
     objectives_file_url: str #Standards/Objectives File URL
     objectives_file_type: str #Standards/Objectives File Type
     assignment_description_file_url: str #Assignment Description File URL
@@ -1956,7 +1956,7 @@ class RubricOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "assignment_desc",
+        "name": "assignment_description",
         "value": ""
       },
       {
@@ -2009,7 +2009,7 @@ class RubricOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "assignment_desc",
+        "name": "assignment_description",
         "value": ""
       },
       {
@@ -2062,7 +2062,7 @@ class RubricOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "assignment_desc",
+        "name": "assignment_description",
         "value": ""
       },
       {
@@ -2115,7 +2115,7 @@ class RubricOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "assignment_desc",
+        "name": "assignment_description",
         "value": ""
       },
       {
@@ -2168,7 +2168,7 @@ class RubricOutput(BaseModel):
         "value": ""
       },
       {
-        "name": "assignment_desc",
+        "name": "assignment_description",
         "value": ""
       },
       {

@@ -17,7 +17,7 @@
         },
         {
             "label": "Assignment Description",
-            "name": "assignment_desc",
+            "name": "assignment_description",
             "type": "text"
         },
         {
