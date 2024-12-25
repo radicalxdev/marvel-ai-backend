@@ -2542,8 +2542,8 @@ class WritingFeedbackGeneratorArgs(BaseModel):
     writing_to_review: str
     criteria_file_url: str #Criteria File URL
     criteria_file_type: str #Criteria File Type
-    wtr_file_url: str #Writing to Review File URL
-    wtr_file_type: str #Writing to Review File Type
+    writing_to_review_file_url: str 
+    writing_to_review_file_type: str 
     lang: str = "en"
 ```
 
@@ -2597,11 +2597,11 @@ class WritingFeedback(BaseModel):
             "value": ""
          },
          {
-            "name": "wtr_file_url",
+            "name": "writing_to_review_file_url",
             "value": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd"
          },
          {
-            "name": "wtr_file_type",
+            "name": "writing_to_review_file_type",
             "value": "pdf"
          },
          {
@@ -2650,11 +2650,11 @@ class WritingFeedback(BaseModel):
             "value": ""
          },
          {
-            "name": "wtr_file_url",
+            "name": "writing_to_review_file_url",
             "value": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml"
          },
          {
-            "name": "wtr_file_type",
+            "name": "writing_to_review_file_type",
             "value": "xml"
          },
          {
@@ -2703,11 +2703,11 @@ class WritingFeedback(BaseModel):
             "value": ""
          },
          {
-            "name": "wtr_file_url",
+            "name": "writing_to_review_file_url",
             "value": "https://www.youtube.com/watch?v=HgBpFaATdoA"
          },
          {
-            "name": "wtr_file_type",
+            "name": "writing_to_review_file_type",
             "value": "youtube_url"
          },
          {
@@ -2756,11 +2756,11 @@ class WritingFeedback(BaseModel):
             "value": ""
          },
          {
-            "name": "wtr_file_url",
+            "name": "writing_to_review_file_url",
             "value": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link"
          },
          {
-            "name": "wtr_file_type",
+            "name": "writing_to_review_file_type",
             "value": "gdoc"
          },
          {
@@ -2809,11 +2809,11 @@ class WritingFeedback(BaseModel):
             "value": ""
          },
          {
-            "name": "wtr_file_url",
+            "name": "writing_to_review_file_url",
             "value": "https://d2908q01vomqb2.cloudfront.net/fc074d501302eb2b93e2554793fcaf50b3bf7291/2022/04/22/586-P2-Fig-1-1024x538.png"
          },
          {
-            "name": "wtr_file_type",
+            "name": "writing_to_review_file_type",
             "value": "img"
          },
          {
