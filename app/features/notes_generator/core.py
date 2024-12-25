@@ -4,59 +4,55 @@ import logging
 from tools import (
     extract_text_from_file,
     extract_text_from_url,
-    generate_notes,
-    export_notes
+    generate_notes_rag,
+    clean_content
 )
+
+# Dictionary to map input types to corresponding functions
+file_handler_map = {
+    'text': lambda content: clean_content(content),  # Clean content directly
+    'file': extract_text_from_file,
+    'url': extract_text_from_url
+}
+
+# List of supported file extensions
+SUPPORTED_FILE_TYPES = ['.txt', '.docx', '.pdf', '.csv', '.pptx', '.md', '.xml', '.xls', '.xlsx']
 
 def executor(input_type: Literal['text', 'file', 'url'],
              input_content: Optional[str] = None,
              file_path: Optional[str] = None,
              focus_topic: Optional[str] = None,
              output_structure: Literal['bullet', 'paragraph', 'table'] = 'bullet',
-             export_format: Literal['txt', 'docx', 'pdf'] = 'txt') -> Dict[str, str]:
-    """
-    Main executor function for Notes Generator Tool.
-    Parameters:
-            input_type (str): Type of input - 'text', 'file', or 'url'.
-            input_content (str): Direct text input (if input_type='text').
-            file_path (str): Path to uploaded file (if input_type='file').
-            focus_topic (str): Topic or focus for notes generation.
-            output_structure (str): Format for notes - bullet, paragraph, or table.
-            export_format (str): Export format - txt, docx, or pdf.
-        Returns:
-            dict: Status and file path of the exported notes.
-            """
+             export_format: Literal['json'] = 'json') -> Dict[str, str]:
     try:
         logging.info("Notes generation started...")
 
         # Validate that at least one of input_content or file_path is provided
         if not (input_content or file_path):
             raise ValueError("Either 'input_content' or 'file_path' must be provided.")
+
+        # Validate the file type if file_path is provided
+        if file_path and not any(file_path.endswith(ext) for ext in SUPPORTED_FILE_TYPES):
+            raise ValueError(f"Unsupported file type for file: {file_path}")
+
         # Extract content based on input type
-        if input_type == 'text' and input_content:
-            content = input_content
-        elif input_type == 'file' and file_path:
-            # This is a check to validate file type before proceeding
-            if not file_path.endswith(('.txt', '.docx', '.pdf', '.csv')):
-                raise ValueError(f"Unsupported file type for file: {file_path}")
-            content = extract_text_from_file(file_path)
-            # The below is to clean the extracted text
-             # Remove non-ASCII characters
-            content = re.sub(r'[^\x00-\x7F]+', '', content)
-            # Remove null bytes
-            content = content.replace('\x00', '')
-            # Remove non-printable characters
-            content = ''.join([char if char.isprintable() else '' for char in content])
-        elif input_type == 'url' and input_content:
-            content = extract_text_from_url(input_content)
+        if input_type in file_handler_map:
+            if input_type == 'text' and input_content:
+                content = file_handler_map[input_type](input_content)
+            elif input_type == 'file' and file_path:
+                content = file_handler_map[input_type](file_path)
+            elif input_type == 'url' and input_content:
+                content = file_handler_map[input_type](input_content)
         else:
-            raise ValueError("Invalid input or missing content.")
+            raise ValueError("Invalid input type or missing content.")
+        
         # Generate notes
-        notes = generate_notes(content, focus_topic, output_structure)
-        # Export notes
-        exported_file_path = export_notes(notes, export_format)
+        notes = generate_notes_rag(content, focus_topic, output_structure)
+        
+        # Return the generated notes (No export logic)
         logging.info("Notes generation completed successfully.")
-        return {"status": "success", "file_path": exported_file_path}
+        return {"status": "success", "notes": notes}
+    
     except ValueError as ve:
         logging.error(f"ValueError during notes generation: {str(ve)}")
         return {"status": "error", "message": str(ve)}
@@ -66,4 +62,3 @@ def executor(input_type: Literal['text', 'file', 'url'],
     except Exception as e:
         logging.error(f"Unexpected error during notes generation: {str(e)}")
         return {"status": "error", "message": "An unexpected error occurred. Please try again."}
-    

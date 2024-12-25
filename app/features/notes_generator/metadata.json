@@ -1,12 +1,43 @@
 {
     "name": "notes_generator",
-    "description": "Generate concise and structured notes from various inputs.",
+    "description": "Generate concise and structured notes from various inputs using a Retrieval-Augmented Generation (RAG) approach.",
     "input_parameters": {
-        "input_type": {"type": "string", "required": true, "choices": ["text", "file", "url"]},
-        "input_content": {"type": "string", "required": false},
-        "file_path": {"type": "string", "required": false},
-        "focus_topic": {"type": "string", "required": false},
-        "output_structure": {"type": "string", "required": true, "choices": ["bullet", "paragraph", "table"]},
-        "export_format": {"type": "string", "required": true, "choices": ["txt", "docx", "pdf"]}
+        "input_type": {
+            "type": "string",
+            "required": true,
+            "choices": ["text", "file", "url"],
+            "description": "The type of input provided. Can be 'text', 'file', or 'url'."
+        },
+        "input_content": {
+            "type": "string",
+            "required": false,
+            "description": "The content to be processed as a string (only required if input_type is 'text')."
+        },
+        "file_path": {
+            "type": "string",
+            "required": false,
+            "description": "The path to the file to be processed (only required if input_type is 'file')."
+        },
+        "focus_topic": {
+            "type": "string",
+            "required": false,
+            "description": "The specific topic or focus area for note generation. Used to guide the RAG approach."
+        },
+        "output_structure": {
+            "type": "string",
+            "required": true,
+            "choices": ["bullet", "paragraph", "table"],
+            "description": "The desired format of the generated notes: 'bullet', 'paragraph', or 'table'."
+        },
+        "export_format": {
+            "type": "string",
+            "required": true,
+            "choices": ["json"],
+            "description": "The export format for the generated notes. Currently, only 'json' is supported."
+        }
+    },
+    "output": {
+        "type": "json",
+        "description": "The tool returns a JSON object containing the 'notes' field with the generated summary."
     }
 }

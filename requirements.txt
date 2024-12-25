@@ -16,6 +16,7 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
+openai
 
 unstructured
 python-pptx
@@ -36,11 +37,3 @@ pydub
 ffmpeg-python
 speechrecognition
 google-cloud-speech
-
-
-pytesseract
-pdfminer.six
-python-docx
-requests
-
-
