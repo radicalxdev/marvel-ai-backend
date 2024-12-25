@@ -129,8 +129,8 @@ class RubricGeneratorArgs(BaseModel):
     assignment_desc: str
     objectives_file_url: str
     objectives_file_type: str
-    ad_file_url: str
-    ad_file_type: str
+    assignment_description_file_url: str
+    assignment_description_file_type: str
     lang: Optional[str]
 
 class LessonPlanGeneratorArgs(BaseModel):

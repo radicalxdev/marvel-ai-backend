@@ -1909,8 +1909,8 @@ class RubricGeneratorArgs(BaseModel):
     assignment_desc: str
     objectives_file_url: str #Standards/Objectives File URL
     objectives_file_type: str #Standards/Objectives File Type
-    ad_file_url: str #Assignment Description File URL
-    ad_file_type: str #Assignment Description File Type
+    assignment_description_file_url: str #Assignment Description File URL
+    assignment_description_file_type: str
     lang: str
 ```
 
@@ -1968,11 +1968,11 @@ class RubricOutput(BaseModel):
         "value": "pdf"
       },
       {
-        "name": "ad_file_url",
+        "name": "assignment_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "ad_file_type",
+        "name": "assignment_description_file_type",
         "value": "gdoc"
       },
       {
@@ -2021,11 +2021,11 @@ class RubricOutput(BaseModel):
         "value": "xml"
       },
       {
-        "name": "ad_file_url",
+        "name": "assignment_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "ad_file_type",
+        "name": "assignment_description_file_type",
         "value": "gdoc"
       },
       {
@@ -2074,11 +2074,11 @@ class RubricOutput(BaseModel):
         "value": "youtube_url"
       },
       {
-        "name": "ad_file_url",
+        "name": "assignment_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "ad_file_type",
+        "name": "assignment_description_file_type",
         "value": "gdoc"
       },
       {
@@ -2127,11 +2127,11 @@ class RubricOutput(BaseModel):
         "value": "gdoc"
       },
       {
-        "name": "ad_file_url",
+        "name": "assignment_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "ad_file_type",
+        "name": "assignment_description_file_type",
         "value": "gdoc"
       },
       {
@@ -2180,11 +2180,11 @@ class RubricOutput(BaseModel):
         "value": "img"
       },
       {
-        "name": "ad_file_url",
+        "name": "assignment_description_file_url",
         "value": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=drive_link&ouid=107052763106493355624&rtpof=true&sd=true"
       },
       {
-        "name": "ad_file_type",
+        "name": "assignment_description_file_type",
         "value": "gdoc"
       },
       {
