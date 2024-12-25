@@ -244,7 +244,16 @@ def call_marvel_ai_tool(user_query: str):
     request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool["inputs"])
     final_result = execute_tool(request_data.tool_id, request_inputs_dict)
 
-    return final_result
+    return get_dict_or_value(final_result)
+
+def get_dict_or_value(value):
+    """
+    If the input value is an instance of BaseModel, return its dictionary representation.
+    Otherwise, return the value itself.
+    """
+    if isinstance(value, BaseModel):
+        return value.model_dump()
+    return value
 
 def default_prompt_tool(user_query: str):
     """Used for answering any kind of prompt that is not about Translation, Summarization,
@@ -295,7 +304,8 @@ actions = [
     rewrite_tool,
     generate_questions_to_json_tool,
     custom_prompt_tool,
-    default_prompt_tool
+    default_prompt_tool,
+    call_marvel_ai_tool
 ]
 
 function_map = {
@@ -304,7 +314,8 @@ function_map = {
     "rewrite_tool": rewrite_tool,
     "generate_questions_to_json_tool": generate_questions_to_json_tool,
     "custom_prompt_tool": custom_prompt_tool,
-    "default_prompt_tool": default_prompt_tool
+    "default_prompt_tool": default_prompt_tool,
+    "call_marvel_ai_tool": call_marvel_ai_tool
 }
 
 marvel_ai_tools_prompts = {

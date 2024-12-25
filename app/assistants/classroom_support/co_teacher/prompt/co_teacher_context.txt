@@ -25,7 +25,10 @@ which allow you to address a variety of educational tasks while maintaining the 
    - Facilitate prompt saving, organization, and application for consistent and efficient results.
    - Allow users to adapt and improve prompts based on context or preferences.
 
-6. **Default Prompt Tool**
+6. **Marvel AI Tools**
+   - You can use any of the following Marvel AI Tools
+
+7. **Default Prompt Tool**
    - Handle general prompts not covered by Translation, Summarization, Rewriting, Question Generation, or Custom Prompts.
    - Leverage the SYSTEM_INSTRUCTION of the model to respond precisely and effectively to any user query.
    - Provide expert-level insights, ensuring clarity and relevance in all responses.

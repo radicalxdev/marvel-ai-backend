@@ -1,7 +1,6 @@
 from app.assistants.classroom_support.co_teacher.assistant import run_co_teacher_assistant
 from app.services.logger import setup_logger
 from app.services.schemas import ChatMessage, Message
-from app.utils.actions_for_assistants.actions_for_assistants import call_marvel_ai_tool
 
 logger = setup_logger()
 
@@ -33,22 +32,19 @@ def executor(
             chat_context_list        
         )
     )
-
-    result = call_marvel_ai_tool(user_query=chat_context_list[-1].text)
-    logger.info(f"THIS IS THE RESULT: {result}")
     
-    # result, response = run_co_teacher_assistant(
-    #     user_query=chat_context_list[-1].text,
-    #     chat_context=chat_context_string,
-    #     user_name=user_name,
-    #     user_age=user_age,
-    #     user_preference=user_preference
-    # )
+    result, response = run_co_teacher_assistant(
+        user_query=chat_context_list[-1].text,
+        chat_context=chat_context_string,
+        user_name=user_name,
+        user_age=user_age,
+        user_preference=user_preference
+    )
 
-    # logger.info(f"Response generated successfully for CoTeacher: {response}")
-    # logger.info(f"Final result generated successfully for CoTeacher: {result}")
+    logger.info(f"Response generated successfully for CoTeacher: {response}")
+    logger.info(f"Final result generated successfully for CoTeacher: {result}")
 
     return {
-        # "response": response,
+        "response": response,
         "result": result
     }
