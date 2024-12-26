@@ -17,7 +17,6 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
-
 unstructured
 python-pptx
 docx2txt
@@ -25,16 +24,15 @@ networkx
 pandas
 xlrd
 openpyxl
-
 gdown
-
 pytest
 PyPDF2
 python-dotenv
 psutil
-
 pydub
 ffmpeg-python
 speechrecognition
 google-cloud-speech
 python-docx
+google-cloud-aiplatform
+vertexai  # No need for vertexai.generative_models, it's already included in vertexai
