@@ -1,12 +1,16 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from typing import Union
-from app.services.schemas import ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
+from app.assistants.utils.assistants_utilities import execute_assistant, finalize_inputs_assistants, load_assistant_metadata
+from app.services.schemas import GenericAssistantRequest, ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
 from app.utils.auth import key_check
 from app.services.logger import setup_logger
 from app.api.error_utilities import InputValidationError, ErrorResponse
-from app.api.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from app.tools.utils.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
 logger = setup_logger(__name__)
 router = APIRouter()
@@ -44,20 +48,20 @@ async def submit_tool( data: ToolRequest, _ = Depends(key_check)):
             content=jsonable_encoder(ErrorResponse(status=e.status_code, message=e.detail))
         )
 
-@router.post("/chat", response_model=ChatResponse)
-async def chat( request: ChatRequest, _ = Depends(key_check) ):
-    from app.features.Kaichat.core import executor as kaichat_executor
+@router.post("/assistant-chat", response_model=ChatResponse)
+async def assistants( request: GenericAssistantRequest, _ = Depends(key_check) ):
     
-    user_name = request.user.fullName
-    chat_messages = request.messages
-    user_query = chat_messages[-1].payload.text
-    
-    response = kaichat_executor(user_name=user_name, user_query=user_query, messages=chat_messages)
-    
+    assistant_group = request.assistant_inputs.assistant_group
+    assistant_name = request.assistant_inputs.assistant_name
+
+    requested_assistant = load_assistant_metadata(assistant_group, assistant_name)
+    request_inputs_dict = finalize_inputs_assistants(request.assistant_inputs.inputs, requested_assistant['inputs'])
+    result = execute_assistant(assistant_group, assistant_name, request_inputs_dict)
+
     formatted_response = Message(
         role="ai",
         type="text",
-        payload={"text": response}
+        payload={"text": result}
     )
     
     return ChatResponse(data=[formatted_response])
