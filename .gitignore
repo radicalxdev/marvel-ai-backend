@@ -163,7 +163,6 @@ cython_debug/
 **/key.txt
 **/local-auth.json
 .DS_Store
-
 service.yaml
 devcontainer.env
 keyfile.json
