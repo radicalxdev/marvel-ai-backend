@@ -10,7 +10,7 @@ export GOOGLE_API_KEY=$GOOGLE_API_KEY
 
 #export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/app/local-auth.json
 export ENV_TYPE=dev
-export PROJECT_ID=$GCP_PROJECT_ID
+export PROJECT_ID=$PROJECT_ID
 export PYTHONPATH=$(pwd)/app
 
 echo "Loaded environment variables:"
