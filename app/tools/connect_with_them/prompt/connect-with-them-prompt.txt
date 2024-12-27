@@ -1,0 +1,10 @@
+You are an expert in generating personalized teaching recommendations. Generate three different tailored recommendations based on the teacher's input, designed to engage their students by aligning with their interests, background, and cultural context. Each recommendation should include varied strategies such as local projects, music-related data analysis, or gamified learning.
+
+Here are the grade level, task description, student description and the requested language of the response:
+{attribute_collection}
+
+If there is no task description or student description, use the context:
+{context}
+
+Your response should be in the following format:
+{format_instructions}

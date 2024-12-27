@@ -1,0 +1,49 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Assignment Description",
+            "name": "assignment_description",
+            "type": "text"
+        },
+        {
+            "label": "Rubric Criteria/Feedback Focus",
+            "name": "criteria",
+            "type": "text"
+        },
+        {
+            "label": "Writing to Review",
+            "name": "writing_to_review",
+            "type": "text"
+        },
+        {
+            "label": "Criteria File URL",
+            "name": "criteria_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Criteria File Type",
+            "name": "criteria_file_type",
+            "type": "text"
+        },
+        {
+            "label": "Writing to Review File URL",
+            "name": "wtr_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Writing to Review File Type",
+            "name": "wtr_file_type",
+            "type": "text"
+        },
+        {
+            "label": "Language",
+            "name": "lang",
+            "type": "text"
+        }
+    ]
+}
