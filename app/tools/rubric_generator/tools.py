@@ -50,7 +50,7 @@ class RubricGenerator:
         if int(args.point_scale) < 2 or int(args.point_scale) > 8:
             raise ValueError("Point Scale must be between 2 and 8. Suggested value is 4 for optimal granularity in grading.")
         if args.objectives is None: raise ValueError("Objectives description must be provided")
-        if args.assignment_desc is None: raise ValueError("Assignment description must be provided")
+        if args.assignment_description is None: raise ValueError("Assignment description must be provided")
         if args.lang is None: raise ValueError("Language must be provided")
 
     def compile_with_context(self, documents: List[Document]):
@@ -108,7 +108,7 @@ class RubricGenerator:
             f"Grade Level: {self.args.grade_level}, "
             f"Point Scale: {self.args.point_scale}, "
             f"Objectives: {self.args.objectives}, "
-            f"Assignment Description: {self.args.assignment_desc}, "
+            f"Assignment Description: {self.args.assignment_description}, "
             f"Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}"
         )
         logger.info(f"Input parameters: {input_parameters}")

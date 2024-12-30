@@ -8,8 +8,8 @@ base_attributes = {
     "topic": "Mathematics",
     "objectives": "",
     "additional_comments": "",
-    "ac_file_url": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true",
-    "ac_file_type": "gdoc",
+    "additional_comments_file_url": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true",
+    "additional_comments_file_type": "gdoc",
     "lang": "en"
 }
 

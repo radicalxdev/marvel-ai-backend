@@ -1,8 +1,18 @@
 {
     "inputs": [
         {
-            "label": "Action",
-            "name": "action",
+            "label": "User's name",
+            "name": "user_name",
+            "type": "text"
+        },
+        {
+            "label": "User's age",
+            "name": "user_age",
+            "type": "number"
+        },
+        {
+            "label": "User's preference",
+            "name": "user_preference",
             "type": "text"
         }
     ]

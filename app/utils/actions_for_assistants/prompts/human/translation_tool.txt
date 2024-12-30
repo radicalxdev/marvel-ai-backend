@@ -1,0 +1,4 @@
+Here you have the content to translate: {user_query}
+You have to translate it from {source_lang} to {target_lang}
+
+Don't return the analysis, just return the final output
