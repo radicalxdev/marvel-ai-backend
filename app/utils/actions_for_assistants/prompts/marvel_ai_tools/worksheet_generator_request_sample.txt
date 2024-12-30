@@ -1,0 +1,8 @@
+YOU MUST RESPECT THE VARIABLE NAMES
+
+tool_id: worksheet-generator
+grade_level: College
+topic: Machine Learning
+file_url: https://www.interactions.com/wp-content/uploads/2017/06/machine_learning_wp-5.pdf
+file_type: pdf
+lang: en

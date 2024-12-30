@@ -17,7 +17,7 @@
         },
         {
             "label": "Assignment Description",
-            "name": "assignment_desc",
+            "name": "assignment_description",
             "type": "text"
         },
         {
@@ -32,12 +32,12 @@
         },
         {
             "label": "Assignment Description File URL",
-            "name": "ad_file_url",
+            "name": "assignment_description_file_url",
             "type": "text"
         },
         {
             "label": "Assignment Description File Type",
-            "name": "ad_file_type",
+            "name": "assignment_description_file_type",
             "type": "text"
         },
         {
