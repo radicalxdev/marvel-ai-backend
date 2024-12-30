@@ -1,37 +1,52 @@
+import sys
 import os
-from googleapiclient.discovery import build
-from google.cloud import aiplatform
-from fastapi import FastAPI, HTTPException, Request
-from dotenv import load_dotenv
-from core import process_text_with_gemini  # Assuming your Gemini logic is here
-from tools import TextRewriterInput, TextRewriterOutput  # Pydantic models for validation
-from router import router as text_rewriter_router  # Import the router for routing
 
-# Load environment variables from the .env file
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'text_rewriter.env'))
+# Dynamically add the project root to the PYTHONPATH
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
-# Load API keys and credentials from environment variables
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-PROJECT_ID = os.getenv("PROJECT_ID")
-GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+from fastapi import FastAPI, HTTPException
+from app.api.router import router  # Import the router
+from app.features.text_rewriter.tools import (
+    load_metadata,
+    create_input_model,
+    create_output_model,
+    rewrite_tool_handler
+)
+from fastapi import FastAPI
+import uvicorn
 
-if not GOOGLE_API_KEY or not PROJECT_ID or not GOOGLE_APPLICATION_CREDENTIALS:
-    raise Exception("API keys, project ID, or credentials are missing. Please check your .env file.")
+# Load metadata.json
+metadata = load_metadata()
 
-# Set the environment variable for Google Cloud authentication
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
-
-# Initialize Vertex AI client
-aiplatform.init(project=PROJECT_ID, location="us-central1")
+# Dynamically create Pydantic models
+InputModel = create_input_model(metadata)
+OutputModel = create_output_model(metadata)
 
 # Initialize FastAPI app
-app = FastAPI()
+app = FastAPI(
+    title="Text Rewriter API",
+    description="FastAPI application for text rewriting.",
+    version="1.0.0"
+)
 
-# Include the router for any other endpoints you may have
-app.include_router(text_rewriter_router)
+@app.post("/rewrite-text", response_model=OutputModel)
+async def rewrite_text(data: InputModel):
+    """
+    FastAPI endpoint for rewriting text based on metadata.json.
+    """
+    try:
+        # Convert Pydantic model to dict and validate inputs
+        inputs = data.dict()
+        result = rewrite_tool_handler(inputs)
+        return result
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
+# Include the router
+app.include_router(router)
 
-# Start the FastAPI app if this script is run directly
+# Run the app
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run("app.features.text_rewriter.text_rewriter:app", host="0.0.0.0", port=8000, reload=True)

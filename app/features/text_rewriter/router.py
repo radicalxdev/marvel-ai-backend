@@ -1,63 +1,67 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 import os
-from dotenv import load_dotenv
-import vertexai
-from vertexai.generative_models import GenerativeModel
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from typing import Union
+from app.assistants.utils.assistants_utilities import execute_assistant, finalize_inputs_assistants, load_assistant_metadata
+from app.services.schemas import GenericAssistantRequest, ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
+from app.utils.auth import key_check
+from app.services.logger import setup_logger
+from app.api.error_utilities import InputValidationError, ErrorResponse
+from app.tools.utils.tool_utilities import load_tool_metadata, execute_tool, finalize_inputs
+from fastapi.responses import FileResponse
+from starlette.background import BackgroundTask
 
-# Load environment variables from the .env file
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), 'text_rewriter.env'))
-
-# Load API keys and credentials from environment variables
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-PROJECT_ID = os.getenv("PROJECT_ID")
-GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-
-if not GOOGLE_API_KEY or not PROJECT_ID or not GOOGLE_APPLICATION_CREDENTIALS:
-    raise Exception("API keys or project ID or credentials are missing. Please check your .env file.")
-
-# Set the environment variable for Google Cloud authentication
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
-
-# Initialize Vertex AI client
-vertexai.init(project=PROJECT_ID, location="us-central1")
-
-# Define router
+logger = setup_logger(__name__)
 router = APIRouter()
 
-# Input schema
-class RewriteRequest(BaseModel):
-    text: str
-    instructions: str
+@router.get("/")
+def read_root():
+    return {"Hello": "World"}
 
-# Output schema
-class RewriteResponse(BaseModel):
-    rewritten_text: str
-
-# Endpoint to handle text rewriting
-@router.post("/rewrite_text", response_model=RewriteResponse)
-async def rewrite_text(request: RewriteRequest):
-    try:
-        # Get input text and instructions
-        input_text = request.text
-        instructions = request.instructions
+@router.post("/submit-tool", response_model=Union[ToolResponse, ErrorResponse])
+async def submit_tool( data: ToolRequest, _ = Depends(key_check)):     
+    try: 
+        # Unpack GenericRequest for tool data
+        request_data = data.tool_data
         
-        if not input_text or not instructions:
-            raise HTTPException(status_code=400, detail="Text input and instructions are required")
+        requested_tool = load_tool_metadata(request_data.tool_id)
         
-        # Construct the prompt
-        prompt = f"Task: {instructions}\n\nText: {input_text}"
+        request_inputs_dict = finalize_inputs(request_data.inputs, requested_tool['inputs'])
 
-        # Use Gemini 1.5 to process the input text with the model
-        model = GenerativeModel("gemini-1.5-flash-002")
+        result = execute_tool(request_data.tool_id, request_inputs_dict)
+        
+        return ToolResponse(data=result)
+    
+    except InputValidationError as e:
+        logger.error(f"InputValidationError: {e}")
 
-        # Generate content using the Gemini model
-        response = model.generate_content(prompt)
+        return JSONResponse(
+            status_code=400,
+            content=jsonable_encoder(ErrorResponse(status=400, message=e.message))
+        )
+    
+    except HTTPException as e:
+        logger.error(f"HTTPException: {e}")
+        return JSONResponse(
+            status_code=e.status_code,
+            content=jsonable_encoder(ErrorResponse(status=e.status_code, message=e.detail))
+        )
 
-        # Return the rewritten text
-        rewritten_text = response.text
+@router.post("/assistant-chat", response_model=ChatResponse)
+async def assistants( request: GenericAssistantRequest, _ = Depends(key_check) ):
+    
+    assistant_group = request.assistant_inputs.assistant_group
+    assistant_name = request.assistant_inputs.assistant_name
 
-        return RewriteResponse(rewritten_text=rewritten_text)
+    requested_assistant = load_assistant_metadata(assistant_group, assistant_name)
+    request_inputs_dict = finalize_inputs_assistants(request.assistant_inputs.inputs, requested_assistant['inputs'])
+    result = execute_assistant(assistant_group, assistant_name, request_inputs_dict)
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing text with Gemini: {str(e)}")
+    formatted_response = Message(
+        role="ai",
+        type="text",
+        payload={"text": result}
+    )
+    
+    return ChatResponse(data=[formatted_response])

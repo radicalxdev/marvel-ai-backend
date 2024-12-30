@@ -40,9 +40,3 @@ Ai/
 output.txt
 .vscode/
 .env
-
-# Ignore the Google Cloud service account JSON file
-gen-lang-client-0717318025-ef6f992883f8.json
-
-# Ignore the Ai directory files
-Ai/
