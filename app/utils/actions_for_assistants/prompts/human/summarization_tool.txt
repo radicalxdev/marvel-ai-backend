@@ -1,3 +1,0 @@
-Here is the content that you must summarize: {user_query}
-And here is the summarization type: {summarization_type}
-You must summarize in the language of the given user query.

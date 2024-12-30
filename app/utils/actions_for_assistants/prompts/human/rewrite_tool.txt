@@ -1,4 +1,0 @@
-Here is the content that you must rewrite: {user_query}
-Here is the focus for the rewriting task: {focus}
-And here is the tone for the rewriting task: {tone}
-You must rewrite in the language of the given user query.

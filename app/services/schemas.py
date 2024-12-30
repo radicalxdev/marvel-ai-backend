@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List, Any, Literal
+from typing import Optional, List, Any, Literal, Union
 from enum import Enum
 from app.services.assistant_registry import AssistantInputs
 from app.services.tool_registry import BaseTool
@@ -21,7 +21,7 @@ class MessageType(str, Enum):
     file = "file"
 
 class MessagePayload(BaseModel):
-    text: str | dict
+    text: Union[str, dict]
 
 class Message(BaseModel):
     role: Role

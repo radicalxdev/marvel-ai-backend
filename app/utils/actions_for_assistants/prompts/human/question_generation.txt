@@ -1,1 +1,0 @@
-Generate a question for the following query: {user_query}. Generate questions in the language of the given user query.

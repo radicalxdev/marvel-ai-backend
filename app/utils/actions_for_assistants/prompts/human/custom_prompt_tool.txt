@@ -1,2 +1,0 @@
-Here is the custom prompt: {user_query}
-And here is the action that must be taken: {action}

@@ -1,8 +1,0 @@
-YOU MUST GENERATE ALL OF THESE VARIABLES DEPENDING OF THE USER'S QUERY, DON'T SKIP ANY OF THEM.
-
-tool_id: multiple-choice-quiz-generator
-topic: Linear Algebra
-n_questions: 3
-file_url: https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd
-file_type: pdf
-lang: en

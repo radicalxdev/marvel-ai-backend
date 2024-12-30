@@ -1,6 +1,0 @@
-YOU MUST RESPECT THE VARIABLE NAMES
-
-tool_id: flashcard-generator
-file_url: https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml
-file_type: xml
-lang: en
