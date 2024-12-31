@@ -14,7 +14,7 @@ CoTeacher, part of the **Classroom Support** category, is an advanced AI assista
 ## Features and Payloads
 Below are the JSON payloads for the implemented actions of CoTeacher.
 
-### CoTeacher - Translate
+### CoTeacher
 **Request:**
 ```json
 {
