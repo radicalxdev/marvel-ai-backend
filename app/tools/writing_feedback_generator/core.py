@@ -12,8 +12,8 @@ def executor(grade_level: str,
              writing_to_review: str,
              criteria_file_url: str,
              criteria_file_type: str,
-             wtr_file_url: str,
-             wtr_file_type: str,
+             writing_to_review_file_url: str,
+             writing_to_review_file_type: str,
              lang: str, 
              verbose=False):
     
@@ -21,8 +21,8 @@ def executor(grade_level: str,
         if (criteria_file_type):
             logger.info(f"Generating docs. from {criteria_file_type}")
         
-        if (wtr_file_type):
-            logger.info(f"Generating docs. from {wtr_file_type}")
+        if (writing_to_review_file_type):
+            logger.info(f"Generating docs. from {writing_to_review_file_type}")
 
         docs = None
 
@@ -30,7 +30,7 @@ def executor(grade_level: str,
             return get_docs(file_url, file_type, True) if file_url and file_type else None
 
         criteria_docs = fetch_docs(criteria_file_url, criteria_file_type)
-        wtr_docs = fetch_docs(wtr_file_url, wtr_file_type)
+        wtr_docs = fetch_docs(writing_to_review_file_url, writing_to_review_file_type)
 
         docs = (
             criteria_docs + wtr_docs
@@ -45,8 +45,8 @@ def executor(grade_level: str,
             writing_to_review=writing_to_review,
             criteria_file_url=criteria_file_url,
             criteria_file_type=criteria_file_type,
-            wtr_file_url=wtr_file_url,
-            wtr_file_type=wtr_file_type,
+            writing_to_review_file_url=writing_to_review_file_url,
+            writing_to_review_file_type=writing_to_review_file_type,
             lang=lang
         )
 

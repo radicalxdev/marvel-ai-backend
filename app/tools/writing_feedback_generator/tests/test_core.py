@@ -17,8 +17,8 @@ base_attributes = {
 def test_executor_pdf_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
-        wtr_file_type="pdf"
+        writing_to_review_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
+        writing_to_review_file_type="pdf"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -26,8 +26,8 @@ def test_executor_pdf_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
-            wtr_file_type=1
+            writing_to_review_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -35,8 +35,8 @@ def test_executor_pdf_wtr_url_invalid():
 def test_executor_csv_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
-        wtr_file_type="csv"
+        writing_to_review_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
+        writing_to_review_file_type="csv"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -44,8 +44,8 @@ def test_executor_csv_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
-            wtr_file_type=1
+            writing_to_review_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -53,8 +53,8 @@ def test_executor_csv_wtr_url_invalid():
 def test_executor_txt_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
-        wtr_file_type="txt"
+        writing_to_review_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
+        writing_to_review_file_type="txt"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -62,8 +62,8 @@ def test_executor_txt_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
-            wtr_file_type=1
+            writing_to_review_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -71,8 +71,8 @@ def test_executor_txt_wtr_url_invalid():
 def test_executor_md_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
-        wtr_file_type="md"
+        writing_to_review_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
+        writing_to_review_file_type="md"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -80,8 +80,8 @@ def test_executor_md_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
-            wtr_file_type=1
+            writing_to_review_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -89,8 +89,8 @@ def test_executor_md_wtr_url_invalid():
 def test_executor_pptx_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
-        wtr_file_type="pptx"
+        writing_to_review_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
+        writing_to_review_file_type="pptx"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -98,8 +98,8 @@ def test_executor_pptx_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
-            wtr_file_type=1
+            writing_to_review_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -107,8 +107,8 @@ def test_executor_pptx_wtr_url_invalid():
 def test_executor_docx_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
-        wtr_file_type="docx"
+        writing_to_review_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
+        writing_to_review_file_type="docx"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -116,8 +116,8 @@ def test_executor_docx_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
-            wtr_file_type=1
+            writing_to_review_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -125,8 +125,8 @@ def test_executor_docx_wtr_url_invalid():
 def test_executor_xls_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
-        wtr_file_type="xls"
+        writing_to_review_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
+        writing_to_review_file_type="xls"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -134,8 +134,8 @@ def test_executor_xls_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
-            wtr_file_type=1
+            writing_to_review_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -143,8 +143,8 @@ def test_executor_xls_wtr_url_invalid():
 def test_executor_xlsx_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
-        wtr_file_type="xlsx"
+        writing_to_review_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
+        writing_to_review_file_type="xlsx"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -152,8 +152,8 @@ def test_executor_xlsx_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
-            wtr_file_type=1
+            writing_to_review_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -161,8 +161,8 @@ def test_executor_xlsx_wtr_url_invalid():
 def test_executor_gpdf_wtr_url_valid():
     writing_feedback = executor(
         **base_attributes,
-        wtr_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
-        wtr_file_type="gpdf"
+        writing_to_review_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
+        writing_to_review_file_type="gpdf"
     )
     assert isinstance(writing_feedback, WritingFeedback)
 
@@ -170,8 +170,8 @@ def test_executor_gpdf_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
-            wtr_file_type=1
+            writing_to_review_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -180,7 +180,7 @@ def test_executor_mp3_wtr_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            wtr_file_url="https://raw.githubusercontent.com/asleem/uploaded_files/main/dummy.mp3",
-            wtr_file_type=1
+            writing_to_review_file_url="https://raw.githubusercontent.com/asleem/uploaded_files/main/dummy.mp3",
+            writing_to_review_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)

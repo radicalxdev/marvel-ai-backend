@@ -9,26 +9,26 @@ logger = setup_logger()
 def executor(grade_level: str,
              task_description: str,
              students_description: str,
-             td_file_url: str,
-             td_file_type: str,
-             sd_file_url: str,
-             sd_file_type: str,
+             task_description_file_url: str,
+             task_description_file_type: str,
+             student_description_file_url: str,
+             student_description_file_type: str,
              lang: str,
              verbose=False):
     
     try:
-        if(td_file_type):
-            logger.info(f"Generating docs. from {td_file_type}")
-        if(sd_file_type):
-            logger.info(f"Generating docs. from {sd_file_type}")
+        if(task_description_file_type):
+            logger.info(f"Generating docs. from {task_description_file_type}")
+        if(student_description_file_type):
+            logger.info(f"Generating docs. from {student_description_file_type}")
 
         docs = None
 
         def fetch_docs(file_url, file_type):
             return get_docs(file_url, file_type, True) if file_url and file_type else None
 
-        task_description_docs = fetch_docs(td_file_url, td_file_type)
-        student_description_docs = fetch_docs(sd_file_url, sd_file_type)
+        task_description_docs = fetch_docs(task_description_file_url, task_description_file_type)
+        student_description_docs = fetch_docs(student_description_file_url, student_description_file_type)
 
         docs = (
             task_description_docs + student_description_docs
@@ -40,10 +40,10 @@ def executor(grade_level: str,
             grade_level=grade_level,
             task_description=task_description,
             students_description=students_description,
-            td_file_url=td_file_url,
-            td_file_type=td_file_type,
-            sd_file_url=sd_file_url,
-            sd_file_type=sd_file_type,
+            task_description_file_url=task_description_file_url,
+            task_description_file_type=task_description_file_type,
+            student_description_file_url=student_description_file_url,
+            student_description_file_type=student_description_file_type,
             lang=lang
         )
 

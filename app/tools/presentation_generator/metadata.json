@@ -37,12 +37,12 @@
         },
         {
             "label": "Additional Comments File URL",
-            "name": "ac_file_url",
+            "name": "additional_comments_file_url",
             "type": "text"
         },
         {
             "label": "Additional Comments File Type",
-            "name": "ac_file_type",
+            "name": "additional_comments_file_type",
             "type": "text"
         },
         {

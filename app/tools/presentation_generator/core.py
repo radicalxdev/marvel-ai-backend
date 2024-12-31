@@ -13,16 +13,16 @@ def executor(grade_level: str,
              additional_comments: str,
              objectives_file_url: str,
              objectives_file_type: str,
-             ac_file_url: str,
-             ac_file_type: str,
+             additional_comments_file_url: str,
+             additional_comments_file_type: str,
              lang: str, 
              verbose=False):
 
     try:
         if(objectives_file_type):
             logger.info(f"Generating docs. from {objectives_file_type}")
-        if(ac_file_type):
-            logger.info(f"Generating docs. from {ac_file_type}")
+        if(additional_comments_file_type):
+            logger.info(f"Generating docs. from {additional_comments_file_type}")
 
         docs = None
 
@@ -30,7 +30,7 @@ def executor(grade_level: str,
             return get_docs(file_url, file_type, True) if file_url and file_type else None
 
         objectives_docs = fetch_docs(objectives_file_url, objectives_file_type)
-        additional_comments_docs = fetch_docs(ac_file_url, ac_file_type)
+        additional_comments_docs = fetch_docs(additional_comments_file_url, additional_comments_file_type)
 
         docs = (
             objectives_docs + additional_comments_docs
@@ -46,8 +46,8 @@ def executor(grade_level: str,
             additional_comments=additional_comments,
             objectives_file_url=objectives_file_url,
             objectives_file_type=objectives_file_type,
-            ac_file_url=ac_file_url,
-            ac_file_type=ac_file_type,
+            additional_comments_file_url=additional_comments_file_url,
+            additional_comments_file_type=additional_comments_file_type,
             lang=lang
         )
 
