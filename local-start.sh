@@ -9,7 +9,7 @@ export LANGCHAIN_PROJECT=$LANGSMITH_PROJECT
 export GOOGLE_API_KEY=$GOOGLE_API_KEY
 
 #export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/app/local-auth.json
-export ENV_TYPE=dev
+export ENV_TYPE=$ENV_TYPE
 export PROJECT_ID=$PROJECT_ID
 export PYTHONPATH=$(pwd)/app
 
