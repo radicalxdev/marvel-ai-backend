@@ -111,8 +111,6 @@ def load_url_documents(url: str, verbose=False):
         return split_docs
 
 
-
-
 class FileHandler:
     def __init__(self, file_loader, file_extension):
         self.file_loader = file_loader
