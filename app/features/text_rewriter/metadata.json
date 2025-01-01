@@ -1,0 +1,31 @@
+{
+    "input_data": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["text", "file", "url"]
+        },
+        "content": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "enum": ["csv", "pdf", "docx", "ppt", "txt"]
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": ["type", "content"]
+    },
+    "instructions": {
+      "type": "string",
+      "enum": ["simplify", "summarize", "rephrase"]
+    },
+    "export_format": {
+      "type": "string",
+      "enum": ["txt", "docx", "pdf"]
+    }
+  }
+  

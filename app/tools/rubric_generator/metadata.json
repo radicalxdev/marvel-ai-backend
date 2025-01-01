@@ -1,0 +1,49 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Point Scale",
+            "name": "point_scale",
+            "type": "number"
+        },
+        {
+            "label": "Standards/Objectives",
+            "name": "objectives",
+            "type": "text"
+        },
+        {
+            "label": "Assignment Description",
+            "name": "assignment_description",
+            "type": "text"
+        },
+        {
+            "label": "Standards/Objectives File URL",
+            "name": "objectives_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Standards/Objectives File Type",
+            "name": "objectives_file_type",
+            "type": "text"
+        },
+        {
+            "label": "Assignment Description File URL",
+            "name": "assignment_description_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Assignment Description File Type",
+            "name": "assignment_description_file_type",
+            "type": "text"
+        },
+        {
+            "label": "Language",
+            "name": "lang",
+            "type": "text"
+        }
+    ]
+}

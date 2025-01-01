@@ -1,0 +1,44 @@
+{
+    "inputs": [
+        {
+            "label": "Grade Level",
+            "name": "grade_level",
+            "type": "text"
+        },
+        {
+            "label": "Task's Description",
+            "name": "task_description",
+            "type": "text"
+        },
+        {
+            "label": "Student's Description",
+            "name": "students_description",
+            "type": "text"
+        },
+        {
+            "label": "Task's Description File URL",
+            "name": "task_description_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Task's Description File Type",
+            "name": "task_description_file_type",
+            "type": "text"
+        },
+        {
+            "label": "Student's Description File URL",
+            "name": "student_description_file_url",
+            "type": "text"
+        },
+        {
+            "label": "Student's Description File Type",
+            "name": "student_description_file_type",
+            "type": "text"
+        },
+        {
+            "label": "Language",
+            "name": "lang",
+            "type": "text"
+        }
+    ]
+}

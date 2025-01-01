@@ -1,0 +1,7 @@
+{
+    "classroom_support": {
+        "co_teacher": {
+            "path": "assistants.classroom_support.co_teacher.core"
+        }
+    }
+}
