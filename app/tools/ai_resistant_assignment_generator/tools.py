@@ -96,16 +96,18 @@ class AIResistantAssignmentGenerator:
     def create_assignments(self, documents: Optional[List[Document]]):
         logger.info(f"Creating the AI-Resistant assignments")
 
-        if(documents):
+        ai_resistance_text = f"AI Resistance Level: {self.args.ai_resistance_level}"
+        if documents:
             chain = self.compile_with_docs(documents)
         else:
             chain = self.compile_without_docs()
 
         response = chain.invoke(f"""Assignment Description: {self.args.assignment}, 
-                                Grade Level: {self.args.grade_level}, 
-                                Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang}""")
+                                    Grade Level: {self.args.grade_level}, 
+                                    Language (YOU MUST RESPOND IN THIS LANGUAGE): {self.args.lang},
+                                    {ai_resistance_text}""")
 
-        if(documents):
+        if documents:
             if self.verbose: print(f"Deleting vectorstore")
             self.vectorstore.delete_collection()
 
