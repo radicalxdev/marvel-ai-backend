@@ -17,22 +17,22 @@
         },
         {
             "label": "Task's Description File URL",
-            "name": "td_file_url",
+            "name": "task_description_file_url",
             "type": "text"
         },
         {
             "label": "Task's Description File Type",
-            "name": "td_file_type",
+            "name": "task_description_file_type",
             "type": "text"
         },
         {
             "label": "Student's Description File URL",
-            "name": "sd_file_url",
+            "name": "student_description_file_url",
             "type": "text"
         },
         {
             "label": "Student's Description File Type",
-            "name": "sd_file_type",
+            "name": "student_description_file_type",
             "type": "text"
         },
         {

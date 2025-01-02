@@ -9,249 +9,47 @@ This repository hosts the implementation of a modular architecture for a variety
 ## Implemented Assistants
 
 ### CoTeacher
-CoTeacher belongs to the **Classroom Support** category and is designed to assist educators with tasks like translation, summarization, rewriting, question generation, and custom prompt-based interactions. The assistant supports multilingual capabilities and personalization based on user preferences.
+CoTeacher, part of the **Classroom Support** category, is an advanced AI assistant designed to aid educators by offering multilingual support and personalized interactions. With its ability to adapt to user preferences, CoTeacher ensures inclusivity by seamlessly accommodating diverse languages and teaching styles, making it an invaluable tool for fostering effective and engaging learning experiences.
 
 ## Features and Payloads
 Below are the JSON payloads for the implemented actions of CoTeacher.
 
-### CoTeacher - Translate
+### CoTeacher
 **Request:**
 ```json
 {
-   "assistant_inputs": {
-      "assistant_group": "classroom_support",
-      "assistant_name": "co_teacher",
-      "inputs": [
+   "assistant_inputs":{
+      "assistant_group":"classroom_support",
+      "assistant_name":"co_teacher",
+      "user_info":{
+         "user_name":"Aaron Sosa",
+         "user_age":26,
+         "user_preference":"Senior AI Engineer"
+      },
+      "messages":[
          {
-            "name": "action",
-            "value": "translate"
-         },
-         {
-            "name": "messages",
-            "value": [
-               {
-                  "role": "human",
-                  "type": "text",
-                  "timestamp": "string",
-                  "payload": {
-                     "text": "Please, translate 'Large Language Models (LLMs) are advanced artificial intelligence systems trained on vast amounts of text data to understand and generate human-like language. These models leverage deep learning techniques, particularly transformer architectures, to process and generate text across a wide range of contexts and tasks. LLMs are capable of performing diverse functions, including language translation, summarization, content creation, and even complex problem-solving. Their capabilities continue to expand as they are fine-tune for specific applications, making them invaluable tools in industries such as healthcare, education, customer support, and software development.' from English to Spanish."
-                  }
-               }
-            ]
-         }
-      ]
-   }
-}
-```
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "role": "ai",
-      "type": "text",
-      "timestamp": null,
-      "payload": {
-        "text": "Los modelos lingüísticos grandes (LLM) son sistemas avanzados de inteligencia artificial entrenados con grandes cantidades de datos de texto para comprender y generar lenguaje similar al humano. Estos modelos aprovechan técnicas de aprendizaje profundo, particularmente arquitecturas de transformadores, para procesar y generar texto en una amplia gama de contextos y tareas. Los LLM son capaces de realizar diversas funciones, incluyendo traducción de idiomas, resumen, creación de contenido e incluso resolución de problemas complejos. Sus capacidades continúan expandiéndose a medida que se ajustan finamente para aplicaciones específicas, lo que los convierte en herramientas invaluables en industrias como la salud, la educación, la atención al cliente y el desarrollo de software."
-      }
-    }
-  ]
-}
-```
-
-### CoTeacher - Summarize
-**Request:**
-```json
-{
-   "assistant_inputs": {
-      "assistant_group": "classroom_support",
-      "assistant_name": "co_teacher",
-      "inputs": [
-         {
-            "name": "action",
-            "value": "summarize"
-         },
-         {
-            "name": "messages",
-            "value": [
-               {
-                  "role": "human",
-                  "type": "text",
-                  "timestamp": "string",
-                  "payload": {
-                     "text": "Please, summarize 'Large Language Models (LLMs) are advanced artificial intelligence systems trained on vast amounts of text data to understand and generate human-like language. These models leverage deep learning techniques, particularly transformer architectures, to process and generate text across a wide range of contexts and tasks. LLMs are capable of performing diverse functions, including language translation, summarization, content creation, and even complex problem-solving. Their capabilities continue to expand as they are fine-tune for specific applications, making them invaluable tools in industries such as healthcare, education, customer support, and software development.'"
-                  }
-               }
-            ]
-         }
-      ]
-   }
-}
-```
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "role": "ai",
-      "type": "text",
-      "timestamp": null,
-      "payload": {
-        "text": "LLMs are advanced AI systems trained on massive text datasets to understand and generate human-like text using deep learning (transformer architectures). They perform diverse functions (translation, summarization, content creation, problem-solving) and are valuable tools across many industries."
-      }
-    }
-  ]
-}
-```
-
-### CoTeacher - Rewrite
-**Request:**
-```json
-{
-   "assistant_inputs": {
-      "assistant_group": "classroom_support",
-      "assistant_name": "co_teacher",
-      "inputs": [
-         {
-            "name": "action",
-            "value": "rewrite"
-         },
-         {
-            "name": "messages",
-            "value": [
-               {
-                  "role": "human",
-                  "type": "text",
-                  "timestamp": "string",
-                  "payload": {
-                     "text": "Please, rewrite so like llms are these things that do like ai stuff and they like talk and write but not really like people but kinda, and they like use data or something, idk, like lots of data, and then they like learn, but not really learn like humans, just like, you know, math or whatever, and then they make stuff like words and answers, and ppl say they’re smart but they’re just like programs, and yeah, they’re everywhere now and ppl use them for like, idk, work or chatting or whatever."
-                  }
-               }
-            ]
-         }
-      ]
-   }
-}
-```
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "role": "ai",
-      "type": "text",
-      "timestamp": null,
-      "payload": {
-        "text": "Large language models (LLMs) are AI systems that process and generate human-like text. They aren't sentient, but they mimic human communication by using vast amounts of data to identify patterns and relationships. This allows them to \"learn\" in a statistical sense, not through conscious understanding like humans. They then use this learned information to create text, translate languages, and answer questions. While their capabilities are impressive, they remain sophisticated programs, not truly intelligent beings. LLMs are increasingly prevalent, assisting with various tasks from professional work to casual conversations."
-      }
-    }
-  ]
-}
-```
-
-### CoTeacher - Question Generation
-**Request:**
-```json
-{
-   "assistant_inputs": {
-      "assistant_group": "classroom_support",
-      "assistant_name": "co_teacher",
-      "inputs": [
-         {
-            "name": "action",
-            "value": "question_generation"
-         },
-         {
-            "name": "messages",
-            "value": [
-               {
-                  "role": "human",
-                  "type": "text",
-                  "timestamp": "string",
-                  "payload": {
-                     "text": "Please, create questions for Linear Algebra."
-                  }
-               }
-            ]
-         }
-      ]
-   }
-}
-```
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "role": "ai",
-      "type": "text",
-      "timestamp": null,
-      "payload": {
-        "text": {
-          "multiple_choice_questions": [
-            {
-              "question": "Which of the following is NOT a property of vector addition?",
-              "choices": [
-                {
-                  "key": "A",
-                  "value": "Commutative Property: u + v = v + u"
-                },
-                {
-                  "key": "B",
-                  "value": "Associative Property: (u + v) + w = u + (v + w)"
-                },
-                {
-                  "key": "C",
-                  "value": "Distributive Property: c(u + v) = cu + cv"
-                },
-                {
-                  "key": "D",
-                  "value": "Identity Property: u + 0 = u"
-                },
-                {
-                  "key": "E",
-                  "value": "Inverse Property: u + (-u) = 0"
-                }
-              ],
-              "answer": "C",
-              "explanation": "The distributive property applies to scalar multiplication, not vector addition. The distributive property of scalar multiplication over vector addition is c(u + v) = cu + cv."
+            "role":"human",
+            "type":"text",
+            "timestamp":"string",
+            "payload":{
+               "text":"Give me insights for personalized teaching"
             }
-          ]
-        }
-      }
-    }
-  ]
-}
-```
-
-### CoTeacher - Custom Prompt
-**Request:**
-```json
-{
-   "assistant_inputs": {
-      "assistant_group": "classroom_support",
-      "assistant_name": "co_teacher",
-      "inputs": [
-         {
-            "name": "action",
-            "value": "custom"
          },
          {
-            "name": "messages",
-            "value": [
-               {
-                  "role": "human",
-                  "type": "text",
-                  "timestamp": "string",
-                  "payload": {
-                     "text": "Save this prompt: 'Please, create questions for Linear Algebra.'"
-                  }
-               }
-            ]
+            "role":"ai",
+            "type":"text",
+            "timestamp":null,
+            "payload":{
+               "text":"Okay, Aaron, as a Senior AI Engineer, you're likely someone who values data-driven strategies and innovative solutions. Let's tailor some insights for personalized teaching with that in mind. Here's how you can approach this, leveraging your analytical and problem-solving skills:\n\n**1. Data-Driven Student Understanding:**\n\n*   **Analytics Approach:** Just like in AI projects, you can analyze student performance data to identify patterns and tailor your teaching methods. Look at areas where students excel and where they struggle. Use this data to understand the varying needs of your students.\n*   **Actionable Steps:**\n    *   Use formative assessments (quizzes, exit tickets, in-class activities) to collect data.\n    *   Create a spreadsheet or use a digital tool to track student performance across different topics or skills.\n    *   Identify individual student strengths, areas of improvement, and preferred learning styles.\n\n**2. Adaptive Content and Delivery:**\n\n*   **Modular Content Creation:** Think of your teaching material like modular code, where you can easily modify and adapt it. Develop a core set of learning materials and then adapt to student needs by offering multiple versions (different problem sets, examples, or explanations).\n*   **Actionable Steps:**\n    *   Develop a resource repository of varying complexity levels for each topic.\n    *   Experiment with different media formats (videos, interactive simulations, audio explanations) to cater to diverse learning preferences.\n    *   Offer a range of choices in how students approach their learning - which project they want to work on, which practice questions they attempt, etc.\n\n**3. Algorithm-Based Feedback:**\n\n*   **Timely and Specific Feedback:** Aim to provide feedback that is not only timely but also very specific. Think of it as debugging a code – the feedback needs to pinpoint the problem precisely.\n*   **Actionable Steps:**\n    *   Use rubrics for grading that clearly outline expectations.\n    *   Provide feedback that is focused on the concepts, not just the final answer.\n    *   Use automated tools, where possible, to offer initial feedback, allowing you to focus on more complex issues.\n\n**4. Collaborative Problem-Solving:**\n\n*   **Agile Team Teaching:** Approach your classroom as an agile team working on a project. Encourage collaboration and peer-to-peer learning.\n*   **Actionable Steps:**\n    *   Implement group activities with defined roles, as you might in a project team.\n    *   Have students teach each other concepts, thereby reinforcing their own understanding.\n    *   Use pair programming or group programming tasks to foster learning from each other.\n\n**5. Iterative Teaching Process:**\n\n*   **Continuous Improvement:** Just like in software development, use a continuous improvement approach to your teaching. Regularly evaluate your teaching practices and make adjustments based on results.\n*   **Actionable Steps:**\n    *   Solicit student feedback on your teaching methods and the content.\n    *   Periodically reflect on what works and what doesn't.\n    *   Don't be afraid to experiment with new approaches based on feedback and data.\n\nAaron, your experience with AI and data analysis can be a powerful asset in personalizing your teaching approach. By treating your classroom as a dynamic system with evolving needs, you can create a learning environment that is truly tailored to each of your students. You have an analytical mindset and the tools to make data driven decisions in the classroom. By embracing these strategies, you'll be able to provide a more engaging and effective learning experience for your students! Let me know if you want to explore any of these strategies further.\n"
+            }
+         },
+         {
+            "role":"human",
+            "type":"text",
+            "timestamp":"string",
+            "payload":{
+               "text":"Please, summarize what you said and translate that to spanish"
+            }
          }
       ]
    }
@@ -267,53 +65,7 @@ Below are the JSON payloads for the implemented actions of CoTeacher.
       "type": "text",
       "timestamp": null,
       "payload": {
-        "text": "Okay, I've saved the prompt."
-      }
-    }
-  ]
-}
-```
-
-### CoTeacher - Default
-**Request:**
-```json
-{
-   "assistant_inputs": {
-      "assistant_group": "classroom_support",
-      "assistant_name": "co_teacher",
-      "inputs": [
-         {
-            "name": "action",
-            "value": "default"
-         },
-         {
-            "name": "messages",
-            "value": [
-               {
-                  "role": "human",
-                  "type": "text",
-                  "timestamp": "string",
-                  "payload": {
-                     "text": "Generate tips for differentiated instruction."
-                  }
-               }
-            ]
-         }
-      ]
-   }
-}
-```
-
-**Response:**
-```json
-{
-  "data": [
-    {
-      "role": "ai",
-      "type": "text",
-      "timestamp": null,
-      "payload": {
-        "text": "Here are some tips for differentiated instruction..."
+        "text": "Okay, Aaron, here's a summary of the personalized teaching insights, tailored for you as a Senior AI Engineer, along with a Spanish translation:\n\n**Summary:**\n\nAs a Senior AI Engineer, you can use your analytical and problem-solving skills to personalize your teaching. Here are the key points:\n\n1.  **Data-Driven Student Understanding:** Analyze student performance data to identify their strengths and weaknesses, tailoring your methods accordingly. Use formative assessments and track student progress using digital tools or spreadsheets.\n\n2.  **Adaptive Content and Delivery:** Create modular content that can be easily adjusted for different learning needs. Develop a resource repository and experiment with various media to cater to diverse learning preferences.\n\n3.  **Algorithm-Based Feedback:** Provide timely and specific feedback, like debugging code, that pinpoints issues and helps students grow. Use rubrics and automated tools to offer initial feedback, focusing on concepts, not just the answer.\n\n4.  **Collaborative Problem-Solving:** Treat your classroom as an agile team project. Encourage collaboration and peer-to-peer learning through group activities and having students teach each other.\n\n5.  **Iterative Teaching Process:** Regularly evaluate and adjust your teaching methods based on student feedback and data. Be open to experimenting and refining your approach.\n\n**Spanish Translation:**\n\nOkay, Aaron, aquí tienes un resumen de las ideas para la enseñanza personalizada, adaptadas para ti como Ingeniero Senior de IA, junto con una traducción al español:\n\n**Resumen:**\n\nComo Ingeniero Senior de IA, puedes usar tus habilidades analíticas y de resolución de problemas para personalizar tu enseñanza. Aquí están los puntos clave:\n\n1.  **Comprensión de los Estudiantes Basada en Datos:** Analiza los datos de rendimiento de los estudiantes para identificar sus fortalezas y debilidades, adaptando tus métodos en consecuencia. Utiliza evaluaciones formativas y rastrea el progreso de los estudiantes utilizando herramientas digitales u hojas de cálculo.\n\n2.  **Contenido y Entrega Adaptativos:** Crea contenido modular que pueda ajustarse fácilmente a diferentes necesidades de aprendizaje. Desarrolla un repositorio de recursos y experimenta con diversos medios para atender las diferentes preferencias de aprendizaje.\n\n3.  **Retroalimentación Basada en Algoritmos:** Proporciona retroalimentación oportuna y específica, como la depuración de código, que señale los problemas y ayude a los estudiantes a crecer. Utiliza rúbricas y herramientas automatizadas para ofrecer retroalimentación inicial, enfocándote en los conceptos, no solo en la respuesta.\n\n4.  **Resolución de Problemas Colaborativa:** Trata tu clase como un proyecto de equipo ágil. Fomenta la colaboración y el aprendizaje entre pares a través de actividades grupales y haciendo que los estudiantes se enseñen unos a otros.\n\n5.  **Proceso de Enseñanza Iterativo:** Evalúa y ajusta regularmente tus métodos de enseñanza basándote en la retroalimentación de los estudiantes y los datos. Mantente abierto a experimentar y refinar tu enfoque.\n\nLet me know if you need anything else, Aaron.\n"
       }
     }
   ]

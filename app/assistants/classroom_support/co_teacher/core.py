@@ -1,42 +1,45 @@
-from app.assistants.classroom_support.co_teacher.tools import (
-    compile_co_teacher, 
-    read_text_file
-)
+from app.assistants.classroom_support.co_teacher.assistant import run_co_teacher_assistant
+from app.services.assistant_registry import Message, UserInfo
 from app.services.logger import setup_logger
-from app.services.schemas import ChatMessage, Message
+from app.services.schemas import (
+    ChatMessage
+)
 
 logger = setup_logger()
 
 def executor(
-        action: str,
+        user_info: UserInfo,
         messages: list[Message]=None, 
-        k=10
+        k=3
     ):
     
-    logger.info(f"Generating response from CoTeacher - Action: [{action}]")
+    logger.info(f"Generating response from CoTeacher")
 
-    print(messages)
-
-    chat_context = [
+    chat_context_list = [
         ChatMessage(
-            role=message["role"], 
-            type=message["type"], 
-            text=message["payload"]["text"]
+            role=message.role, 
+            type=message.type, 
+            text=message.payload.text
         ) for message in messages[-k:]
     ]
 
-    co_teacher = compile_co_teacher()
-    user_query = messages[-1]["payload"]["text"]
+    chat_context_string = "\n\n".join(
+        map(
+            lambda message: (
+                f"Role: {message.role}\n"
+                f"Type: {message.type}\n"
+                f"Text: {message.text}"
+            ),
+            chat_context_list        
+        )
+    )
+    
+    response = run_co_teacher_assistant(
+        user_query=chat_context_list[-1].text,
+        chat_context=chat_context_string,
+        user_info=user_info
+    )
 
-    inputs = {
-        "user_query": user_query,
-        "action": action,
-        "chat_history": chat_context,
-        "assistant_system_message": read_text_file('prompt/co_teacher_context.txt')
-    }
+    logger.info(f"Response generated successfully for CoTeacher: {response}")
 
-    result = co_teacher.invoke(inputs)
-
-    logger.info(f"Response generated successfully for CoTeacher - Action: [{action}]")
-
-    return result["result"]
+    return response

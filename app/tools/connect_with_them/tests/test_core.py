@@ -6,8 +6,8 @@ base_attributes = {
     "grade_level": "5th grade",
     "task_description": "",
     "students_description": "",
-    "sd_file_url": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true",
-    "sd_file_type": "gdoc",
+    "student_description_file_url": "https://docs.google.com/document/d/1IsTPJSgWMdD20tXMm1sXJSCc0xz9Kxmn/edit?usp=sharing&ouid=107052763106493355624&rtpof=true&sd=true",
+    "student_description_file_type": "gdoc",
     "lang": "en"
 }
 
@@ -15,8 +15,8 @@ base_attributes = {
 def test_executor_pdf_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
-        td_file_type="pdf"
+        task_description_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
+        task_description_file_type="pdf"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -24,8 +24,8 @@ def test_executor_pdf_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
-            td_file_type=1
+            task_description_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -33,8 +33,8 @@ def test_executor_pdf_td_url_invalid():
 def test_executor_csv_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
-        td_file_type="csv"
+        task_description_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
+        task_description_file_type="csv"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -42,8 +42,8 @@ def test_executor_csv_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
-            td_file_type=1
+            task_description_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -51,8 +51,8 @@ def test_executor_csv_td_url_invalid():
 def test_executor_txt_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
-        td_file_type="txt"
+        task_description_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
+        task_description_file_type="txt"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -60,8 +60,8 @@ def test_executor_txt_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
-            td_file_type=1
+            task_description_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -69,8 +69,8 @@ def test_executor_txt_td_url_invalid():
 def test_executor_md_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
-        td_file_type="md"
+        task_description_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
+        task_description_file_type="md"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -78,8 +78,8 @@ def test_executor_md_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
-            td_file_type=1
+            task_description_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -87,8 +87,8 @@ def test_executor_md_td_url_invalid():
 def test_executor_pptx_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
-        td_file_type="pptx"
+        task_description_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
+        task_description_file_type="pptx"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -96,8 +96,8 @@ def test_executor_pptx_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
-            td_file_type=1
+            task_description_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -105,8 +105,8 @@ def test_executor_pptx_td_url_invalid():
 def test_executor_docx_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
-        td_file_type="docx"
+        task_description_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
+        task_description_file_type="docx"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -114,8 +114,8 @@ def test_executor_docx_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
-            td_file_type=1
+            task_description_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -123,8 +123,8 @@ def test_executor_docx_td_url_invalid():
 def test_executor_xls_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
-        td_file_type="xls"
+        task_description_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
+        task_description_file_type="xls"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -132,8 +132,8 @@ def test_executor_xls_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
-            td_file_type=1
+            task_description_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -141,8 +141,8 @@ def test_executor_xls_td_url_invalid():
 def test_executor_xlsx_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
-        td_file_type="xlsx"
+        task_description_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
+        task_description_file_type="xlsx"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -150,8 +150,8 @@ def test_executor_xlsx_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
-            td_file_type=1
+            task_description_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -159,8 +159,8 @@ def test_executor_xlsx_td_url_invalid():
 def test_executor_gpdf_td_url_valid():
     connect_with_them = executor(
         **base_attributes,
-        td_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
-        td_file_type="gpdf"
+        task_description_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
+        task_description_file_type="gpdf"
     )
     assert isinstance(connect_with_them, dict)
 
@@ -168,8 +168,8 @@ def test_executor_gpdf_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
-            td_file_type=1
+            task_description_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)
 
@@ -178,7 +178,7 @@ def test_executor_mp3_td_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes,
-            td_file_url="https://raw.githubusercontent.com/asleem/uploaded_files/main/dummy.mp3",
-            td_file_type=1
+            task_description_file_url="https://raw.githubusercontent.com/asleem/uploaded_files/main/dummy.mp3",
+            task_description_file_type=1
         )
     assert isinstance(exc_info.value, ValueError)

@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from typing import Union
-from app.assistants.utils.assistants_utilities import execute_assistant, finalize_inputs_assistants, load_assistant_metadata
+from app.assistants.utils.assistants_utilities import execute_assistant
 from app.services.schemas import GenericAssistantRequest, ToolRequest, ChatRequest, Message, ChatResponse, ToolResponse
 from app.utils.auth import key_check
 from app.services.logger import setup_logger
@@ -53,10 +53,10 @@ async def assistants( request: GenericAssistantRequest, _ = Depends(key_check) )
     
     assistant_group = request.assistant_inputs.assistant_group
     assistant_name = request.assistant_inputs.assistant_name
+    user_info = request.assistant_inputs.user_info
+    messages = request.assistant_inputs.messages
 
-    requested_assistant = load_assistant_metadata(assistant_group, assistant_name)
-    request_inputs_dict = finalize_inputs_assistants(request.assistant_inputs.inputs, requested_assistant['inputs'])
-    result = execute_assistant(assistant_group, assistant_name, request_inputs_dict)
+    result = execute_assistant(assistant_group, assistant_name, user_info, messages)
 
     formatted_response = Message(
         role="ai",

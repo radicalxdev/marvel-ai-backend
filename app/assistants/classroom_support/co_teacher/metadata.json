@@ -1,9 +1,0 @@
-{
-    "inputs": [
-        {
-            "label": "Action",
-            "name": "action",
-            "type": "text"
-        }
-    ]
-}

@@ -32,12 +32,12 @@
         },
         {
             "label": "Writing to Review File URL",
-            "name": "wtr_file_url",
+            "name": "writing_to_review_file_url",
             "type": "text"
         },
         {
             "label": "Writing to Review File Type",
-            "name": "wtr_file_type",
+            "name": "writing_to_review_file_type",
             "type": "text"
         },
         {

@@ -162,8 +162,8 @@ class PresentationGeneratorInput(BaseModel):
     additional_comments: str
     objectives_file_url: str
     objectives_file_type: str
-    ac_file_url: str
-    ac_file_type: str
+    additional_comments_file_url: str
+    additional_comments_file_type: str
     lang: Optional[str] = "en"
 
 
@@ -179,11 +179,11 @@ class RubricGeneratorArgs(BaseModel):
     ]
     point_scale: int
     objectives: str
-    assignment_desc: str
+    assignment_description: str
     objectives_file_url: str
     objectives_file_type: str
-    ad_file_url: str
-    ad_file_type: str
+    assignment_description_file_url: str
+    assignment_description_file_type: str
     lang: Optional[str]
 
 
@@ -194,8 +194,8 @@ class LessonPlanGeneratorArgs(BaseModel):
     additional_customization: str
     objectives_file_url: str
     objectives_file_type: str
-    ac_file_url: str
-    ac_file_type: str
+    additional_customization_file_url: str
+    additional_customization_file_type: str
     lang: Optional[str] = "en"
 
 
@@ -206,6 +206,6 @@ class WritingFeedbackGeneratorArgs(BaseModel):
     writing_to_review: str
     criteria_file_url: str
     criteria_file_type: str
-    wtr_file_url: str
-    wtr_file_type: str
+    writing_to_review_file_url: str
+    writing_to_review_file_type: str
     lang: Optional[str] = "en"
