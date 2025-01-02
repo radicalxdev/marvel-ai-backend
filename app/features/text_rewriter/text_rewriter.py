@@ -1,18 +1,20 @@
 import sys
 import os
+import uvicorn
 
 # Dynamically add the project root to the PYTHONPATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
 from fastapi import FastAPI, HTTPException
 from app.api.router import router  # Import the router
+from app.features.text_rewriter.core import logger 
 from app.features.text_rewriter.tools import (
     load_metadata,
     create_input_schema,
     create_output_schema,
-    rewrite_tool_handler
+    rewrite_tool_handler,
+    get_few_shot_examples
 )
-import uvicorn
 
 # Load metadata.json
 metadata = load_metadata()
@@ -36,7 +38,16 @@ async def rewrite_text(data: InputModel):
     try:
         # Convert Pydantic model to dict and validate inputs
         inputs = data.dict()
-        result = rewrite_tool_handler(inputs)
+
+        # Get the few-shot examples to pass along
+        few_shot_examples = get_few_shot_examples()
+
+        # Log input and few-shot examples for debugging
+        logger.info(f"Few-shot examples: {few_shot_examples}")
+
+        # Call the rewrite tool handler with both inputs and few-shot examples
+        result = rewrite_tool_handler(inputs, few_shot_examples)
+
         return result
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))

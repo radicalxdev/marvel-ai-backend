@@ -12,8 +12,6 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual environment
-env/
 
 # Logs
 *.log
