@@ -1,4 +1,3 @@
-#import logging
 from typing import Optional, Dict
 from app.api.error_utilities import FileHandlerError
 from app.utils.document_loaders import get_docs
