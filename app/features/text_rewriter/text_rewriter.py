@@ -8,25 +8,24 @@ from fastapi import FastAPI, HTTPException
 from app.api.router import router  # Import the router
 from app.features.text_rewriter.tools import (
     load_metadata,
-    create_input_model,
-    create_output_model,
+    create_input_schema,
+    create_output_schema,
     rewrite_tool_handler
 )
-from fastapi import FastAPI
 import uvicorn
 
 # Load metadata.json
 metadata = load_metadata()
 
 # Dynamically create Pydantic models
-InputModel = create_input_model(metadata)
-OutputModel = create_output_model(metadata)
+InputModel = create_input_schema(metadata)
+OutputModel = create_output_schema(metadata)
 
 # Initialize FastAPI app
 app = FastAPI(
     title="Text Rewriter API",
     description="FastAPI application for text rewriting.",
-    version="1.0.0"
+    version="2.0.0"
 )
 
 @app.post("/rewrite-text", response_model=OutputModel)

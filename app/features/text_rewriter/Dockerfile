@@ -36,3 +36,7 @@ ENV PATH="/venv/bin:$PATH"
 
 # Expose the application port
 EXPOSE 8000
+
+# ENTRYPOINT allows you to run uvicorn, but it can be overridden
+ENTRYPOINT ["/venv/bin/uvicorn"]
+

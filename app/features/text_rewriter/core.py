@@ -24,9 +24,9 @@ if not project_id:
 
 logger = logging.getLogger(__name__)
 
-def create_text_rewriter_pipeline():
+def create_text_rewriter_pipeline(few_shot_examples: str):
     """
-    Initializes the LangChain pipeline for text rewriting with enforced JSON output.
+    Initializes the LangChain pipeline for text rewriting with enforced JSON output and a few-shot learning approach.
     """
     # Load API key from environment variable
     api_key = os.getenv("GOOGLE_API_KEY")
@@ -41,14 +41,15 @@ def create_text_rewriter_pipeline():
         api_key=api_key,  # Pass the API key
     )
 
-    # Update the prompt template to enforce JSON response
+    # Update the prompt template to include examples
     prompt_template = PromptTemplate(
         template=(
+            "{few_shot_examples}\n"
             "Task: {instructions}\n\n"
             "Text: {text}\n\n"
             "Respond with a JSON object containing only the key 'rewritten_text' and its value."
         ),
-        input_variables=["instructions", "text"]
+        input_variables=["instructions", "text", "few_shot_examples"]
     )
 
     # Define the output parser
@@ -60,7 +61,7 @@ def create_text_rewriter_pipeline():
 
 def execute_text_rewriter(text: str, instructions: str) -> Dict[str, str]:
     """
-    Executes the text rewriting logic.
+    Executes the text rewriting logic using the few-shot approach.
 
     Args:
         text (str): The input text to rewrite.
@@ -71,11 +72,44 @@ def execute_text_rewriter(text: str, instructions: str) -> Dict[str, str]:
     """
     logger.info("Starting text rewriting task.")
     try:
-        # Initialize the pipeline
-        pipeline = create_text_rewriter_pipeline()
+        # Few-shot examples that demonstrate how text rewriting should work
+        few_shot_examples = (
+            "Example 1: \n"
+            "Text: 'The causes of the American Civil War were complex, including economic differences, the issue of slavery, and the election of Abraham Lincoln.'\n"
+            "Instructions: 'Rewrite the text in simpler terms.'\n"
+            "Rewritten Text: 'The American Civil War happened because of many reasons, such as different economies in the North and South, slavery, and the election of Abraham Lincoln.'\n\n"
+
+            "Example 2: \n"
+            "Text: 'Photosynthesis is the process by which plants use sunlight to synthesize foods from carbon dioxide and water.'\n"
+            "Instructions: 'Summarize the key points of the text.'\n"
+            "Rewritten Text: 'Photosynthesis is how plants make food from sunlight, carbon dioxide, and water.'\n\n"
+
+            "Example 3: \n"
+            "Text: 'In the history of mathematics, there are several key figures such as Euclid, Isaac Newton, and Carl Friedrich Gauss, who contributed to the foundations of geometry and calculus.'\n"
+            "Instructions: 'Make the text shorter and focus on the key points.'\n"
+            "Rewritten Text: 'Important mathematicians like Euclid, Newton, and Gauss helped develop geometry and calculus.'\n\n"
+
+            "Example 4: \n"
+            "Text: 'The mitochondria are often called the powerhouses of the cell because they generate most of the cell's energy.'\n"
+            "Instructions: 'Explain the concept in simple terms.'\n"
+            "Rewritten Text: 'Mitochondria are the parts of cells that produce energy.'\n\n"
+
+            "Example 5: \n"
+            "Text: 'A balanced diet is crucial for maintaining health, and it should include a variety of foods such as vegetables, fruits, proteins, and carbohydrates.'\n"
+            "Instructions: 'Rewrite the text in a more concise manner.'\n"
+            "Rewritten Text: 'A healthy diet includes a mix of vegetables, fruits, proteins, and carbs.'\n\n"
+        )
+
+
+        # Initialize the pipeline, passing in the few-shot examples
+        pipeline = create_text_rewriter_pipeline(few_shot_examples)
         
         # Prepare inputs
-        inputs = {"instructions": instructions, "text": text}
+        inputs = {
+            "instructions": instructions,
+            "text": text,
+            "few_shot_examples": few_shot_examples
+        }
         
         # Invoke the pipeline and get results
         result = pipeline.invoke(inputs)
