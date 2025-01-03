@@ -1,0 +1,6 @@
+{
+    "input_parameters": {
+        "input_data": "Union[str, Dict[str, Any]]",
+        "instruction": "str"
+    }
+}

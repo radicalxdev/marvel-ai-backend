@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  text-rewriter-tool:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+    environment:
+      - NAME=TextRewriterTool
+      - GOOGLE_APPLICATION_CREDENTIALS=/code/service-account-key.json
+      - GCP_PROJECT_ID=custom-dominion-446220-m9
