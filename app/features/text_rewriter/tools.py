@@ -4,23 +4,22 @@ import json
 from langchain_google_genai import GoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
 # Load environment variables
-def load_api_credentials():
-    """
-    Load the credentials for Google API from environment variables.
-    """
-    dotenv_path = os.path.join(os.path.dirname(__file__), "text_rewriter.env")
-    load_dotenv(dotenv_path=dotenv_path)
-    
-    api_key = os.getenv("GOOGLE_API_KEY")
-    project_id = os.getenv("PROJECT_ID")
-    
-    if not api_key or not project_id:
-        raise ValueError("API key or project ID is missing in environment variables.")
+dotenv_path = find_dotenv("text_rewriter.env")  # Looks for the .env file by name
 
-    return api_key, project_id
+if dotenv_path:
+    load_dotenv(dotenv_path)  # Load the environment variables from the found .env file
+else:
+    print("No .env file found!")
+
+# Now you can access environment variables directly
+api_key = os.getenv("GOOGLE_API_KEY")
+project_id = os.getenv("PROJECT_ID")
+
+if not api_key or not project_id:
+    raise ValueError("API key or project ID is missing in environment variables.")
 
 def create_input_schema(metadata: dict):
     """
@@ -88,20 +87,24 @@ def get_few_shot_examples() -> str:
 def rewrite_tool_handler(inputs: dict, few_shot_examples: str):
     """
     Handles the text rewriting tool request by validating inputs and executing the model.
-
-    Args:
-        inputs (dict): The input data for text rewriting.
-        few_shot_examples (str): The few-shot examples to guide the task.
-
-    Returns:
-        dict: The rewritten text.
     """
     try:
+        
         metadata = load_metadata()  # Load the metadata
         validate_inputs(inputs, metadata)  # Validate inputs
 
+        # Define and load API credentials inside the function to avoid circular imports
+        from dotenv import load_dotenv
+        import os
+
+        load_dotenv()
+        api_key = os.getenv("GOOGLE_API_KEY")
+        project_id = os.getenv("PROJECT_ID")
+
+        if not api_key or not project_id:
+            raise ValueError("API key or project ID is missing in environment variables.")
+
         # Initialize the model and pipeline
-        api_key, project_id = load_api_credentials()
         model = GoogleGenerativeAI(
             model="gemini-1.5-pro",
             temperature=0.7,

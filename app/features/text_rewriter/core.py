@@ -7,8 +7,9 @@ from app.features.text_rewriter.tools import (
     get_few_shot_examples
 )
 from typing import Dict
+from app.services.logger import setup_logger 
 
-logger = logging.getLogger(__name__)
+logger = setup_logger("executor")
 
 def execute_text_rewriter(text: str, instructions: str) -> Dict[str, str]:
     """
@@ -23,13 +24,6 @@ def execute_text_rewriter(text: str, instructions: str) -> Dict[str, str]:
     """
     logger.info("Starting text rewriting task.")
     try:
-        # Load metadata dynamically and create Pydantic schemas
-        metadata = load_metadata()
-
-        # Create input and output schemas dynamically
-        InputModel = create_input_schema(metadata)
-        OutputModel = create_output_schema(metadata)
-
         # Get few-shot examples
         few_shot_examples = get_few_shot_examples()
 

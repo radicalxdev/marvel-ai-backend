@@ -59,4 +59,4 @@ app.include_router(router)
 
 # Run the app
 if __name__ == "__main__":
-    uvicorn.run("app.features.text_rewriter.text_rewriter:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.features.text_rewriter.test_core:app", host="0.0.0.0", port=8000, reload=True)
