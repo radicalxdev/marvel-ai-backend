@@ -32,7 +32,15 @@ def mock_chain_and_loader(mocker):
     fake_chain.run.return_value = "Mocked Summary"
     mock_load_chain.return_value = fake_chain
 
-    return mock_get_docs, mock_load_chain, fake_chain
+    # Mock the ChatGoogleGenerativeAI so .invoke(...) returns "Mocked Summary"
+    mock_llm_class = mocker.patch("app.tools.notes_generator.tools.ChatGoogleGenerativeAI")
+    mock_llm_instance = MagicMock()
+    mock_llm_instance.invoke.return_value = "Mocked Summary"
+    mock_llm_class.return_value = mock_llm_instance
+
+    #return mock_get_docs, mock_load_chain, fake_chain, mock_llm_class
+    return mock_load_chain, mock_llm_class
+
 
 
 def test_executor_text_content_valid(mock_chain_and_loader):

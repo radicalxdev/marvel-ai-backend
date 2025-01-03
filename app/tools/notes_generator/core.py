@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Dict
 from app.api.error_utilities import FileHandlerError
 from app.utils.document_loaders import get_docs
 from app.tools.notes_generator.tools import NotesGeneratorPipeline
@@ -7,11 +7,11 @@ from app.services.logger import setup_logger
 logger = setup_logger(__name__)
 
 def executor(
-    doc_url: Optional[str] = None,
-    doc_type: Optional[str] = None,
-    text_content: Optional[str] = None,
-    focus_topic: Optional[str] = None,
-    lang: Optional[str] = "en",
+    doc_url: str = "",
+    doc_type: str = "",
+    text_content: str = "",
+    focus_topic: str = "",
+    lang: str = "en",
 ) -> Dict[str, str]:
     """
     Executor function for generating notes using a retrieval + generation pipeline.
@@ -50,13 +50,15 @@ def executor(
                 logger.error(f"Failed to load docs from {doc_url}: {str(e)}")
                 raise ValueError(f"Failed to load docs from {doc_url} - {str(e)}")
 
-        # 2. If user gave raw text, we can wrap it into a single-document list
+        # 2. If user gave raw text
         if text_content:
-            from langchain_core.documents import Document
-            docs.append(Document(page_content=text_content))
+            text_content=text_content
 
-        # 3. Run the pipeline to generate notes
+        # 3. Run the pipeline with all input to generate notes
         pipeline = NotesGeneratorPipeline(
+            doc_url=doc_url or "",
+            doc_type=doc_type or "",
+            text_content=text_content or "",
             focus_topic=focus_topic,
             lang=lang
         )

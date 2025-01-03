@@ -17,7 +17,6 @@ pypdf
 fpdf
 youtube-transcript-api
 pytube
-openai
 
 unstructured
 python-pptx
