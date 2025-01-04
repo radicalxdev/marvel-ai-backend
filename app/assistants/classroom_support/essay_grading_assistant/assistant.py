@@ -44,7 +44,20 @@ model = genai.GenerativeModel(model_name='gemini-2.0-flash-exp',
 langchain_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp")
 
 #==============================================CLASS DEFINITIONS==============================================
-# Grading output
+# Essay Grading Input
+class EssayGradingGeneratorArgs(BaseModel):
+    grade_level: str
+    point_scale: str
+    assignment_description: str
+    rubric_objectives: str
+    rubric_objectives_file_url: str
+    rubric_objectives_file_type: str
+    writing_to_review: str
+    writing_to_review_file_url: str
+    writing_to_review_file_type: str
+    lang: str
+
+# Essay Grading Pipeline Output
 class CriterionGrading(BaseModel):
     criterion: RubricCriterion = Field(..., description="The rubric criterion being evaluated, including its descriptions and each description's corresponding points.")
     grade: int  = Field(..., description="The grade assigned for this criterion. It should be how many points out of the point scale")
@@ -62,7 +75,7 @@ class EssayGradingOutput(BaseModel):
 
 #==============================================GENERATOR PIPELINES==============================================
 #-------------------------------------------GENERATE GRADING-------------------------------------------
-class EssayGradingGeneratorArgs(BaseModel):
+class EssayGradingGeneratorPipelineArgs(BaseModel):
     grade_level: Literal["pre-k", "kindergarten", "elementary", "middle", "high", "university", "professional"]
     point_scale: int
     assignment_description: str
@@ -200,7 +213,7 @@ def generate_grading(grade_level: str,
         
         docs = fetch_docs(writing_to_review_file_url, writing_to_review_file_type)
 
-        essay_grading_generator_args = EssayGradingGeneratorArgs(
+        essay_grading_generator_args = EssayGradingGeneratorPipelineArgs(
             grade_level=grade_level,
             point_scale=point_scale,
             assignment_description=assignment_description,
@@ -270,7 +283,7 @@ def generate_feedback(grade_level: str,
                     writing_to_review_file_type: str,
                     lang: str,
                     grading_output: GradingOutput):
-    # Grading Output as String for feedback_generator_executor's criteria parameter
+    #Convert Grading Output to String for feedback_generator_executor's criteria parameter
     grading_output_dict = grading_output.model_dump()
 
     grading_output_string = f"Total Grade: {grading_output_dict['total_grade']}\n\n"
@@ -347,7 +360,7 @@ def run_essay_grading_assistant_essay_grading(grade_level: str,
                 criteria_grading=grading.criteria_grading,
                 feedback=feedback,
                 total_grade=grading.total_grade
-            )
+            ).model_dump()
 
 #==============================================RESPONSE FOR BASIC QUERY==============================================
 def run_essay_grading_assistant_basic_query(user_query: str, chat_context: str, user_info: UserInfo):
@@ -367,13 +380,15 @@ def run_essay_grading_assistant_basic_query(user_query: str, chat_context: str, 
     
 #==============================================ENTRY POINT FOR ESSAY GRADING ASSISTANT==============================================
 def run_essay_grading_assistant(
-                    grading_input: dict,
                     user_query: str,
                     chat_context: str,
                     user_info: UserInfo):
     # If provided args for essay grading generation
-    if not all(value in [None, ""] for value in grading_input.values()):
-        # Generate grading for essay
-        return run_essay_grading_assistant_essay_grading(**grading_input)
+    if isinstance(user_query, dict):
+        required_args = set(EssayGradingGeneratorArgs.__annotations__.keys())
+        args_in_query = set(user_query.keys())
+        missing_fields = required_args - args_in_query
+        if not missing_fields:
+            return run_essay_grading_assistant_essay_grading(**user_query)
     # else, only generate result for user query
     return run_essay_grading_assistant_basic_query(user_query=user_query, chat_context=chat_context, user_info=user_info)

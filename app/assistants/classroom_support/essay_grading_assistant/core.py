@@ -6,18 +6,21 @@ from app.services.schemas import (
 )
 
 logger = setup_logger()
+"""
+Essay Grading Inputs:
+    grade_level: str,
+    point_scale: str,
+    assignment_description: str,
+    rubric_objectives: str,
+    rubric_objectives_file_url: str,
+    rubric_objectives_file_type: str,
+    writing_to_review: str,
+    writing_to_review_file_url: str,
+    writing_to_review_file_type: str,
+    lang: str,
+"""
 
 def executor(
-        grade_level: str,
-        point_scale: str,
-        assignment_description: str,
-        rubric_objectives: str,
-        rubric_objectives_file_url: str,
-        rubric_objectives_file_type: str,
-        writing_to_review: str,
-        writing_to_review_file_url: str,
-        writing_to_review_file_type: str,
-        lang: str,
         user_info: UserInfo,
         messages: list[Message]=None, 
         k=3
@@ -29,7 +32,12 @@ def executor(
         ChatMessage(
             role=message.role, 
             type=message.type, 
-            text=message.payload.text
+            text=(
+                # Symbolic prompt to represent the arguments dictionary for Essay Grading Pipeline. Its only purpose is to maintain comprehensibility of the context string.
+                "Generate essay grading with these arguments: " + str(message.payload.text)
+                if isinstance(message.payload.text, dict) and message.role.value == "system"
+                else message.payload.text
+            )
         ) for message in messages[-k:]
     ]
 
@@ -43,23 +51,9 @@ def executor(
             chat_context_list
         )
     )
-    
-    grading_inputs = {
-        "grade_level": grade_level,
-        "point_scale": point_scale,
-        "assignment_description": assignment_description,
-        "rubric_objectives": rubric_objectives,
-        "rubric_objectives_file_url": rubric_objectives_file_url,
-        "rubric_objectives_file_type": rubric_objectives_file_type,
-        "writing_to_review": writing_to_review,
-        "writing_to_review_file_url": writing_to_review_file_url,
-        "writing_to_review_file_type": writing_to_review_file_type,
-        "lang": lang,
-    }
 
     response = run_essay_grading_assistant(
-        grading_inputs,
-        user_query=chat_context_list[-1].text,
+        user_query=messages[-1].payload.text,
         chat_context=chat_context_string,
         user_info=user_info
     )
