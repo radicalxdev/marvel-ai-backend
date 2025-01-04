@@ -41,7 +41,7 @@ system_message = read_text_file('prompt/essay_grading_assistant_context.txt')
 model = genai.GenerativeModel(model_name='gemini-2.0-flash-exp',
                               system_instruction=system_message,
                               )
-langchain_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp")
+langchain_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
 
 #==============================================CLASS DEFINITIONS==============================================
 # Essay Grading Input
@@ -123,7 +123,7 @@ class EssayGradingGeneratorPipeline:
             partial_variables={"system_message": system_message,
                                "format_instructions": JsonOutputParser(pydantic_object=GradingOutput).get_format_instructions()}
         )
-    
+
         chains = {}
 
         for criterion in self.args.rubric_criteria:
