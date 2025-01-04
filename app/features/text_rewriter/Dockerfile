@@ -1,12 +1,12 @@
-# Use Python 3.12 slim image
-FROM python:3.12-slim
+# Use Python 3.10 slim image
+FROM python:3.10-slim
 
 # Set environment variables for non-interactive installs
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 # Set working directory inside the container
-WORKDIR /app
+WORKDIR /code/app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -24,12 +24,10 @@ RUN pip install --no-cache-dir --upgrade pip \
     && rm -rf /root/.cache
 
 # Copy the application source code into the container
-COPY . .
+COPY . /code/app
 
-# Create and activate a virtual environment
-RUN python3 -m venv /venv \
-    && /venv/bin/pip install --no-cache-dir --upgrade pip \
-    && /venv/bin/pip install --no-cache-dir -r requirements.txt
+# Copy the .env file into the container
+COPY app/features/text_rewriter/text_rewriter.env /code/app/features/text_rewriter/
 
 # Set the virtual environment as the default Python environment
 ENV PATH="/venv/bin:$PATH"
@@ -37,6 +35,5 @@ ENV PATH="/venv/bin:$PATH"
 # Expose the application port
 EXPOSE 8000
 
-# ENTRYPOINT allows you to run uvicorn, but it can be overridden
-ENTRYPOINT ["/venv/bin/uvicorn"]
-
+# Use uvicorn to run the FastAPI app from test_core.py (where the /rewrite-text route is defined)
+ENTRYPOINT ["uvicorn", "app.features.text_rewriter.test_core:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

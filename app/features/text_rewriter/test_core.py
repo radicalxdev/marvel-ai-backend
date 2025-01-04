@@ -1,12 +1,11 @@
 import sys
 import os
-import uvicorn
-
 # Dynamically add the project root to the PYTHONPATH
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
+import uvicorn
 from fastapi import FastAPI, HTTPException
-from app.api.router import router  # Import the router
+from app.features.text_rewriter.router import router 
 from app.features.text_rewriter.core import logger 
 from app.features.text_rewriter.tools import (
     load_metadata,
@@ -29,6 +28,9 @@ app = FastAPI(
     description="FastAPI application for text rewriting.",
     version="2.0.0"
 )
+
+# Include your router with the rewrite_text endpoint
+app.include_router(router)
 
 @app.post("/rewrite-text", response_model=OutputModel)
 async def rewrite_text(data: InputModel):
@@ -53,9 +55,6 @@ async def rewrite_text(data: InputModel):
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
-
-# Include the router
-app.include_router(router)
 
 # Run the app
 if __name__ == "__main__":
