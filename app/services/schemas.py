@@ -132,27 +132,15 @@ class AIResistantArgs(BaseModel):
         ..., description="Language in which the file or content is written"
     )
 
-
 class ConnectWithThemArgs(BaseModel):
-    grade_level: str = Field(
-        ..., description="The grade level the teacher is instructing."
-    )
-    task_description: str = Field(
-        ...,
-        description="A brief description of the subject or topic the teacher is instructing.",
-    )
-    students_description: str = Field(
-        ...,
-        description="A description of the students including age group, interests, location, and any relevant cultural or social factors.",
-    )
-    td_file_url: str
-    td_file_type: str
-    sd_file_url: str
-    sd_file_type: str
-    lang: str = Field(
-        ..., description="The language in which the subject is being taught."
-    )
-
+    grade_level: str = Field(..., description="The grade level the teacher is instructing.")
+    task_description: str = Field(..., description="A brief description of the subject or topic the teacher is instructing.")
+    students_description: str = Field(..., description="A description of the students including age group, interests, location, and any relevant cultural or social factors.")
+    task_description_file_url: str 
+    task_description_file_type: str 
+    student_description_file_url: str
+    student_description_file_type: str
+    lang: str = Field(..., description="The language in which the subject is being taught.")
 
 class PresentationGeneratorInput(BaseModel):
     grade_level: str
