@@ -11,21 +11,8 @@ base_attributes = {
     )
 }
 
-"""
-    "grade_level": None,
-    "point_scale": None,
-    "assignment_description": None,
-    "rubric_objectives": None,
-    "rubric_objectives_file_url": None,
-    "rubric_objectives_file_type": None,
-    "writing_to_review": None,
-    "writing_to_review_file_url": None,
-    "writing_to_review_file_type": None,
-    "lang": None
-"""
-
 #=============================ESSAY GRADING REQUEST TESTS=============================
-def test_executor_grading_valid_rubric_text_writing_to_review_pdf():
+def test_executor_grading_valid_rubric_text_writing_to_review_list(): # pdf, gdoc, xml
     result = executor(
         **base_attributes,
         messages = [
@@ -53,13 +40,27 @@ def test_executor_grading_valid_rubric_text_writing_to_review_pdf():
                     text={
                         "grade_level": "university",
                         "point_scale": 4,
-                        "assignment_description": "",
+                        "assignment_description": "Write an essay on Linear Regression",
                         "rubric_objectives": "Understanding Linear Regression Concept, Clear analysis, evidence and informative examples, Clarity on structure and grammar",
                         "rubric_objectives_file_url": "",
                         "rubric_objectives_file_type": "",
-                        "writing_to_review": "",
-                        "writing_to_review_file_url": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd",
-                        "writing_to_review_file_type": "pdf",
+                        "writing_to_review_list": [
+                            {
+                                "writing_to_review": "",
+                                "writing_to_review_file_url": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd",
+                                "writing_to_review_file_type": "pdf"
+                            },
+                            {
+                                "writing_to_review": "",
+                                "writing_to_review_file_url": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link",
+                                "writing_to_review_file_type": "gdoc"
+                            },
+                            {
+                                "writing_to_review": "",
+                                "writing_to_review_file_url": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml",
+                                "writing_to_review_file_type": "xml"
+                            }
+                        ],
                         "lang": "en"
                     }
                 )
@@ -69,7 +70,243 @@ def test_executor_grading_valid_rubric_text_writing_to_review_pdf():
     assert isinstance(result, dict)
 
 #=============================NON ESSAY GRADING REQUEST TESTS=============================
-def test_executor_summarize_valid():
+test_essay_grading_output_context = """
+                                    {
+                                        "rubric": {
+                                            "title": "Linear Regression Essay Rubric",
+                                            "grade_level": "university",
+                                            "criterias": [
+                                                {
+                                                    "criteria": "Understanding of Linear Regression",
+                                                    "criteria_description": [
+                                                        {
+                                                            "points": "Excellent (4 points)",
+                                                            "description": [
+                                                                "Demonstrates a comprehensive understanding of linear regression, including its assumptions, limitations, and applications.  Accurately explains the concept of correlation and regression, and distinguishes between them.  Provides insightful examples and demonstrates a nuanced understanding of the model's strengths and weaknesses."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Good (3 points)",
+                                                            "description": [
+                                                                "Shows a good understanding of linear regression, but may lack depth in certain areas.  Explains the core concepts reasonably well, with some minor inaccuracies or omissions. Provides relevant examples, but may not fully explore the nuances of the model."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Fair (2 points)",
+                                                            "description": [
+                                                                "Displays a basic understanding of linear regression, but with significant gaps in knowledge.  Explanation of concepts is superficial and may contain several inaccuracies.  Examples provided are limited and lack depth."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Poor (1 point)",
+                                                            "description": [
+                                                                "Demonstrates a limited or inaccurate understanding of linear regression.  Fails to adequately explain key concepts and provides few or irrelevant examples.  Shows a lack of grasp of the fundamental principles."
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "criteria": "Analysis, Evidence, and Examples",
+                                                    "criteria_description": [
+                                                        {
+                                                            "points": "Excellent (4 points)",
+                                                            "description": [
+                                                                "Provides a clear, insightful, and well-supported analysis of linear regression.  Uses strong and relevant evidence to support claims.  Examples are well-chosen, illustrative, and effectively integrated into the analysis.  Demonstrates critical thinking and a sophisticated understanding of the subject matter."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Good (3 points)",
+                                                            "description": [
+                                                                "Offers a good analysis of linear regression, but may lack depth or sophistication in some areas.  Evidence is generally relevant, but could be stronger in certain instances.  Examples are appropriate but may not be as insightful or well-integrated as in a higher-scoring response."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Fair (2 points)",
+                                                            "description": [
+                                                                "Analysis is superficial and lacks depth.  Evidence is weak or insufficient to support claims.  Examples are limited or poorly chosen.  The analysis demonstrates a basic understanding but lacks critical evaluation."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Poor (1 point)",
+                                                            "description": [
+                                                                "Analysis is weak, inaccurate, or largely absent.  Evidence is missing or irrelevant.  Examples are inappropriate or missing entirely.  Demonstrates a significant lack of understanding of how to analyze linear regression."
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "criteria": "Clarity, Structure, and Grammar",
+                                                    "criteria_description": [
+                                                        {
+                                                            "points": "Excellent (4 points)",
+                                                            "description": [
+                                                                "Essay is exceptionally clear, well-structured, and well-written.  The writing is concise, engaging, and free of grammatical errors and stylistic flaws.  The organization is logical and enhances the overall clarity of the essay."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Good (3 points)",
+                                                            "description": [
+                                                                "Essay is generally clear and well-structured, with minor flaws in organization or style.  There may be a few grammatical errors or stylistic inconsistencies, but they do not significantly impede understanding."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Fair (2 points)",
+                                                            "description": [
+                                                                "Essay is somewhat unclear and/or poorly structured.  There are several grammatical errors and stylistic flaws that affect readability and comprehension.  Organization is weak and detracts from the overall clarity."
+                                                            ]
+                                                        },
+                                                        {
+                                                            "points": "Poor (1 point)",
+                                                            "description": [
+                                                                "Essay is unclear, poorly organized, and contains numerous grammatical errors and stylistic flaws that severely impede understanding.  The writing is difficult to follow and lacks coherence."
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ],
+                                            "feedback": "This rubric aligns well with the learning objectives by assessing understanding of linear regression, analytical skills, and writing proficiency.  The four-point scale allows for nuanced evaluation of student work, promoting fair and balanced grading.  Each criterion is clearly defined, and the descriptions for each point level provide specific examples of student performance, ensuring transparency and consistency in grading."
+                                        },
+                                        "essay_grading_output_list": [
+                                            {
+                                                "criteria_grading": [
+                                                    {
+                                                        "criterion": {
+                                                            "criteria": "Understanding of Linear Regression",
+                                                            "criteria_description": [
+                                                                {
+                                                                    "points": "Excellent (4 points)",
+                                                                    "description": [
+                                                                        "Demonstrates a comprehensive understanding of linear regression, including its assumptions, limitations, and applications.  Accurately explains the concept of correlation and regression, and distinguishes between them.  Provides insightful examples and demonstrates a nuanced understanding of the model's strengths and weaknesses."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Good (3 points)",
+                                                                    "description": [
+                                                                        "Shows a good understanding of linear regression, but may lack depth in certain areas.  Explains the core concepts reasonably well, with some minor inaccuracies or omissions. Provides relevant examples, but may not fully explore the nuances of the model."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Fair (2 points)",
+                                                                    "description": [
+                                                                        "Displays a basic understanding of linear regression, but with significant gaps in knowledge.  Explanation of concepts is superficial and may contain several inaccuracies.  Examples provided are limited and lack depth."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Poor (1 point)",
+                                                                    "description": [
+                                                                        "Demonstrates a limited or inaccurate understanding of linear regression.  Fails to adequately explain key concepts and provides few or irrelevant examples.  Shows a lack of grasp of the fundamental principles."
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        "grade": 4,
+                                                        "reasoning": "The provided text demonstrates a comprehensive understanding of linear regression. It accurately explains the core concepts, including the relationship between explanatory and dependent variables, the use of scatterplots to assess relationships, the meaning of the correlation coefficient, and the equation of a linear regression line. The text also delves into important considerations such as the method of least squares, the impact of outliers, the presence of lurking variables, and the dangers of extrapolation. The explanation is clear, concise, and covers all the key aspects of linear regression, indicating a nuanced understanding of the model's strengths and weaknesses."
+                                                    },
+                                                    {
+                                                        "criterion": {
+                                                            "criteria": "Analysis, Evidence, and Examples",
+                                                            "criteria_description": [
+                                                                {
+                                                                    "points": "Excellent (4 points)",
+                                                                    "description": [
+                                                                        "Provides a clear, insightful, and well-supported analysis of linear regression.  Uses strong and relevant evidence to support claims.  Examples are well-chosen, illustrative, and effectively integrated into the analysis.  Demonstrates critical thinking and a sophisticated understanding of the subject matter."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Good (3 points)",
+                                                                    "description": [
+                                                                        "Offers a good analysis of linear regression, but may lack depth or sophistication in some areas.  Evidence is generally relevant, but could be stronger in certain instances.  Examples are appropriate but may not be as insightful or well-integrated as in a higher-scoring response."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Fair (2 points)",
+                                                                    "description": [
+                                                                        "Analysis is superficial and lacks depth.  Evidence is weak or insufficient to support claims.  Examples are limited or poorly chosen.  The analysis demonstrates a basic understanding but lacks critical evaluation."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Poor (1 point)",
+                                                                    "description": [
+                                                                        "Analysis is weak, inaccurate, or largely absent.  Evidence is missing or irrelevant.  Examples are inappropriate or missing entirely.  Demonstrates a significant lack of understanding of how to analyze linear regression."
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        "grade": 2,
+                                                        "reasoning": "The analysis provided is superficial and lacks depth. While the essay touches on key concepts like explanatory and dependent variables, correlation coefficients, and the least-squares method, it doesn't delve into the nuances of these concepts. The essay mentions outliers and lurking variables but doesn't provide a strong analysis of their impact on linear regression. The examples are limited and not well-integrated into the analysis. The essay demonstrates a basic understanding of linear regression but lacks critical evaluation and insightful analysis."
+                                                    },
+                                                    {
+                                                        "criterion": {
+                                                            "criteria": "Clarity, Structure, and Grammar",
+                                                            "criteria_description": [
+                                                                {
+                                                                    "points": "Excellent (4 points)",
+                                                                    "description": [
+                                                                        "Essay is exceptionally clear, well-structured, and well-written.  The writing is concise, engaging, and free of grammatical errors and stylistic flaws.  The organization is logical and enhances the overall clarity of the essay."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Good (3 points)",
+                                                                    "description": [
+                                                                        "Essay is generally clear and well-structured, with minor flaws in organization or style.  There may be a few grammatical errors or stylistic inconsistencies, but they do not significantly impede understanding."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Fair (2 points)",
+                                                                    "description": [
+                                                                        "Essay is somewhat unclear and/or poorly structured.  There are several grammatical errors and stylistic flaws that affect readability and comprehension.  Organization is weak and detracts from the overall clarity."
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "points": "Poor (1 point)",
+                                                                    "description": [
+                                                                        "Essay is unclear, poorly organized, and contains numerous grammatical errors and stylistic flaws that severely impede understanding.  The writing is difficult to follow and lacks coherence."
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        "grade": 3,
+                                                        "reasoning": "The provided text is generally clear and well-structured, presenting information about linear regression, lurking variables, and extrapolation in a logical manner. There are no significant grammatical errors that impede understanding. However, the text is not exceptionally engaging or concise, and it lacks a strong introduction or conclusion that would elevate it to the 'Excellent' category. The organization is good, but it could be improved with more explicit transitions between topics. While the writing is functional, it doesn't demonstrate the stylistic polish expected for a top score."
+                                                    }
+                                                ],
+                                                "feedback": {
+                                                    "title": "Feedback on Your Writing: Write an essay on Linear Regression",
+                                                    "areas_of_strength": {
+                                                        "title": "Areas of Strength",
+                                                        "points": [
+                                                            "Solid Understanding of Core Concepts: The essay demonstrates a strong grasp of fundamental linear regression concepts, including the relationship between variables, scatterplots, correlation coefficients, and the regression equation.  The grader specifically praised the comprehensive explanation of these elements, indicating a clear understanding of the topic.",
+                                                            "Logical Structure and Clarity: The essay presents the information in a logical and organized manner, making it easy to follow the writer's train of thought. The grader noted the clarity and structure as positive aspects, suggesting that the essay effectively communicates its points.",
+                                                            "Correct Grammar and Readability: The writing is free of major grammatical errors, ensuring that the content is easily understandable. The grader highlighted the clarity of the writing, which is crucial for effective communication in an academic setting.",
+                                                            "Inclusion of Key Considerations: The essay goes beyond the basics by addressing important aspects of linear regression such as the least squares method, outliers, lurking variables, and extrapolation.  This demonstrates a broader understanding of the topic and its practical implications."
+                                                        ]
+                                                    },
+                                                    "areas_for_growth": {
+                                                        "title": "Areas for Growth",
+                                                        "points": [
+                                                            "**Content Depth:** While the essay demonstrates a good foundational understanding of linear regression, it needs more depth.  The essay mentions important concepts like outliers, lurking variables, and extrapolation, but it doesn't explore their impact on the model in sufficient detail. For example, instead of just mentioning outliers, discuss how they can skew the regression line and how to address them (e.g., robust regression techniques).  Similarly, provide a more in-depth analysis of how lurking variables can lead to spurious correlations and how to control for them (e.g., multiple regression). Expand on the dangers of extrapolation with concrete examples and explain why predictions outside the range of observed data are unreliable.",
+                                                            "**Clarity and Examples:** The essay would benefit from clearer and more illustrative examples. The current examples are quite general. Instead of just mentioning 'weights of individuals to their heights,' provide a specific, hypothetical dataset and demonstrate how a linear regression model would be applied. This would make the concepts more tangible and easier to understand.  When discussing lurking variables, provide a more compelling example than 'political or economic cycles.'  A more concrete example with hypothetical or real-world data would significantly strengthen the argument.  Similarly, when discussing extrapolation, a concrete example showing the absurdity of extrapolating far beyond the observed data range would be beneficial.",
+                                                            "**Logical Argumentation and Structure:** While the structure is generally logical, the essay lacks a strong introduction and conclusion. The introduction should clearly state the purpose of the essay and provide a brief overview of linear regression. The conclusion should summarize the key points discussed and offer some final insights.  Additionally, stronger transitions between paragraphs would improve the flow and coherence of the essay.  For instance, when transitioning from discussing the basic concepts to the limitations of linear regression, use a transition phrase to signal the shift in focus.  This would make the essay's argumentation more persuasive and easier to follow."
+                                                        ]
+                                                    },
+                                                    "general_feedback": {
+                                                        "title": "Writing Mechanics Feedback",
+                                                        "points": [
+                                                            "While the essay demonstrates a good understanding of linear regression concepts, the writing could be significantly improved.",
+                                                            "The essay lacks a strong introduction and conclusion.  Start with a clear thesis statement outlining the purpose of the essay and end with a summary of key points and takeaways.",
+                                                            "The text is organized logically, but transitions between paragraphs could be smoother. Use transition words and phrases (e.g., 'Furthermore,' 'However,' 'In addition') to connect ideas and improve flow.",
+                                                            "The writing is functional but lacks engagement. Consider using more active voice and stronger verbs to make the writing more dynamic and interesting.",
+                                                            "Although grammatically correct, the writing could be more concise. Avoid redundant phrases and ensure every sentence adds value to the overall explanation.",
+                                                            "While examples are present, they are not fully developed.  Provide more detailed examples and explain how they illustrate the concepts being discussed.",
+                                                            "The essay could benefit from more formal academic language. Avoid informal language or colloquialisms."
+                                                        ]
+                                                    }
+                                                },
+                                                "total_grade": "9 / 12"
+                                            }
+                                        ]
+                                    }
+                                """
+def test_executor_summarize_grading_output_valid():
     result = executor(
         **base_attributes,
         messages = [
@@ -78,7 +315,23 @@ def test_executor_summarize_valid():
                 type=MessageType.text,
                 timestamp="string",
                 payload=MessagePayload(
-                    text="Generate essay grading with these arguments: {'grade_level': 'university', 'point_scale': 4, 'assignment_description': '', 'rubric_objectives': 'Understanding Linear Regression Concept, Clear analysis, evidence and informative examples, Clarity on structure and grammar', 'rubric_objectives_file_url': '', 'rubric_objectives_file_type': '', 'writing_to_review': '', 'writing_to_review_file_url': 'https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd', 'writing_to_review_file_type': 'pdf', 'lang': 'en'}"
+                    text={
+                        "grade_level": "university",
+                        "point_scale": 4,
+                        "assignment_description": "Write an essay on Linear Regression",
+                        "rubric_objectives": "Understanding Linear Regression Concept, Clear analysis, evidence and informative examples, Clarity on structure and grammar",
+                        "rubric_objectives_file_url": "",
+                        "rubric_objectives_file_type": "",
+                        "writing_to_review_list": [
+                            {
+                                "writing_to_review": "",
+                                "writing_to_review_file_url": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd",
+                                "writing_to_review_file_type": "pdf"
+                            }
+                        ],
+                        "lang": "en"
+                    }
+
                 )
             ),
             Message(
@@ -86,142 +339,7 @@ def test_executor_summarize_valid():
                 type=MessageType.text,
                 timestamp=None,
                 payload=MessagePayload(
-                    text="""
-                        {
-                        "criteria_grading": [
-                            {
-                                "criterion": {
-                                    "criteria": "Understanding of Linear Regression Concepts",
-                                    "criteria_description": [
-                                        {
-                                            "points": "Excellent (4 points)",
-                                            "description": [
-                                                "Demonstrates a comprehensive understanding of linear regression concepts, including assumptions, limitations, and interpretations. Accurately explains the relationship between variables and provides insightful interpretations of model outputs."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Good (3 points)",
-                                            "description": [
-                                                "Shows a good understanding of linear regression concepts.  May have minor inaccuracies in explaining relationships or interpreting model outputs.  Demonstrates understanding of key concepts but may lack depth in certain areas."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Fair (2 points)",
-                                            "description": [
-                                                "Displays a basic understanding of linear regression concepts but shows significant gaps in knowledge.  Explanations of relationships and interpretations of model outputs are superficial or contain several inaccuracies."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Poor (1 point)",
-                                            "description": [
-                                                "Demonstrates a limited or inaccurate understanding of linear regression concepts.  Unable to adequately explain relationships between variables or interpret model outputs.  Significant misconceptions are present."
-                                            ]
-                                        }
-                                    ]
-                                },
-                                "grade": 3,
-                                "reasoning": "The writing demonstrates a good understanding of linear regression concepts by explaining that it models the relationship between two variables using a linear equation, identifying explanatory and dependent variables, and mentioning the importance of determining a relationship before fitting the model. It also correctly notes that correlation does not equal causation and suggests using a scatterplot to check the strength of a relationship. The writing also touches on lurking variables and the dangers of extrapolation, showing a broader understanding of the limitations. However, while it touches on key concepts, it lacks depth in areas like specific assumptions of linear regression (linearity, independence, homoscedasticity, normality of residuals) and detailed interpretation of model outputs (like R-squared, p-values, coefficients). Therefore, it does not fully meet the criteria for 'Excellent' but exceeds 'Fair' and is rated as 'Good'."
-                            },
-                            {
-                                "criterion": {
-                                    "criteria": "Analysis, Evidence, and Examples",
-                                    "criteria_description": [
-                                        {
-                                            "points": "Excellent (4 points)",
-                                            "description": [
-                                                "Analysis is thorough, insightful, and supported by strong evidence and relevant, informative examples.  Clearly demonstrates critical thinking and a deep understanding of the data."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Good (3 points)",
-                                            "description": [
-                                                "Analysis is generally sound and well-supported by evidence.  Examples are relevant but may lack depth or sophistication.  Shows a good understanding of the data but could be more insightful."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Fair (2 points)",
-                                            "description": [
-                                                "Analysis is superficial and lacks sufficient evidence or relevant examples.  Conclusions are weakly supported or may be inaccurate.  Shows limited understanding of the data."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Poor (1 point)",
-                                            "description": [
-                                                "Analysis is missing, flawed, or unsupported by evidence.  Examples are irrelevant or absent.  Demonstrates a lack of understanding of the data and analytical skills."
-                                            ]
-                                        }
-                                    ]
-                                },
-                                "grade": 3,
-                                "reasoning": "The analysis is generally sound, explaining the purpose of linear regression and the importance of identifying a relationship between variables before modeling. The examples given, such as relating weights to heights and mentioning the use of scatterplots, are relevant. However, the analysis could be more insightful. The text does not delve into the nuances of how these examples relate to the data or explore the limitations of linear regression, such as lurking variables or extrapolation, which are mentioned later in the document but not explicitly connected to the initial analysis. While the text demonstrates a good understanding, it doesn't reach the depth and critical thinking required for an excellent rating."
-                            },
-                            {
-                                "criterion": {
-                                    "criteria": "Clarity, Structure, and Grammar",
-                                    "criteria_description": [
-                                        {
-                                            "points": "Excellent (4 points)",
-                                            "description": [
-                                                "Writing is exceptionally clear, concise, and well-organized.  Grammar and mechanics are flawless.  The analysis is easy to follow and understand."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Good (3 points)",
-                                            "description": [
-                                                "Writing is clear and well-organized.  Minor grammatical errors or stylistic issues may be present but do not impede understanding."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Fair (2 points)",
-                                            "description": [
-                                                "Writing is understandable but lacks clarity or organization in places.  Several grammatical errors or stylistic issues affect readability."
-                                            ]
-                                        },
-                                        {
-                                            "points": "Poor (1 point)",
-                                            "description": [
-                                                "Writing is unclear, disorganized, and contains numerous grammatical errors that significantly impair understanding."
-                                            ]
-                                        }
-                                    ]
-                                },
-                                "grade": 4,
-                                "reasoning": "The writing is exceptionally clear, concise, and well-organized. Grammar and mechanics are flawless. The analysis is easy to follow and understand. The text provides a clear and logical explanation of linear regression, lurking variables, and extrapolation. The structure is coherent, with each topic presented in a way that builds understanding. There are no grammatical errors or stylistic issues that impede understanding."
-                            }
-                        ],
-                        "feedback": {
-                            "title": "Feedback on Your Writing: ",
-                            "areas_of_strength": {
-                                "title": "Areas of Strength",
-                                "points": [
-                                    "**Clear and Concise Explanation:** The writing provides a clear and concise explanation of the fundamental concepts of linear regression, making it easy for the reader to grasp the core ideas.",
-                                    "**Well-Organized Structure:** The text follows a logical structure, starting with the basic definition of linear regression and progressing to more nuanced concepts like correlation vs. causation and the importance of checking for relationships. This organization enhances readability and understanding.",
-                                    "**Effective Use of Examples:**  The use of examples, such as relating weight to height and mentioning SAT scores and college grades, helps to illustrate the concepts and make them more relatable.",
-                                    "**Strong Grammar and Mechanics:** The writing is free of grammatical errors and stylistic issues, which contributes to clarity and professionalism.",
-                                    "**Highlights Key Considerations:** The writing appropriately emphasizes the importance of determining a relationship between variables before fitting a model and cautions against assuming correlation implies causation."
-                                ]
-                            },
-                            "areas_for_growth": {
-                                "title": "Areas for Growth",
-                                "points": [
-                                    "**Content Depth:** While the writing demonstrates a good foundational understanding of linear regression, it needs more depth.  Specifically, it should elaborate on the assumptions underlying linear regression.  These include linearity (the relationship between variables is linear), independence (observations are independent of each other), homoscedasticity (constant variance of errors), and normality of residuals (errors are normally distributed).  Explaining these assumptions and their importance in ensuring the validity of the model would strengthen the writing significantly.  Additionally, the writing should delve deeper into the interpretation of model outputs.  While it mentions correlation and scatterplots, it omits important metrics like R-squared (which measures the goodness of fit), p-values (which assess the statistical significance of the coefficients), and the interpretation of the regression coefficients themselves.  Including these would demonstrate a more comprehensive understanding.",
-                                    "**Clarity and Logical Argumentation:** The writing could improve the connection between concepts. For example, while lurking variables and extrapolation are mentioned, they are presented somewhat in isolation. The writing would benefit from explicitly linking these concepts back to the initial discussion of linear regression, illustrating how these factors can influence the interpretation and reliability of the model.  Provide clearer examples of how lurking variables might affect the relationship between the independent and dependent variables and demonstrate how extrapolation beyond the observed data range can lead to unreliable predictions.  Stronger examples would bolster the logical flow and clarity of the argument.",
-                                    "**Data Analysis and Application:**  Although the provided writing doesn't include any specific datasets, a university-level discussion of linear regression should demonstrate the application of these concepts to data.  Future iterations should include examples of how linear regression is used to analyze data, interpret results, and draw conclusions.  This could involve discussing specific case studies or hypothetical scenarios, showcasing how the choice of variables, interpretation of model outputs, and consideration of limitations play out in practice."
-                                ]
-                            },
-                            "general_feedback": {
-                                "title": "Writing Mechanics Feedback",
-                                "points": [
-                                    "The writing demonstrates excellent clarity, conciseness, and organization.",
-                                    "Grammar and mechanics are flawless, contributing to the overall readability.",
-                                    "Sentences are well-structured and easy to follow.",
-                                    "The logical flow of ideas enhances comprehension."
-                                ]
-                            }
-                        },
-                        "total_grade": "10 / 12"
-                    }
-                    """
+                    text=test_essay_grading_output_context
                 )
             ),
             Message(
@@ -236,7 +354,7 @@ def test_executor_summarize_valid():
     )
     assert isinstance(result, str)
 
-def test_executor_summarize_invalid():
+def test_executor_summarize_grading_output_invalid():
     with pytest.raises(TypeError) as exc_info:
         executor(
             messages=[
@@ -245,7 +363,22 @@ def test_executor_summarize_invalid():
                     "type":"text",
                     "timestamp":"string",
                     "payload":{
-                    "text":"Generate essay grading with these arguments: {'grade_level': 'university', 'point_scale': 4, 'assignment_description': '', 'rubric_objectives': 'Understanding Linear Regression Concept, Clear analysis, evidence and informative examples, Clarity on structure and grammar', 'rubric_objectives_file_url': '', 'rubric_objectives_file_type': '', 'writing_to_review': '', 'writing_to_review_file_url': 'https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd', 'writing_to_review_file_type': 'pdf', 'lang': 'en'}"
+                        "text":{
+                            "grade_level": "university",
+                            "point_scale": 4,
+                            "assignment_description": "Write an essay on Linear Regression",
+                            "rubric_objectives": "Understanding Linear Regression Concept, Clear analysis, evidence and informative examples, Clarity on structure and grammar",
+                            "rubric_objectives_file_url": "",
+                            "rubric_objectives_file_type": "",
+                            "writing_to_review_list": [
+                                {
+                                    "writing_to_review": "",
+                                    "writing_to_review_file_url": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd",
+                                    "writing_to_review_file_type": "pdf"
+                                }
+                            ],
+                            "lang": "en"
+                        }
                     }
                 },
                 {
@@ -253,7 +386,7 @@ def test_executor_summarize_invalid():
                     "type":"text",
                     "timestamp":None,
                     "payload":{
-                    "text":"""{'criteria_grading': [{'criterion': {'criteria': 'Understanding of Linear Regression Concepts', 'criteria_description': [{'points': 'Excellent (4 points)', 'description': ['Demonstrates a comprehensive understanding of linear regression concepts, including assumptions, limitations, and interpretations. Accurately explains the relationship between variables and provides insightful interpretations of model outputs.']}, {'points': 'Good (3 points)', 'description': ['Shows a good understanding of linear regression concepts.  May have minor inaccuracies in explaining relationships or interpreting model outputs.  Demonstrates understanding of key concepts but may lack depth in certain areas.']}, {'points': 'Fair (2 points)', 'description': ['Displays a basic understanding of linear regression concepts but shows significant gaps in knowledge.  Explanations of relationships and interpretations of model outputs are superficial or contain several inaccuracies.']}, {'points': 'Poor (1 point)', 'description': ['Demonstrates a limited or inaccurate understanding of linear regression concepts.  Unable to adequately explain relationships between variables or interpret model outputs.  Significant misconceptions are present.']}]}, 'grade': 3, 'reasoning': "The writing demonstrates a good understanding of linear regression concepts by explaining that it models the relationship between two variables using a linear equation, identifying explanatory and dependent variables, and mentioning the importance of determining a relationship before fitting the model. It also correctly notes that correlation does not equal causation and suggests using a scatterplot to check the strength of a relationship. The writing also touches on lurking variables and the dangers of extrapolation, showing a broader understanding of the limitations. However, while it touches on key concepts, it lacks depth in areas like specific assumptions of linear regression (linearity, independence, homoscedasticity, normality of residuals) and detailed interpretation of model outputs (like R-squared, p-values, coefficients). Therefore, it does not fully meet the criteria for 'Excellent' but exceeds 'Fair' and is rated as 'Good'."}, {'criterion': {'criteria': 'Analysis, Evidence, and Examples', 'criteria_description': [{'points': 'Excellent (4 points)', 'description': ['Analysis is thorough, insightful, and supported by strong evidence and relevant, informative examples.  Clearly demonstrates critical thinking and a deep understanding of the data.']}, {'points': 'Good (3 points)', 'description': ['Analysis is generally sound and well-supported by evidence.  Examples are relevant but may lack depth or sophistication.  Shows a good understanding of the data but could be more insightful.']}, {'points': 'Fair (2 points)', 'description': ['Analysis is superficial and lacks sufficient evidence or relevant examples.  Conclusions are weakly supported or may be inaccurate.  Shows limited understanding of the data.']}, {'points': 'Poor (1 point)', 'description': ['Analysis is missing, flawed, or unsupported by evidence.  Examples are irrelevant or absent.  Demonstrates a lack of understanding of the data and analytical skills.']}]}, 'grade': 3, 'reasoning': "The analysis is generally sound, explaining the purpose of linear regression and the importance of identifying a relationship between variables before modeling. The examples given, such as relating weights to heights and mentioning the use of scatterplots, are relevant. However, the analysis could be more insightful. The text does not delve into the nuances of how these examples relate to the data or explore the limitations of linear regression, such as lurking variables or extrapolation, which are mentioned later in the document but not explicitly connected to the initial analysis. While the text demonstrates a good understanding, it doesn't reach the depth and critical thinking required for an excellent rating."}, {'criterion': {'criteria': 'Clarity, Structure, and Grammar', 'criteria_description': [{'points': 'Excellent (4 points)', 'description': ['Writing is exceptionally clear, concise, and well-organized.  Grammar and mechanics are flawless.  The analysis is easy to follow and understand.']}, {'points': 'Good (3 points)', 'description': ['Writing is clear and well-organized.  Minor grammatical errors or stylistic issues may be present but do not impede understanding.']}, {'points': 'Fair (2 points)', 'description': ['Writing is understandable but lacks clarity or organization in places.  Several grammatical errors or stylistic issues affect readability.']}, {'points': 'Poor (1 point)', 'description': ['Writing is unclear, disorganized, and contains numerous grammatical errors that significantly impair understanding.']}]}, 'grade': 4, 'reasoning': 'The writing is exceptionally clear, concise, and well-organized. Grammar and mechanics are flawless. The analysis is easy to follow and understand. The text provides a clear and logical explanation of linear regression, lurking variables, and extrapolation. The structure is coherent, with each topic presented in a way that builds understanding. There are no grammatical errors or stylistic issues that impede understanding.'}], 'feedback': {'title': 'Feedback on Your Writing: ', 'areas_of_strength': {'title': 'Areas of Strength', 'points': ['**Clear and Concise Explanation:** The writing provides a clear and concise explanation of the fundamental concepts of linear regression, making it easy for the reader to grasp the core ideas.', '**Well-Organized Structure:** The text follows a logical structure, starting with the basic definition of linear regression and progressing to more nuanced concepts like correlation vs. causation and the importance of checking for relationships. This organization enhances readability and understanding.', '**Effective Use of Examples:**  The use of examples, such as relating weight to height and mentioning SAT scores and college grades, helps to illustrate the concepts and make them more relatable.', '**Strong Grammar and Mechanics:** The writing is free of grammatical errors and stylistic issues, which contributes to clarity and professionalism.', '**Highlights Key Considerations:** The writing appropriately emphasizes the importance of determining a relationship between variables before fitting a model and cautions against assuming correlation implies causation.']}, 'areas_for_growth': {'title': 'Areas for Growth', 'points': ['**Content Depth:** While the writing demonstrates a good foundational understanding of linear regression, it needs more depth.  Specifically, it should elaborate on the assumptions underlying linear regression.  These include linearity (the relationship between variables is linear), independence (observations are independent of each other), homoscedasticity (constant variance of errors), and normality of residuals (errors are normally distributed).  Explaining these assumptions and their importance in ensuring the validity of the model would strengthen the writing significantly.  Additionally, the writing should delve deeper into the interpretation of model outputs.  While it mentions correlation and scatterplots, it omits important metrics like R-squared (which measures the goodness of fit), p-values (which assess the statistical significance of the coefficients), and the interpretation of the regression coefficients themselves.  Including these would demonstrate a more comprehensive understanding.', '**Clarity and Logical Argumentation:** The writing could improve the connection between concepts. For example, while lurking variables and extrapolation are mentioned, they are presented somewhat in isolation. The writing would benefit from explicitly linking these concepts back to the initial discussion of linear regression, illustrating how these factors can influence the interpretation and reliability of the model.  Provide clearer examples of how lurking variables might affect the relationship between the independent and dependent variables and demonstrate how extrapolation beyond the observed data range can lead to unreliable predictions.  Stronger examples would bolster the logical flow and clarity of the argument.', "**Data Analysis and Application:**  Although the provided writing doesn't include any specific datasets, a university-level discussion of linear regression should demonstrate the application of these concepts to data.  Future iterations should include examples of how linear regression is used to analyze data, interpret results, and draw conclusions.  This could involve discussing specific case studies or hypothetical scenarios, showcasing how the choice of variables, interpretation of model outputs, and consideration of limitations play out in practice."]}, 'general_feedback': {'title': 'Writing Mechanics Feedback', 'points': ['The writing demonstrates excellent clarity, conciseness, and organization.', 'Grammar and mechanics are flawless, contributing to the overall readability.', 'Sentences are well-structured and easy to follow.', 'The logical flow of ideas enhances comprehension.']}}, 'total_grade': '10 / 12'}"""
+                        "text":test_essay_grading_output_context
                     }
                 },
                 {
@@ -261,7 +394,7 @@ def test_executor_summarize_invalid():
                     "type":"text",
                     "timestamp":"string",
                     "payload":{
-                    "text":"Please, summarize the essay grading and feedback."
+                        "text":"Please, summarize the essay grading and feedback."
                     }
                 }
             ]
