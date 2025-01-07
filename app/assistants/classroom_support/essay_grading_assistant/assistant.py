@@ -4,6 +4,7 @@ from app.utils.document_loaders import get_docs
 from app.services.assistant_registry import UserInfo
 from app.services.logger import setup_logger
 from app.api.error_utilities import LoaderError, ToolExecutorError
+from concurrent.futures import ThreadPoolExecutor
 
 from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate
@@ -15,6 +16,7 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import google.generativeai as genai
 
 from app.tools.rubric_generator.core import executor as rubric_generator_executor
+from app.tools.rubric_generator.tools import RubricOutput
 from app.tools.rubric_generator.tools import RubricCriteria as RubricCriterion  # Naming vexation. Please dont mind it too much
 from app.tools.writing_feedback_generator.core import executor as feedback_generator_executor
 from app.tools.writing_feedback_generator.tools import WritingFeedback
@@ -33,7 +35,7 @@ def read_text_file(file_path):
 
     # Combine the script directory with the relative file path
     absolute_file_path = os.path.join(script_dir, file_path)
-    
+
     with open(absolute_file_path, 'r') as file:
         return file.read()
 
@@ -43,8 +45,13 @@ model = genai.GenerativeModel(model_name='gemini-2.0-flash-exp',
                               )
 langchain_model = ChatGoogleGenerativeAI(model="gemini-2.0-flash-exp", temperature=0)
 
-#==============================================CLASS DEFINITIONS==============================================
+#==============================================MODEL DEFINITIONS==============================================
 # Essay Grading Input
+class WritingToReviewItem(BaseModel):
+    writing_to_review: str
+    writing_to_review_file_url: str
+    writing_to_review_file_type: str
+
 class EssayGradingGeneratorArgs(BaseModel):
     grade_level: str
     point_scale: str
@@ -52,9 +59,7 @@ class EssayGradingGeneratorArgs(BaseModel):
     rubric_objectives: str
     rubric_objectives_file_url: str
     rubric_objectives_file_type: str
-    writing_to_review: str
-    writing_to_review_file_url: str
-    writing_to_review_file_type: str
+    writing_to_review_list: List[WritingToReviewItem]
     lang: str
 
 # Essay Grading Pipeline Output
@@ -72,6 +77,11 @@ class EssayGradingOutput(BaseModel):
     criteria_grading: List[CriterionGrading]
     feedback: WritingFeedback
     total_grade: str
+
+# List of Essay Grading Final Output for batch output of essays
+class EssayGradingResult(BaseModel):
+    rubric: RubricOutput
+    essay_grading_output_list: List[EssayGradingOutput]
 
 #==============================================GENERATOR PIPELINES==============================================
 #-------------------------------------------GENERATE GRADING-------------------------------------------
@@ -157,7 +167,7 @@ class EssayGradingGeneratorPipeline:
     def generate_context(self, query: str) -> str:
         return self.retriever.invoke(query)
 
-    def generate_essay_grading(self, documents: Optional[List[Document]] = None):
+    def essay_grading_generator(self, documents: Optional[List[Document]] = None):
         if documents:
             self.compile_vectorstore(documents)
         
@@ -224,7 +234,7 @@ def generate_grading(grade_level: str,
             lang=lang
         )
 
-        grading_output = EssayGradingGeneratorPipeline(args=essay_grading_generator_args).generate_essay_grading(docs)
+        grading_output = EssayGradingGeneratorPipeline(args=essay_grading_generator_args).essay_grading_generator(docs)
 
         logger.info(f"(Essay Grading Assistant) (Generate Grading) Essay Grading generated successfully.")
 
@@ -270,7 +280,7 @@ def generate_rubric(grade_level: str,
         logger.error(error_message)
         raise ValueError(error_message)
 
-    return rubric_output["criterias"]
+    return rubric_output
 
 #-------------------------------------------GENERATE FEEDBACK-------------------------------------------
 def generate_feedback(grade_level: str,
@@ -321,46 +331,90 @@ def generate_feedback(grade_level: str,
     return generated_feedback
 
 #==============================================RESPONSE FOR ESSAY GRADING==============================================
+def generate_grading_and_feedback(grade_level: str,
+                                    point_scale: str,
+                                    assignment_description: str,
+                                    writing_to_review_item: WritingToReviewItem,
+                                    lang: str,
+                                    rubric_criteria: List[RubricCriterion]):
+
+    grading = generate_grading(grade_level=grade_level,
+                                point_scale=point_scale,
+                                assignment_description=assignment_description,
+                                writing_to_review=writing_to_review_item["writing_to_review"],
+                                writing_to_review_file_url=writing_to_review_item["writing_to_review_file_url"],
+                                writing_to_review_file_type=writing_to_review_item["writing_to_review_file_type"],
+                                lang=lang,
+                                rubric_criteria=rubric_criteria)
+    
+    feedback = generate_feedback(grade_level=grade_level,
+                                assignment_description=assignment_description,
+                                writing_to_review=writing_to_review_item["writing_to_review"],
+                                writing_to_review_file_url=writing_to_review_item["writing_to_review_file_url"],
+                                writing_to_review_file_type=writing_to_review_item["writing_to_review_file_type"],
+                                lang=lang,
+                                grading_output=grading)
+    
+    return EssayGradingOutput(
+                criteria_grading=grading.criteria_grading,
+                feedback=feedback,
+                total_grade=grading.total_grade,
+            )
+
+
 def run_essay_grading_assistant_essay_grading(grade_level: str,
                                             point_scale: str,
                                             assignment_description: str,
                                             rubric_objectives: str,
                                             rubric_objectives_file_url: str,
                                             rubric_objectives_file_type: str,
-                                            writing_to_review: str,
-                                            writing_to_review_file_url: str,
-                                            writing_to_review_file_type: str,
+                                            writing_to_review_list: List[WritingToReviewItem],
+                                            #writing_to_review_file_url: str,
+                                            #writing_to_review_file_type: str,
                                             lang: str,):
-    base_args = {
-        "grade_level": grade_level,
-        "point_scale": point_scale,
-        "assignment_description": assignment_description,
-        "lang": lang
-    }
-    rubric = generate_rubric(**base_args,
-                                objectives=rubric_objectives,
-                                objectives_file_url=rubric_objectives_file_url,
-                                objectives_file_type=rubric_objectives_file_type,)
-    
-    # To be implemented: Multiple essay submission: Loop generate grading
-    grading = generate_grading(**base_args,
-                                writing_to_review=writing_to_review,
-                                writing_to_review_file_url=writing_to_review_file_url,
-                                writing_to_review_file_type=writing_to_review_file_type,
-                                rubric_criteria=rubric)
-    
-    feedback = generate_feedback(grade_level=grade_level,
-                                assignment_description=assignment_description,
-                                writing_to_review=writing_to_review,
-                                writing_to_review_file_url=writing_to_review_file_url,
-                                writing_to_review_file_type=writing_to_review_file_type,
-                                lang=lang,
-                                grading_output=grading)
-    return EssayGradingOutput(
-                criteria_grading=grading.criteria_grading,
-                feedback=feedback,
-                total_grade=grading.total_grade
-            ).model_dump()
+    rubric_output = generate_rubric(grade_level=grade_level,
+                                    point_scale=point_scale,
+                                    objectives=rubric_objectives,
+                                    assignment_description=assignment_description,
+                                    objectives_file_url=rubric_objectives_file_url,
+                                    objectives_file_type=rubric_objectives_file_type,
+                                    lang=lang)
+    rubric_criteria = rubric_output["criterias"]
+
+    essay_grading_list: List[EssayGradingOutput] = []
+
+    batch_size = 10
+    def chunk_list(data_list, chunk_size):
+        for i in range(0, len(data_list), chunk_size):
+            yield data_list[i:i + chunk_size]
+
+    for batch in chunk_list(writing_to_review_list, batch_size):
+        with ThreadPoolExecutor(max_workers=batch_size) as executor:
+            futures = [
+                executor.submit(
+                    generate_grading_and_feedback,
+                    grade_level,
+                    point_scale,
+                    assignment_description,
+                    writing_to_review_item,
+                    lang,
+                    rubric_criteria
+                )
+                for writing_to_review_item in batch
+            ]
+
+            for future in futures:
+                try:
+                    result = future.result()
+                    essay_grading_list.append(result)
+                except Exception as e:
+                    error_message = f"(Essay Grading Assistant) (Batch Generate Grading and Feedback) Error batch processing of writing_to_review_item: {e}"
+                    logger.error(error_message)
+                    raise ValueError(error_message)
+
+    return EssayGradingResult(
+                rubric=rubric_output,
+                essay_grading_output_list=essay_grading_list).model_dump()
 
 #==============================================RESPONSE FOR BASIC QUERY==============================================
 def run_essay_grading_assistant_basic_query(user_query: str, chat_context: str, user_info: UserInfo):
@@ -377,7 +431,7 @@ def run_essay_grading_assistant_basic_query(user_query: str, chat_context: str, 
                                 """)
 
     return response.text
-    
+
 #==============================================ENTRY POINT FOR ESSAY GRADING ASSISTANT==============================================
 def run_essay_grading_assistant(
                     user_query: str,
@@ -385,10 +439,10 @@ def run_essay_grading_assistant(
                     user_info: UserInfo):
     # If provided args for essay grading generation
     if isinstance(user_query, dict):
-        required_args = set(EssayGradingGeneratorArgs.__annotations__.keys())
-        args_in_query = set(user_query.keys())
-        missing_fields = required_args - args_in_query
-        if not missing_fields:
+        required_args = EssayGradingGeneratorArgs.__annotations__.keys()
+        args_in_query = user_query.keys()
+        missing_args = [arg for arg in required_args if arg not in args_in_query]
+        if not missing_args:
             return run_essay_grading_assistant_essay_grading(**user_query)
     # else, only generate result for user query
     return run_essay_grading_assistant_basic_query(user_query=user_query, chat_context=chat_context, user_info=user_info)
