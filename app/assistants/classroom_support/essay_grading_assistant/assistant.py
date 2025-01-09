@@ -74,6 +74,7 @@ class GradingOutput(BaseModel):
 
 # Essay Grading Final Output
 class EssayGradingOutput(BaseModel):
+    writing_to_review_item: WritingToReviewItem
     criteria_grading: List[CriterionGrading]
     feedback: WritingFeedback
     total_grade: str
@@ -356,6 +357,7 @@ def generate_grading_and_feedback(grade_level: str,
                                 grading_output=grading)
     
     return EssayGradingOutput(
+                writing_to_review_item=writing_to_review_item,
                 criteria_grading=grading.criteria_grading,
                 feedback=feedback,
                 total_grade=grading.total_grade,
