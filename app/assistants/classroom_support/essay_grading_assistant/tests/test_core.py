@@ -1,6 +1,7 @@
 import pytest
 
 from app.assistants.classroom_support.essay_grading_assistant.core import executor
+from pydantic import ValidationError
 from app.services.assistant_registry import Message, MessagePayload, MessageType, Role, UserInfo
 
 base_attributes = {
@@ -12,7 +13,7 @@ base_attributes = {
 }
 
 #=============================ESSAY GRADING REQUEST TESTS=============================
-def test_executor_grading_valid_rubric_text_writing_to_review_list(): # pdf, gdoc, xml
+def test_executor_grading_rubric_text_writing_to_review_list_valid(): # pdf, gdoc, xml
     result = executor(
         **base_attributes,
         messages = [
@@ -33,7 +34,7 @@ def test_executor_grading_valid_rubric_text_writing_to_review_list(): # pdf, gdo
                 )
             ),
             Message(
-                role=Role.system,
+                role=Role.human,
                 type=MessageType.text,
                 timestamp="string",
                 payload=MessagePayload(
@@ -68,6 +69,61 @@ def test_executor_grading_valid_rubric_text_writing_to_review_list(): # pdf, gdo
         ]
     )
     assert isinstance(result, dict)
+
+def test_executor_grading_rubric_text_writing_to_review_list_essay_grading_args_invalid(): # Invalid arguments for essay grading pipeline
+    with pytest.raises(ValidationError) as exc_info:
+        executor(
+            **base_attributes,
+            messages = [
+                Message(
+                    role=Role.human,
+                    type=MessageType.text,
+                    timestamp="string",
+                    payload=MessagePayload(
+                        text="Hi"
+                    )
+                ),
+                Message(
+                    role=Role.ai,
+                    type=MessageType.text,
+                    timestamp="string",
+                    payload=MessagePayload(
+                        text="Hello Aaron, it's great to connect with you! As a Senior AI Engineer, you're likely juggling a lot of complex tasks. I'm here to help make your work a bit easier by assisting with essay grading. Just let me know how I can be of service today.\n"
+                    )
+                ),
+                Message(
+                    role=Role.human,
+                    type=MessageType.text,
+                    timestamp="string",
+                    payload=MessagePayload(
+                        text={
+                            "rubric_objectives": "Understanding Linear Regression Concept, Clear analysis, evidence and informative examples, Clarity on structure and grammar",
+                            "rubric_objectives_file_url": "",
+                            "rubric_objectives_file_type": "",
+                            "writing_to_review_list": [
+                                {
+                                    "writing_to_review": "",
+                                    "writing_to_review_file_url": "https://firebasestorage.googleapis.com/v0/b/kai-ai-f63c8.appspot.com/o/uploads%2F510f946e-823f-42d7-b95d-d16925293946-Linear%20Regression%20Stat%20Yale.pdf?alt=media&token=caea86aa-c06b-4cde-9fd0-42962eb72ddd",
+                                    "writing_to_review_file_type": "pdf"
+                                },
+                                {
+                                    "writing_to_review": "",
+                                    "writing_to_review_file_url": "https://docs.google.com/document/d/1DkOTKlHnZC6Us2N-ZHgECsQezYoB49af/edit?usp=drive_link",
+                                    "writing_to_review_file_type": "gdoc"
+                                },
+                                {
+                                    "writing_to_review": "",
+                                    "writing_to_review_file_url": "https://raw.githubusercontent.com/AaronSosaRamos/mission-flights/main/files-for-test/sample.xml",
+                                    "writing_to_review_file_type": "xml"
+                                }
+                            ],
+                            "lang": "en"
+                        }
+                    )
+                )
+            ]
+        )
+    assert isinstance(exc_info.value, ValidationError)
 
 #=============================NON ESSAY GRADING REQUEST TESTS=============================
 test_essay_grading_output_context = """
@@ -311,7 +367,7 @@ def test_executor_summarize_grading_output_valid():
         **base_attributes,
         messages = [
             Message(
-                role=Role.system,
+                role=Role.human,
                 type=MessageType.text,
                 timestamp="string",
                 payload=MessagePayload(
@@ -359,7 +415,7 @@ def test_executor_summarize_grading_output_invalid():
         executor(
             messages=[
                 {
-                    "role":"system",
+                    "role":"human",
                     "type":"text",
                     "timestamp":"string",
                     "payload":{

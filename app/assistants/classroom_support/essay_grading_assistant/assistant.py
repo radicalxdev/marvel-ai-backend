@@ -57,7 +57,7 @@ class WritingToReviewItem(BaseModel):
 
 class EssayGradingGeneratorArgs(BaseModel):
     grade_level: str
-    point_scale: str
+    point_scale: int
     assignment_description: str
     rubric_objectives: str
     rubric_objectives_file_url: str
@@ -444,11 +444,7 @@ def run_essay_grading_assistant(
                     chat_context: str,
                     user_info: UserInfo):
     # If provided args for essay grading generation
-    if isinstance(user_query, dict):
-        required_args = EssayGradingGeneratorArgs.__annotations__.keys()
-        args_in_query = user_query.keys()
-        missing_args = [arg for arg in required_args if arg not in args_in_query]
-        if not missing_args:
-            return run_essay_grading_assistant_essay_grading(**user_query)
+    if isinstance(user_query, EssayGradingGeneratorArgs):
+        return run_essay_grading_assistant_essay_grading(**user_query.model_dump())
     # else, only generate result for user query
     return run_essay_grading_assistant_basic_query(user_query=user_query, chat_context=chat_context, user_info=user_info)
