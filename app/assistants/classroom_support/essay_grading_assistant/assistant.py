@@ -1,3 +1,5 @@
+import chromadb.api
+import chromadb.api.client
 from pydantic import BaseModel, Field
 from typing import List, Literal, Optional
 from app.utils.document_loaders import get_docs
@@ -11,6 +13,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.runnables import RunnableParallel
 from langchain_chroma import Chroma
+import chromadb
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import google.generativeai as genai
@@ -145,6 +148,7 @@ class EssayGradingGeneratorPipeline:
 
             if (self.vectorstore):
                 context = self.generate_context(f"Provide context for grading this assignment using this criterion: {criterion}")
+                chromadb.api.client.SharedSystemClient.clear_system_cache()
             else:
                 context = ""
 
