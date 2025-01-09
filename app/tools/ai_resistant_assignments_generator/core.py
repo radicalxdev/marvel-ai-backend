@@ -1,5 +1,5 @@
 from app.utils.document_loaders import get_docs
-from app.tools.ai_resistant_assignment_generator.tools import AIResistantAssignmentGenerator
+from app.tools.ai_resistant_assignments_generator.tools import AIResistantAssignmentGenerator
 from app.services.schemas import AIResistantArgs
 from app.services.logger import setup_logger
 from app.api.error_utilities import LoaderError, ToolExecutorError

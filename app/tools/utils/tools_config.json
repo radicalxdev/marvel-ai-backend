@@ -12,14 +12,20 @@
         "metadata_file": "metadata.json"
     },
     "ai-resistant-assignments-generator": {
-        "path": "tools.ai_resistant_assignment_generator.core",
-        "metadata_file": "metadata.json"
+        "path": "tools.ai_resistant_assignments_generator.core",
+        "metadata_file": "metadata.json",
+        "tests_folder": "tests",
+        "available_tests": [
+            "functional_tests.py",
+            "integration_tests.py",
+            "unit_tests.py"
+          ]
     },
     "syllabus-generator": {
         "path": "tools.syllabus_generator.core",
         "metadata_file": "metadata.json"
     },
-    "lesson-generator": {
+    "lesson-plan-generator": {
         "path": "tools.lesson_plan_generator.core",
         "metadata_file": "metadata.json"
     },

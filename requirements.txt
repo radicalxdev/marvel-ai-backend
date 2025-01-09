@@ -30,6 +30,7 @@ openpyxl
 gdown
 
 pytest
+pytest-mock
 PyPDF2
 python-dotenv
 psutil
