@@ -7,7 +7,8 @@ from app.tools.notes_generator.core import executor
 # PYTHONPATH=./ pytest app/tools/notes_generator/tests/test_core.py
 
 base_attributes = {
-    "focus_topic": "Plant Growth",
+    "topic": "Plant Growth",
+    "page_layout": "single",
     "lang": "en"
 }
 
@@ -43,11 +44,11 @@ def mock_chain_and_loader(mocker):
 
 
 
-def test_executor_text_content_valid(mock_chain_and_loader):
-    """Provide text_content only, no doc_url/doc_type."""
+def test_executor_text_valid(mock_chain_and_loader):
+    """Provide text only, no text_file_url/text_file_type."""
     result = executor(
         **base_attributes,
-        text_content="Some sample text about plants and photosynthesis."
+        text="Some sample text about plants and photosynthesis."
     )
     assert isinstance(result, dict)
     assert result["status"] == "success"
@@ -56,190 +57,190 @@ def test_executor_text_content_valid(mock_chain_and_loader):
 
 
 def test_executor_missing_all_inputs(mock_chain_and_loader):
-    """Expect error if doc_url/doc_type/text_content all missing."""
+    """Expect error if text_file_url/text_file_type/text all missing."""
     result = executor(**base_attributes)
     assert result["status"] == "error"
-    assert "Either 'doc_url' or 'text_content' must be provided." in result["message"]
+    assert "Either 'text_file_url' or 'text' must be provided." in result["message"]
 
 
-def test_executor_pdf_doc_url_valid(mock_chain_and_loader):
-    """doc_url w/ PDF, doc_type='pdf' => success, 'Mocked Summary' in notes."""
+def test_executor_pdf_text_file_url_valid(mock_chain_and_loader):
+    """text_file_url w/ PDF, text_file_type='pdf' => success, 'Mocked Summary' in notes."""
     result = executor(
         **base_attributes,
-        doc_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
-        doc_type="pdf"
+        text_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
+        text_file_type="pdf"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_pdf_doc_url_invalid(mock_chain_and_loader):
+def test_executor_pdf_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
-            doc_type=1
+            text_file_url="https://filesamples.com/samples/document/pdf/sample1.pdf",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
 
-def test_executor_csv_doc_url_valid(mock_chain_and_loader):
+def test_executor_csv_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://filesamples.com/samples/document/csv/sample1.csv",
-        doc_type="csv"
+        text_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
+        text_file_type="csv"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_csv_doc_url_invalid(mock_chain_and_loader):
+def test_executor_csv_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://filesamples.com/samples/document/csv/sample1.csv",
-            doc_type=1
+            text_file_url="https://filesamples.com/samples/document/csv/sample1.csv",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
-def test_executor_txt_doc_url_valid(mock_chain_and_loader):
+def test_executor_txt_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://filesamples.com/samples/document/txt/sample1.txt",
-        doc_type="txt"
+        text_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
+        text_file_type="txt"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_txt_doc_url_invalid(mock_chain_and_loader):
+def test_executor_txt_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://filesamples.com/samples/document/txt/sample1.txt",
-            doc_type=1
+            text_file_url="https://filesamples.com/samples/document/txt/sample1.txt",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
-def test_executor_md_doc_url_valid(mock_chain_and_loader):
+def test_executor_md_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
-        doc_type="md"
+        text_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
+        text_file_type="md"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_md_doc_url_invalid(mock_chain_and_loader):
+def test_executor_md_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
-            doc_type=1
+            text_file_url="https://github.com/radicalxdev/kai-ai-backend/blob/main/README.md",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
-def test_executor_pptx_doc_url_valid(mock_chain_and_loader):
+def test_executor_pptx_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
-        doc_type="pptx"
+        text_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
+        text_file_type="pptx"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_pptx_doc_url_invalid(mock_chain_and_loader):
+def test_executor_pptx_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
-            doc_type=1
+            text_file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
-def test_executor_docx_doc_url_valid(mock_chain_and_loader):
+def test_executor_docx_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://filesamples.com/samples/document/docx/sample1.docx",
-        doc_type="docx"
+        text_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
+        text_file_type="docx"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_docx_doc_url_invalid(mock_chain_and_loader):
+def test_executor_docx_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://filesamples.com/samples/document/docx/sample1.docx",
-            doc_type=1
+            text_file_url="https://filesamples.com/samples/document/docx/sample1.docx",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
-def test_executor_xls_doc_url_valid(mock_chain_and_loader):
+def test_executor_xls_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://filesamples.com/samples/document/xls/sample1.xls",
-        doc_type="xls"
+        text_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
+        text_file_type="xls"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_xls_doc_url_invalid(mock_chain_and_loader):
+def test_executor_xls_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://filesamples.com/samples/document/xls/sample1.xls",
-            doc_type=1
+            text_file_url="https://filesamples.com/samples/document/xls/sample1.xls",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
-def test_executor_xlsx_doc_url_valid(mock_chain_and_loader):
+def test_executor_xlsx_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
-        doc_type="xlsx"
+        text_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
+        text_file_type="xlsx"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_xlsx_doc_url_invalid(mock_chain_and_loader):
+def test_executor_xlsx_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
-            doc_type=1
+            text_file_url="https://filesamples.com/samples/document/xlsx/sample1.xlsx",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]
 
-def test_executor_gpdf_doc_url_valid(mock_chain_and_loader):
+def test_executor_gpdf_text_file_url_valid(mock_chain_and_loader):
     result = executor(
         **base_attributes,
-        doc_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
-        doc_type="gpdf"
+        text_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
+        text_file_type="gpdf"
     )
     assert result["status"] == "success"
     assert "notes" in result
     assert "Mocked Summary" in result["notes"]
 
 
-def test_executor_gpdf_doc_url_invalid(mock_chain_and_loader):
+def test_executor_gpdf_text_file_url_invalid(mock_chain_and_loader):
     result = executor(
             **base_attributes,
-            doc_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
-            doc_type=1
+            text_file_url="https://drive.google.com/file/d/1fUj1uWIMh6QZsPkt0Vs7mEd2VEqz3O8l/view",
+            text_file_type=1
         )
     assert result["status"] == "error"
-    assert "Unsupported doc_type" in result["message"]
+    assert "Unsupported text_file_type" in result["message"]

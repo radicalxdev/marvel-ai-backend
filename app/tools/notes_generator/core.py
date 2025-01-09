@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict, Optional
 from app.api.error_utilities import FileHandlerError
 from app.utils.document_loaders import get_docs
 from app.tools.notes_generator.tools import NotesGeneratorPipeline
@@ -7,59 +7,57 @@ from app.services.logger import setup_logger
 logger = setup_logger(__name__)
 
 def executor(
-    doc_url: str = "",
-    doc_type: str = "",
-    text_content: str = "",
-    focus_topic: str = "",
-    lang: str = "en",
+    topic: str,
+    page_layout: str,
+    text: Optional[str] = None,
+    text_file_url: Optional[str] = None,
+    text_file_type: Optional[str] = None,
+    lang: str = "en"
 ) -> Dict[str, str]:
     """
     Executor function for generating notes using a retrieval + generation pipeline.
 
     Args:
-        doc_url (str): URL for the document to load.
-        doc_type (str): The type of document (pdf, docx, csv, etc.).
-        text_content (str): Plain text input if the user wants to pass text directly.
-        focus_topic (str): Focus or topic for the notes generation.
+        text_file_url (str): URL for the document to load.
+        text_file_type (str): The type of document (pdf, docx, csv, etc.).
+        text (str): Plain text input if the user wants to pass text directly.
+        topic (str): Focus or topic for the notes generation.
         lang (str): Language code (e.g. 'en', 'es', 'fr', etc.) to guide multilingual generation.
 
     Returns:
         Dict[str, str]: Contains the status and generated notes.
     """
-    SUPPORTED_DOC_TYPES = {"pdf","docx","csv","txt","md","pptx","xls","xlsx","gpdf"}
 
     try:
-        logger.info("Notes generation started...")
+    #     logger.info("Notes generation started...")
 
-        # Validate that at least one of doc_url or text_content is provided
-        if not doc_url and not text_content:
-            raise ValueError("Either 'doc_url' or 'text_content' must be provided.")
+        # Validate that at least one of text_file_url or text is provided
+        if not text_file_url and not text:
+            raise ValueError("Either 'text_file_url' or 'text' must be provided.")
 
-        # Validate that if doc_url is provided, doc_type must also be provided
-        if doc_url and not doc_type:
-            raise ValueError("If 'doc_url' is provided, 'doc_type' must also be provided.")
+        # Validate that if text_file_url is provided, text_file_type must also be provided
+        if text_file_url and not text_file_type:
+            raise ValueError("If 'text_file_url' is provided, 'text_file_type' must also be provided.")
 
-        # 1. Load documents from doc_url if provided and doc_type is supported
+        # 1. Load documents from text_file_url if provided and text_file_type is supported
         docs = []
-        if doc_url and doc_type:
-            if not isinstance(doc_type, str) or doc_type not in SUPPORTED_DOC_TYPES:
-                raise ValueError(f"Unsupported doc_type: {doc_type}. Must be one of {SUPPORTED_DOC_TYPES}.")
-            try:
-                docs = get_docs(doc_url, doc_type, verbose=True)  # get_docs function from document_loaders.py
-            except FileHandlerError as fnf:
-                logger.error(f"Failed to load docs from {doc_url}: {str(e)}")
-                raise ValueError(f"Failed to load docs from {doc_url} - {str(e)}")
+        if text_file_url and text_file_type:
+            if not isinstance(text_file_type, str):
+                raise ValueError("Unsupported text_file_type: must be a string.")
+            logger.info("Notes generation started...")
+            docs = get_docs(text_file_url, text_file_type, verbose=True)  # get_docs function from document_loaders.py
 
         # 2. If user gave raw text
-        if text_content:
-            text_content=text_content
+        if text:
+            text=text
 
         # 3. Run the pipeline with all input to generate notes
         pipeline = NotesGeneratorPipeline(
-            doc_url=doc_url or "",
-            doc_type=doc_type or "",
-            text_content=text_content or "",
-            focus_topic=focus_topic,
+            topic=topic,
+            page_layout=page_layout,
+            text=text or "",
+            text_file_url=text_file_url or "",
+            text_file_type=text_file_type or "",
             lang=lang
         )
         notes = pipeline.generate_notes(docs)
@@ -72,7 +70,7 @@ def executor(
         return {"status": "error", "message": str(ve)}
     except FileNotFoundError as fnf:
         logger.error(f"FileNotFoundError: {str(fnf)}")
-        return {"status": "error", "message": "File not found. Please check the doc_url or file path."}
+        return {"status": "error", "message": "File not found. Please check the text_file_url or file path."}
     except Exception as e:
         logger.error(f"Unexpected error during notes generation: {str(e)}")
         return {"status": "error", "message": "An unexpected error occurred. Please try again."}

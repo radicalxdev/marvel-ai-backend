@@ -1,50 +1,40 @@
 {
-    "name": "notes_generator",
-    "description": "Generate concise, structured notes from uploaded files or direct text input, optionally focusing on a specific topic.",
-    "inputs": [
-      {
-        "label": "Content (Text or URL)",
-        "name": "text_content",
-        "type": "text",
-        "required": false,
-        "description": "Enter raw text or a URL (YouTube, Website, or Google Sheets). If file is not provided, content must be provided here."
-      },
-      {
-        "label": "File Upload",
-        "name": "doc_url",
-        "type": "text",
-        "required": false,
-        "description": "Upload a file (CSV, PDF, DOCX, PPT, TXT) by providing its URL. file must be provided, if text_content is not provided."
-      },
-      {
-        "label": "File/URL Type",
-        "name": "doc_type",
-        "type": "select",
-        "choices": ["csv", "pdf", "docx", "ppt", "txt", "youtube", "website", "gsheet"],
-        "required": false,
-        "description": "The type of file or URL being provided (e.g., PDF, YouTube, Website, etc.). Required if you upload a file or link."
-      },
-      {
-        "label": "Topic or Focus",
-        "name": "focus_topic",
-        "type": "text",
-        "required": false,
-        "description": "The specific topic or focus area to tailor the generated notes."
-      },
-      {
-        "label": "Language",
-        "name": "lang",
-        "type": "text",
-        "required": false,
-        "description": "Language code (e.g., 'en', 'es', 'fr') for multilingual note generation."
-      },
-      {
-        "label": "Page Layout",
-        "name": "page_layout",
-        "type": "select",
-        "choices": ["Portrait", "Landscape"],
-        "required": false,
-        "description": "Choose the layout format for your final notes."
-      }
-    ]
-  }
+  "inputs": [
+    {
+      "label": "Topic or Focus of the Notes",
+      "name": "topic",
+      "type": "text",
+      "required": true
+    },
+    {
+      "label": "Page Layout (e.g. 'Portrait' or 'Landscape')",
+      "name": "page_layout",
+      "type": "text",
+      "required": true
+    },
+    {
+      "label": "Direct Text Input",
+      "name": "text",
+      "type": "text",
+      "required": false
+    },
+    {
+      "label": "URL of the File (CSV, PDF, DOCX, PPT, etc.)",
+      "name": "text_file_url",
+      "type": "text",
+      "required": false
+    },
+    {
+      "label": "Type of the File",
+      "name": "text_file_type",
+      "type": "text",
+      "required": false
+    },
+    {
+      "label": "Language",
+      "name": "lang",
+      "type": "text",
+      "required": false
+    }
+  ]
+}
