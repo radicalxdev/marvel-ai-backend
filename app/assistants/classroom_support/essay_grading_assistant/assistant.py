@@ -112,7 +112,7 @@ class EssayGradingGeneratorPipeline:
         if self.verbose:
             logger.info("Creating vectorstore from documents...")
         self.vectorstore = self.vectorstore_class.from_documents(documents, GoogleGenerativeAIEmbeddings(model="models/embedding-001"))
-        self.retriever = self.vectorstore.as_retriever()
+        self.retriever = self.vectorstore.as_retriever(search_kwargs={"filter": {"source": documents[0].metadata["source"]}})
         if self.verbose:
             logger.info("Vectorstore and retriever created successfully.")
 
