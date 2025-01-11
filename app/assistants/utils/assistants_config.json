@@ -2,6 +2,9 @@
     "classroom_support": {
         "co_teacher": {
             "path": "assistants.classroom_support.co_teacher.core"
+        },
+        "essay_grading_assistant": {
+            "path": "assistants.classroom_support.essay_grading_assistant.core"
         }
     }
 }
