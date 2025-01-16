@@ -1,0 +1,19 @@
+{
+    "inputs": [
+        {
+            "label": "Instructions",
+            "name": "instructions",
+            "type": "text"
+        },
+        {
+            "label": "File URL",
+            "name": "file_url",
+            "type": "text"
+        },
+        {
+            "label": "File Type",
+            "name": "file_type",
+            "type": "text"
+        }
+    ]
+}
