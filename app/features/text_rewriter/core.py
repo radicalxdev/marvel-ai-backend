@@ -10,17 +10,18 @@ def executor(
              file_url: str,
              file_type: str, 
              verbose=False):
+    
     try:
         if verbose:
             logger.info(f"File URL loaded: {file_url}")
         
         if file_type and file_url:
+            logger.info(f"Generating docs. from {file_url} with type {file_type}")
             docs = get_docs(file_url, file_type, verbose=True)
         else:
             docs = None
             raise ToolExecutorError("File URL and file type must be provided")
         
-        # TODO: IMPLEMENT CLASS HERE
         output = TextRewriter(instructions, verbose=verbose).rewrite(docs)
 
     except Exception as e:

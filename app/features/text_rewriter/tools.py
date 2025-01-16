@@ -1,13 +1,10 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional
+from typing import List, Dict
 import os
 from langchain_core.documents import Document
-from langchain_chroma import Chroma
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_google_genai import GoogleGenerativeAI
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from app.services.logger import setup_logger
 
@@ -24,61 +21,62 @@ def read_text_file(file_path):
         return file.read()
     
 class TextRewriter:
-    def __init__(self, instructions, vectorstore_class=Chroma, prompt=None, embedding_model=None, model=None, parser=None, verbose=False):
+    def __init__(self, instructions, prompt=None, model=None, parser=None, verbose=False):
         default_config = {
             "model": GoogleGenerativeAI(model="gemini-1.5-flash"),
-            "embedding_model": GoogleGenerativeAIEmbeddings(model='models/embedding-001'),
             "parser": JsonOutputParser(pydantic_object=RewrittenOutput),
-            "prompt": read_text_file("prompt/ai-resistant-prompt.txt"),
-            "prompt_without_context": read_text_file("prompt/ai-resistant-without-context-prompt.txt"),
-            "vectorstore_class": Chroma
+            "prompt": read_text_file("prompt/text-rewriter-prompt.txt"),
         }
 
         self.prompt = prompt or default_config["prompt"]
-        self.prompt_without_context = default_config["prompt_without_context"]
         self.model = model or default_config["model"]
         self.parser = parser or default_config["parser"]
-        self.embedding_model = embedding_model or default_config["embedding_model"]
 
-        self.vectorstore_class = vectorstore_class or default_config["vectorstore_class"]
-        self.vectorstore, self.retriever, self.runner = None, None, None
         self.instructions = instructions
         self.verbose = verbose
-
-        if vectorstore_class is None: raise ValueError("Vectorstore must be provided")
     
-    def compile_with_docs(self, documents: List[Document]):
+    def compile(self):
         # Return the chain
         prompt = PromptTemplate(
             template=self.prompt,
-            input_variables=["instructions"],
+            input_variables=["instructions", "context"],
             partial_variables={"format_instructions": self.parser.get_format_instructions()}
         )
 
-        if self.runner is None:
-            logger.info(f"Creating vectorstore from {len(documents)} documents") if self.verbose else None
-            self.vectorstore = self.vectorstore_class.from_documents(documents, self.embedding_model)
-            logger.info(f"Vectorstore created") if self.verbose else None
-
-            self.retriever = self.vectorstore.as_retriever()
-            logger.info(f"Retriever created successfully") if self.verbose else None
-
-            self.runner = RunnableParallel(
-                {"context": self.retriever,
-                "instructions": RunnablePassthrough()
-                }
-            )
-
-        chain = self.runner | prompt | self.model | self.parser
-
-        logger.info(f"Chain compilation complete")
+        chain = prompt | self.model | self.parser
 
         return chain
+    
+    def validate_output(self, response: Dict) -> bool:
+        # TODO: implement a response validator here
+        # might need to add more checks
+        if 'rewritten_text' in response:
+            return True
+        return False
 
     def rewrite(self, documents: List[Document]):
-        chain = self.compile_with_docs(documents)
-        output = chain.run()
-        return output
+        chain = self.compile()
+        doc_content = "\n".join([doc.page_content for doc in documents])
+
+        attempts = 0
+        max_attempts = 5
+
+        while attempts < max_attempts:
+            response = chain.invoke(
+                instructions=self.instructions,
+                context=doc_content
+            )
+
+            if self.verbose:
+                logger.info(f"Generated response attempt {attempts + 1}: {response}")
+
+            # validate response
+            if self.validate_output(response):
+                break
+    
+            # if response is invalid, retry
+            attempts += 1
+        return response
     
 class RewrittenOutput(BaseModel):
     rewritten_text: str = Field(description="The rewritten text")

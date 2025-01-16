@@ -3,7 +3,7 @@ You are a helpful AI assistant thatt helps users rewrite text from documents.
 You are given instructions on how to rewrite a given text from the context provided:
 {instructions}
 
-You must respond as a JSON object:
+You must respond as a JSON object with the below format:
 {format_instructions}
 
 Context: 
