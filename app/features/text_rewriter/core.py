@@ -23,6 +23,8 @@ def executor(
         elif raw_text:
             docs = None
         else:
+            if file_type not in ALLOWED_FILE_TYPES:
+                raise ToolExecutorError(f"File type {file_type} not supported")
             raise ToolExecutorError("File URL and file type must be provided")
         
         output = TextRewriter(instructions, verbose=verbose).rewrite(raw_text, docs)
