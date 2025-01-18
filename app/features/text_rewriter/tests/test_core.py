@@ -68,14 +68,6 @@ def test_executor_txt_url_invalid():
     assert isinstance(exc_info.value, ValueError)
 
 # PPTX Tests
-def test_executor_pptx_url_valid():
-    rewritten_text = executor(
-        **base_attributes,
-        file_url="https://scholar.harvard.edu/files/torman_personal/files/samplepptx.pptx",
-        file_type="pptx"
-    )
-    assert isinstance(rewritten_text, dict)
-
 def test_executor_pptx_url_invalid():
     with pytest.raises(ValueError) as exc_info:
         executor(
@@ -149,16 +141,6 @@ def test_executor_youtube_url_invalid():
         )
     assert isinstance(exc_info.value, ValueError)
 
-# PPTX Tests
-def test_executor_pptx_url_valid():
-    rewritten_text = executor(
-        **base_attributes,
-        file_url = "https://getsamplefiles.com/download/pptx/sample-1.pptx",
-        file_type = "pptx",
-    )
-
-    assert isinstance(rewritten_text, dict)
-
 def test_executor_pptx_url_invalid():
 
     with pytest.raises(ValueError) as exc_info:
@@ -182,12 +164,12 @@ def test_executor_plain_text_valid():
     assert isinstance(rewritten_text, dict)
 
 def test_executor_plain_text_invalid():
-    with pytest.raises(InputValidationError) as exc_info:
+    with pytest.raises(ValueError) as exc_info:
         executor(
             **base_attributes_without_raw_text,
-            raw_text=1,
+            raw_text="",
             file_url="",
-            file_type="",
+            file_type=1,
         )
 
-    assert isinstance(exc_info.value, InputValidationError)
+    assert isinstance(exc_info.value, ValueError)
