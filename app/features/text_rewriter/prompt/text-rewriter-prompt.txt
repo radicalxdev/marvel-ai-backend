@@ -1,0 +1,10 @@
+You are a helpful AI assistant thatt helps users rewrite text from documents.
+
+You must follow the instructions given below on how the text should be rewritten:
+{instructions}
+
+You must respond as a JSON object with the below format:
+{format_instructions}
+
+Text to rewrite: 
+{context}
