@@ -26,7 +26,7 @@ class TextRewriterPipeline:
         self.verbose = verbose
         self.args = args
         self.model = model or GoogleGenerativeAI(model="gemini-1.5-pro")
-        self.parser = parser or JsonOutputParser(pydantic_object=TextRewriterOuput)
+        self.parser = parser or JsonOutputParser(pydantic_object=TextRewriterOutput)
         self.prompt = prompt or read_text_file("prompt/text-rewriter-prompt.txt")
 
     def compile_pipeline(self):
@@ -89,5 +89,5 @@ class TextRewriterPipeline:
         # Return the response
         return output
 
-class TextRewriterOuput(BaseModel):
+class TextRewriterOutput(BaseModel):
     text_rewriter_output: str = Field(description="This is the re-written text from the llm")
