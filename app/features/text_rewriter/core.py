@@ -5,24 +5,27 @@ from app.api.error_utilities import ToolExecutorError
 
 logger = setup_logger()
 
+ALLOWED_FILE_TYPES = {"pptx", "pdf", "docx", "txt", "csv", "youtube_url", "url", "gsheet"}
+
 def executor(
+             raw_text: str,
              instructions: str,
              file_url: str,
              file_type: str, 
              verbose=False):
     
     try:
-        if verbose:
-            logger.info(f"File URL loaded: {file_url}")
+        if verbose: logger.info(f"File URL loaded: {file_url}")
         
-        if file_type and file_url:
+        if file_type and file_url and file_type in ALLOWED_FILE_TYPES:
             logger.info(f"Generating docs. from {file_url} with type {file_type}")
             docs = get_docs(file_url, file_type, verbose=True)
-        else:
+        elif raw_text:
             docs = None
+        else:
             raise ToolExecutorError("File URL and file type must be provided")
         
-        output = TextRewriter(instructions, verbose=verbose).rewrite(docs)
+        output = TextRewriter(instructions, verbose=verbose).rewrite(raw_text, docs)
 
     except Exception as e:
         error_message = f"Error in executor: {e}"

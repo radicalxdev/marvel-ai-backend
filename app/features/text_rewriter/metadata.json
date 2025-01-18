@@ -6,6 +6,11 @@
             "type": "text"
         },
         {
+            "label": "Text to Rewrite",
+            "name": "raw_text",
+            "type": "text"
+        },
+        {
             "label": "File URL",
             "name": "file_url",
             "type": "text"

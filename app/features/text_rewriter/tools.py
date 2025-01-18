@@ -36,7 +36,6 @@ class TextRewriter:
         self.verbose = verbose
     
     def compile(self):
-        # Return the chain
         prompt = PromptTemplate(
             template=self.prompt,
             input_variables=["instructions", "context"],
@@ -45,37 +44,44 @@ class TextRewriter:
 
         chain = prompt | self.model | self.parser
 
+        if self.verbose: logger.info(f"Chain compiled: {chain}")
+
         return chain
     
     def validate_output(self, response: Dict) -> bool:
-        # TODO: implement a response validator here
-        # might need to add more checks
         if 'rewritten_text' in response:
             return True
         return False
 
-    def rewrite(self, documents: List[Document]):
+    def rewrite(self, raw_text: str, documents: List[Document]):
         chain = self.compile()
-        doc_content = "\n".join([doc.page_content for doc in documents])
-
+        if documents:
+            doc_content = "\n".join([doc.page_content for doc in documents])
+        else:
+            doc_content = raw_text
+            
         attempts = 0
         max_attempts = 5
 
         while attempts < max_attempts:
-            response = chain.invoke(
-                instructions=self.instructions,
-                context=doc_content
-            )
+            response = chain.invoke({
+                "instructions": self.instructions,
+                "context": doc_content
+            })
 
             if self.verbose:
                 logger.info(f"Generated response attempt {attempts + 1}: {response}")
 
-            # validate response
+            # validate response incase of LLM hallucinations
             if self.validate_output(response):
                 break
-    
+            
+            if self.verbose: logger.warning(f"Invalid response generated, retrying...")
             # if response is invalid, retry
             attempts += 1
+        
+        if self.verbose: logger.info(f"Final response generated: {response}")
+        
         return response
     
 class RewrittenOutput(BaseModel):
