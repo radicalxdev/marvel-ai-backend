@@ -47,8 +47,7 @@ def read_text_file(file_path):
         return file.read()
 
 def get_docs(file_url: str, file_type: str, lang: str = "en", verbose=True):
-    file_type = file_type.lower()
-
+    file_type = file_type.lower() 
     if file_type in FILE_TYPES_TO_CHECK:
         try:
             # Make a HEAD request to get content type

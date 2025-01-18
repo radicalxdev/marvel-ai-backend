@@ -154,3 +154,10 @@ class WritingFeedbackGeneratorArgs(BaseModel):
     writing_to_review_file_url: str
     writing_to_review_file_type: str
     lang: Optional[str] = "en"
+
+class TextRewriterArgs(BaseModel):
+    instructions: str
+    text: str
+    file_url: str
+    file_type: str
+    lang: Optional[str] = "en"
