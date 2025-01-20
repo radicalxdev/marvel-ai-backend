@@ -1,0 +1,18 @@
+{
+    "name": "Notes Generator",
+    "description": "Generate structured notes from various types of input.",
+    "input_parameters": {
+        "content": {
+            "type": "string",
+            "description": "The input content to generate notes from."
+        },
+        "focus": {
+            "type": "string",
+            "description": "The focus or topic for the notes."
+        },
+        "input_type": {
+            "type": "string",
+            "description": "The type of input (text, file)."
+        }
+    }
+}
